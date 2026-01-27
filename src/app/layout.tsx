@@ -1,45 +1,27 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Providers } from '@/providers'
-import './globals.css'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "@/providers";
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: {
-    default: 'AnHeYu Blog',
-    template: '%s | AnHeYu',
-  },
-  description: 'AnHeYu 个人博客 - 分享技术、生活与思考',
-  keywords: ['博客', 'AnHeYu', '技术', '前端', '后端'],
-  authors: [{ name: 'AnHeYu' }],
-  openGraph: {
-    type: 'website',
-    locale: 'zh_CN',
-    siteName: 'AnHeYu Blog',
-  },
-}
+  title: "AnHeYu Next - 现代博客主题",
+  description: "一个基于 Next.js 和 HeroUI 构建的现代化博客主题",
+  keywords: ["博客", "Next.js", "React", "AnHeYu"],
+  authors: [{ name: "安知鱼" }],
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
-      >
+      <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>
     </html>
-  )
+  );
 }

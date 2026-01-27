@@ -1,30 +1,32 @@
 {
   "name": "theme-anheyu-next",
-  "display_name": "AnHeYu Next",
+  "displayName": "Next 主题",
   "version": "1.0.0",
-  "description": "AnHeYu Pro 默认主题 - 基于 Next.js 16 + HeroUI + Tailwind v4",
-  "author": "AnHeYu",
+  "description": "一个现代化的博客主题，基于 Next.js 和 HeroUI 构建，采用 anheyu-pro 配色方案",
+  "author": "安知鱼",
+  "homepage": "https://anheyu.com",
   "license": "MIT",
-  "deploy_type": "ssr",
-  "engine": "nextjs",
-  "engine_version": "16",
-  "features": [
-    "ssr",
-    "dark-mode",
-    "responsive",
-    "seo-friendly"
-  ],
-  "screenshots": [],
-  "settings": {
-    "primary_color": {
-      "type": "color",
-      "label": "主题色",
-      "default": "#3b82f6"
+  "preview": "/static/img/preview.png",
+  "config": {
+    "appearance": {
+      "themeColor": "#163bf2",
+      "defaultTheme": "system",
+      "enableAnimation": true,
+      "enableParallax": true
     },
-    "enable_animations": {
-      "type": "boolean",
-      "label": "启用动画效果",
-      "default": true
+    "layout": {
+      "sidebarPosition": "right",
+      "postsPerPage": 10,
+      "showTOC": true
+    },
+    "footer": {
+      "startYear": 2020,
+      "customHtml": ""
+    },
+    "features": {
+      "enableSearch": true,
+      "enableComments": true,
+      "enableDarkMode": true
     }
   }
 }

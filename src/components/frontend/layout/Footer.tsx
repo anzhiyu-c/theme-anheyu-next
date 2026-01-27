@@ -1,178 +1,84 @@
 "use client";
 
-import { ReactElement } from "react";
 import Link from "next/link";
-import { Mail, ArrowUp, RefreshCw } from "lucide-react";
+import { Github, Twitter, Mail, Heart } from "lucide-react";
 
-// 社交链接配置
-const socialLinks: { href: string; label: string; icon: () => ReactElement }[] = [
-  {
-    href: "mailto:VDU6Ljw9LSF5NxQlJXo3Ozk",
-    label: "email",
-    icon: () => <Mail className="w-5 h-5" />,
-  },
-  {
-    href: "https://weibo.com/u/6378063631",
-    label: "微博",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M10.098 20.323c-3.977.391-7.414-1.406-7.672-4.02-.259-2.609 2.759-5.047 6.74-5.441 3.979-.394 7.413 1.404 7.671 4.018.259 2.6-2.759 5.049-6.739 5.443zM9.05 17.219c-.384.616-1.208.884-1.829.602-.612-.279-.793-.991-.406-1.593.379-.595 1.176-.861 1.793-.601.622.263.82.972.442 1.592zm1.27-1.627c-.141.237-.449.353-.689.253-.236-.09-.313-.361-.177-.586.138-.227.436-.346.672-.24.239.09.315.36.194.573zm.176-2.719c-1.893-.493-4.033.45-4.857 2.118-.836 1.704-.26 3.591 1.349 4.217 1.668.649 3.939-.313 4.774-2.086.82-1.726.091-3.74-1.266-4.249zM19.063 8.72c-.249-.068-.415-.113-.279-.409.298-.641.33-1.193.008-1.585-.602-.73-2.25-.691-4.147-.02 0 0-.595.26-.443-.212.289-.921.246-1.691-.206-2.136-.996-1.001-3.65-.005-5.933 2.223C6.167 8.523 5 10.695 5 12.542c0 3.532 4.536 5.681 8.975 5.681 5.814 0 9.695-3.381 9.695-6.064 0-1.623-1.368-2.543-3.607-3.439zm1.27-4.677c-.974-1.081-2.412-1.675-4.046-1.675-.349 0-.7.029-1.048.086-.256.042-.395-.094-.322-.34.089-.297.045-.529-.161-.708-.406-.352-1.288-.324-2.262.067-.191.076-.282-.026-.212-.246.198-.625.135-1.147-.2-1.464-.672-.632-2.091-.2-3.306.948-1.215 1.147-1.777 2.562-1.254 3.153.156.175.102.313-.125.324-1.143.057-2.118.532-2.656 1.343-.538.811-.553 1.851-.041 2.767.044.079-.01.119-.098.087-1.039-.379-1.969-.221-2.526.428-.557.65-.611 1.64-.145 2.691.042.094-.018.114-.103.046-.698-.554-1.426-.771-2.037-.579-.611.192-.997.688-1.046 1.365-.059.8.309 1.759 1.033 2.692.071.092-.005.148-.105.105-.628-.262-1.238-.355-1.766-.254-.528.101-.935.393-1.112.835-.26.644-.027 1.551.632 2.466.065.09.005.13-.09.08-.619-.33-1.177-.481-1.63-.419-.453.063-.803.298-.967.678-.269.619.035 1.525.854 2.467.078.09.01.133-.098.086-.719-.31-1.342-.401-1.808-.252-.465.149-.78.494-.87.97-.135.72.28 1.663 1.165 2.58.086.089.011.132-.102.083C2.287 21.485.952 22.25.426 23.154.006 23.87.134 24.66.843 25.292c.708.633 1.841.957 3.137.899.08-.003.095.057.028.103-.666.466-.977 1.098-.86 1.736.118.638.637 1.176 1.437 1.49.799.313 1.788.36 2.733.133.079-.019.111.033.056.093-.558.608-.746 1.331-.52 1.988.226.658.783 1.154 1.54 1.374.759.22 1.657.153 2.485-.187.069-.028.1.022.055.085-.447.634-.535 1.365-.243 2.009.292.644.887 1.095 1.645 1.245.758.15 1.607.011 2.345-.385.061-.032.1.017.068.083-.316.65-.282 1.392.094 2.039.376.647 1.063 1.053 1.895 1.118.833.065 1.723-.207 2.455-.75.06-.045.1-.01.07.06-.295.69-.216 1.454.219 2.099.435.644 1.175 1.007 2.043.999.867-.008 1.78-.391 2.519-1.057.06-.054.098-.028.065.045-.32.709-.265 1.493.152 2.154.417.661 1.148 1.061 2.017 1.102.868.04 1.79-.288 2.544-.904.058-.048.098-.017.069.053-.283.693-.195 1.472.243 2.139.439.668 1.186 1.068 2.063 1.102.877.034 1.81-.267 2.573-.83.059-.043.098-.014.073.047-.247.591-.166 1.259.22 1.834.386.574 1.01.943 1.722 1.017.712.075 1.471-.137 2.098-.584.053-.038.09-.006.07.056-.19.576-.093 1.212.27 1.746.362.535.927.871 1.56.926.633.055 1.293-.16 1.822-.591.044-.036.082-.006.066.052-.149.535-.03 1.13.334 1.633.364.503.918.82 1.53.874.613.054 1.25-.132 1.76-.513.04-.03.074-.004.06.045-.119.431.007.906.354 1.307.348.401.851.64 1.391.66.54.02 1.092-.19 1.524-.578.033-.03.061 0 .051.041-.085.335.045.705.366.997.32.292.763.427 1.213.37.45-.057.889-.29 1.213-.643.025-.027.048-.001.041.038-.053.282.076.582.364.787.287.205.665.275 1.029.191.364-.085.703-.301.94-.604.018-.022.038-.001.033.03-.04.25.063.517.293.687.23.17.53.205.82.096.29-.109.548-.339.712-.639.012-.021.028-.001.026.026-.016.218.096.442.318.576.222.134.495.145.745.03.25-.115.468-.353.597-.656.009-.02.021 0 .021.024-.001.178.111.358.316.46.205.103.457.084.688-.053.23-.136.422-.38.527-.67.007-.019.016 0 .016.023 0 .17.112.338.316.426.204.088.449.053.67-.096.221-.148.398-.404.487-.705.006-.019.012 0 .011.022.004.15.11.295.3.37.188.075.413.038.614-.101.201-.139.364-.369.449-.632.005-.018.009 0 .007.02.006.12.097.232.257.296.16.064.35.035.519-.079.169-.114.307-.306.381-.528.004-.016.007 0 .005.017.007.102.089.194.228.247.139.052.305.029.455-.063.15-.092.273-.248.339-.43.004-.015.005 0 .003.014.008.089.083.167.21.21.127.042.275.019.406-.064.131-.083.24-.223.299-.387.003-.013.004 0 .002.012z" />
-      </svg>
-    ),
-  },
-  {
-    href: "https://www.facebook.com/profile.php?id=100092208016287",
-    label: "facebook",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/atom.xml",
-    label: "RSS",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248-1.796 0-3.252-1.454-3.252-3.248 0-1.794 1.456-3.248 3.252-3.248 1.795.001 3.251 1.454 3.251 3.248zm-6.503-12.572v4.811c6.05.062 10.96 4.966 11.022 11.009h4.817c-.062-8.71-7.118-15.758-15.839-15.82zm0-3.368c10.58.046 19.152 8.594 19.183 19.188h4.817c-.03-13.231-10.755-23.954-24-24v4.812z" />
-      </svg>
-    ),
-  },
-  {
-    href: "https://github.com/anzhiyu-c",
-    label: "Github",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-      </svg>
-    ),
-  },
-  {
-    href: "https://space.bilibili.com/372204786",
-    label: "Bilibili",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.124.929.373.267.249.4.551.4.907 0 .355-.133.657-.4.906L17.813 4.653z" />
-      </svg>
-    ),
-  },
-  {
-    href: "https://v.douyin.com/DwCpMEy/",
-    label: "抖音",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/copyright",
-    label: "CC",
-    icon: () => (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-2.14 16.06c-1.92 0-3.48-1.56-3.48-3.48s1.56-3.48 3.48-3.48c.96 0 1.824.384 2.448 1.008l-.816.816c-.384-.384-.912-.624-1.536-.624-1.248 0-2.256 1.008-2.256 2.256s1.008 2.256 2.256 2.256c.624 0 1.152-.24 1.536-.624l.816.816c-.624.624-1.488 1.008-2.448 1.008zm6.24 0c-1.92 0-3.48-1.56-3.48-3.48s1.56-3.48 3.48-3.48c.96 0 1.824.384 2.448 1.008l-.816.816c-.384-.384-.912-.624-1.536-.624-1.248 0-2.256 1.008-2.256 2.256s1.008 2.256 2.256 2.256c.624 0 1.152-.24 1.536-.624l.816.816c-.624.624-1.488 1.008-2.448 1.008z" />
-      </svg>
-    ),
-  },
+const socialLinks = [
+  { name: "GitHub", href: "https://github.com/anzhiyu-c", icon: Github },
+  { name: "Twitter", href: "https://twitter.com", icon: Twitter },
+  { name: "Email", href: "mailto:contact@anheyu.com", icon: Mail },
 ];
 
-// 页脚链接配置
 const footerLinks = [
-  {
-    title: "服务",
-    links: [
-      { label: "站点地图", href: "/atom.xml", external: true },
-      { label: "十年之约", href: "https://foreverblog.cn/go.html", external: true },
-      { label: "开往", href: "https://www.travellings.cn/go.html", external: true },
-    ],
-  },
-  {
-    title: "框架",
-    links: [
-      { label: "文档", href: "https://dev.anheyu.com", external: true },
-      { label: "源码", href: "https://github.com/anzhiyu-c/anheyu-app", external: true },
-      { label: "更新日志", href: "/update" },
-    ],
-  },
   {
     title: "导航",
     links: [
-      { label: "小空调", href: "/air-conditioner" },
-      { label: "相册集", href: "/album" },
-      { label: "音乐馆", href: "/music" },
+      { name: "首页", href: "/" },
+      { name: "文章", href: "/posts" },
+      { name: "分类", href: "/categories" },
+      { name: "标签", href: "/tags" },
     ],
   },
   {
-    title: "协议",
+    title: "关于",
     links: [
-      { label: "隐私协议", href: "/privacy" },
-      { label: "Cookies", href: "/cookies" },
-      { label: "版权协议", href: "/copyright" },
+      { name: "关于我", href: "/about" },
+      { name: "友情链接", href: "/links" },
+      { name: "留言板", href: "/guestbook" },
     ],
   },
   {
-    title: "友链",
-    hasShuffle: true,
+    title: "其他",
     links: [
-      { label: "安知鱼", href: "https://blog.anheyu.com/", external: true },
-      { label: "安知鱼", href: "https://blog.anheyu.com/", external: true },
-      { label: "更多", href: "/link" },
+      { name: "RSS", href: "/rss.xml" },
+      { name: "站点地图", href: "/sitemap.xml" },
     ],
   },
 ];
 
 export function Footer() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
 
   return (
-    <footer className="bg-white dark:bg-[#1e1e24] border-t border-gray-200 dark:border-gray-800 mt-8">
-      <div className="max-w-[1400px] mx-auto px-4 py-8">
-        {/* 社交链接 */}
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          {socialLinks.map(link => (
-            <Link
-              key={link.label}
-              href={link.href}
-              target={link.href.startsWith("http") ? "_blank" : undefined}
-              className="p-2 rounded-full text-gray-400 hover:text-[#49b1f5] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title={link.label}
-            >
-              {link.icon()}
+    <footer id="footer-container" className="bg-card border-t border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {/* 品牌区域 */}
+          <div className="col-span-2 md:col-span-1">
+            <Link href="/" className="text-2xl font-bold text-primary">
+              AnHeYu
             </Link>
-          ))}
-          {/* 返回顶部按钮 */}
-          <button
-            onClick={scrollToTop}
-            className="p-2 rounded-full text-gray-400 hover:text-[#49b1f5] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            title="返回顶部"
-          >
-            <ArrowUp className="w-5 h-5" />
-          </button>
-        </div>
+            <p className="mt-4 text-sm text-muted-foreground">分享技术与生活，记录成长的点滴。</p>
+            {/* 社交链接 */}
+            <div className="flex space-x-4 mt-6">
+              {socialLinks.map(link => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  aria-label={link.name}
+                >
+                  <link.icon className="w-5 h-5" />
+                </a>
+              ))}
+            </div>
+          </div>
 
-        {/* 页脚链接 */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 mb-8">
-          {footerLinks.map(group => (
-            <div key={group.title}>
-              <div className="flex items-center gap-2 mb-3">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">{group.title}</h4>
-                {group.hasShuffle && (
-                  <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <RefreshCw className="w-3 h-3 text-gray-400" />
-                  </button>
-                )}
-              </div>
-              <ul className="space-y-2">
-                {group.links.map(link => (
-                  <li key={link.label}>
+          {/* 链接区域 */}
+          {footerLinks.map(section => (
+            <div key={section.title}>
+              <h3 className="text-sm font-semibold text-foreground mb-4">{section.title}</h3>
+              <ul className="space-y-3">
+                {section.links.map(link => (
+                  <li key={link.name}>
                     <Link
                       href={link.href}
-                      target={link.external ? "_blank" : undefined}
-                      className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#49b1f5] transition-colors"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
                     >
-                      {link.label}
+                      {link.name}
                     </Link>
                   </li>
                 ))}
@@ -181,35 +87,15 @@ export function Footer() {
           ))}
         </div>
 
-        {/* 版权信息 */}
-        <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-800">
-          <div className="text-sm text-gray-500 dark:text-gray-400 mb-2 sm:mb-0">
-            ©2020 - {new Date().getFullYear()} By{" "}
-            <Link href="/about" className="hover:text-[#49b1f5] transition-colors">
-              安知鱼
-            </Link>{" "}
-            ·{" "}
-            <Link href="https://beian.miit.gov.cn/" target="_blank" className="hover:text-[#49b1f5] transition-colors">
-              湘ICP备2023015794号-2
-            </Link>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <Link href="/about#post-comment" className="hover:text-[#49b1f5] transition-colors">
-              留言
-            </Link>
-            <Link
-              href="https://github.com/anzhiyu-c/anheyu-app"
-              target="_blank"
-              className="hover:text-[#49b1f5] transition-colors"
-            >
-              框架
-            </Link>
-            <Link href="https://index.anheyu.com" target="_blank" className="hover:text-[#49b1f5] transition-colors">
-              主页
-            </Link>
-            <Link href="/copyright" className="flex items-center gap-1 hover:text-[#49b1f5] transition-colors">
-              <span>CC BY-NC-ND 4.0 协议</span>
-            </Link>
+        {/* 底部版权信息 */}
+        <div className="mt-12 pt-8 border-t border-border">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <p className="text-sm text-muted-foreground">
+              © {startYear} - {currentYear} AnHeYu. All rights reserved.
+            </p>
+            <p className="text-sm text-muted-foreground flex items-center">
+              Made with <Heart className="w-4 h-4 mx-1 text-destructive fill-current" /> using Next.js & HeroUI
+            </p>
           </div>
         </div>
       </div>
