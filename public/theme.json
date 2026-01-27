@@ -1,0 +1,30 @@
+{
+  "name": "theme-anheyu-next",
+  "display_name": "AnHeYu Next",
+  "version": "1.0.0",
+  "description": "AnHeYu Pro 默认主题 - 基于 Next.js 16 + HeroUI + Tailwind v4",
+  "author": "AnHeYu",
+  "license": "MIT",
+  "deploy_type": "ssr",
+  "engine": "nextjs",
+  "engine_version": "16",
+  "features": [
+    "ssr",
+    "dark-mode",
+    "responsive",
+    "seo-friendly"
+  ],
+  "screenshots": [],
+  "settings": {
+    "primary_color": {
+      "type": "color",
+      "label": "主题色",
+      "default": "#3b82f6"
+    },
+    "enable_animations": {
+      "type": "boolean",
+      "label": "启用动画效果",
+      "default": true
+    }
+  }
+}

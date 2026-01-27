@@ -1,8 +1,41 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* HeroUI 主题源（必须） */
+@source '../../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+
+/* 自定义主题变量 */
+@theme {
+  /* 品牌色 - AnHeYu 主题色 */
+  --color-brand-50: oklch(97% 0.02 264);
+  --color-brand-100: oklch(94% 0.04 264);
+  --color-brand-200: oklch(88% 0.08 264);
+  --color-brand-300: oklch(80% 0.12 264);
+  --color-brand-400: oklch(70% 0.16 264);
+  --color-brand-500: oklch(60% 0.20 264);
+  --color-brand-600: oklch(52% 0.18 264);
+  --color-brand-700: oklch(44% 0.16 264);
+  --color-brand-800: oklch(36% 0.12 264);
+  --color-brand-900: oklch(28% 0.08 264);
+
+  /* AnHeYu 特定颜色 */
+  --color-anheyu-primary: #425aef;
+  --color-anheyu-secondary: #ff7c82;
+  --color-anheyu-success: #51cf66;
+  --color-anheyu-info: #4cc9f0;
+  --color-anheyu-warning: #ffa94d;
+  
+  /* 分类按钮颜色 */
+  --color-category-frontend: #425aef;
+  --color-category-college: #ff6b6b;
+  --color-category-life: #51cf66;
+  
+  /* Hero 渐变色 */
+  --color-hero-start: #49b1f5;
+  --color-hero-end: #38a3a5;
+  
+  /* 卡片背景 */
+  --color-card-bg: #ffffff;
+  --color-card-border: #e5e7eb;
 }
 
 @theme inline {
@@ -12,15 +45,235 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #f6f8fa;
+  --foreground: #171717;
+  --card-background: #ffffff;
+  --sidebar-background: #ffffff;
+  --header-background: rgba(255, 255, 255, 0.8);
+  --border-color: #e5e7eb;
+}
+
+.dark {
+  --background: #18171d;
+  --foreground: #ededed;
+  --card-background: #1e1e24;
+  --sidebar-background: #1e1e24;
+  --header-background: rgba(24, 23, 29, 0.8);
+  --border-color: #2d2d3a;
+}
+
+/* 基础样式 */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* 文章内容样式 */
+  .prose {
+    --tw-prose-body: var(--foreground);
+    --tw-prose-headings: var(--foreground);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* 自定义工具类 */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 文字渐变 */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-700) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* AnHeYu Hero 渐变 */
+  .bg-hero-gradient {
+    background: linear-gradient(135deg, #49b1f5 0%, #38a3a5 100%);
+  }
+
+  /* 分类按钮样式 */
+  .btn-frontend {
+    background: linear-gradient(135deg, #425aef 0%, #5a67d8 100%);
+  }
+
+  .btn-college {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+  }
+
+  .btn-life {
+    background: linear-gradient(135deg, #51cf66 0%, #69db7c 100%);
+  }
+
+  /* 公众号卡片渐变 */
+  .bg-wechat-gradient {
+    background: linear-gradient(135deg, #07c160 0%, #10b981 100%);
+  }
+
+  /* 卡片阴影 */
+  .card-shadow {
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .card-shadow-hover {
+    box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.15);
+  }
+
+  /* 导航栏样式 */
+  .nav-item-hover {
+    position: relative;
+  }
+
+  .nav-item-hover::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--color-anheyu-primary);
+    transition: width 0.3s ease;
+  }
+
+  .nav-item-hover:hover::after {
+    width: 100%;
+  }
+
+  /* 下拉菜单样式 */
+  .dropdown-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+  }
+
+  .dropdown-trigger:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  /* 文章卡片悬浮效果 */
+  .article-card {
+    transition: all 0.3s ease;
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+  }
+
+  /* 技术图标轮播 */
+  .tech-icons-scroll {
+    animation: scroll-icons 20s linear infinite;
+  }
+
+  .animate-scroll {
+    animation: scroll-icons 30s linear infinite;
+  }
+
+  @keyframes scroll-icons {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  /* 暂停动画 */
+  .animate-scroll:hover {
+    animation-play-state: paused;
+  }
+
+  /* 侧边栏卡片 */
+  .sidebar-card {
+    background: var(--card-background);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* 标签样式 */
+  .tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .tag-new {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+    color: white;
+  }
+
+  .tag-unread {
+    background: #e5e7eb;
+    color: #4b5563;
+  }
+
+  /* 页面布局 */
+  .main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* 首页三列布局 */
+  .home-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  @media (min-width: 1024px) {
+    .home-layout {
+      grid-template-columns: minmax(0, 1fr) 300px;
+    }
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
 }
