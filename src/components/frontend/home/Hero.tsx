@@ -170,16 +170,37 @@ function FloatingIcon({
   );
 }
 
-// 粒子系统
+// 粒子类型
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  duration: number;
+  delay: number;
+}
+
+// 粒子系统 - 只在客户端生成随机粒子，避免 hydration 错误
 function ParticleField() {
-  const particles = Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    duration: Math.random() * 10 + 10,
-    delay: Math.random() * 5,
-  }));
+  const [particles, setParticles] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    // 只在客户端生成粒子，避免服务器/客户端不匹配
+    const generatedParticles = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 10 + 10,
+      delay: Math.random() * 5,
+    }));
+    setParticles(generatedParticles);
+  }, []);
+
+  // 服务器端或粒子未生成时不渲染
+  if (particles.length === 0) {
+    return <div className="absolute inset-0 overflow-hidden pointer-events-none" />;
+  }
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -194,6 +215,7 @@ function ParticleField() {
             height: particle.size,
             background: "var(--anzhiyu-theme)",
           }}
+          initial={{ opacity: 0, scale: 0 }}
           animate={{
             y: [0, -100, 0],
             opacity: [0, 0.6, 0],

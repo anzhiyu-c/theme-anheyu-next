@@ -97,15 +97,17 @@ export function Header() {
 
   // 当前页面标题
   const currentPageTitle = useMemo(() => {
-    // TODO: 根据路由获取页面标题
-    if (pathname === "/") return "";
+    // 根据路由获取页面标题
+    if (pathname === "/") return siteName; // 首页显示站点名称
     if (pathname?.startsWith("/posts/")) return "文章详情";
     if (pathname === "/archives") return "归档";
     if (pathname === "/categories") return "分类";
     if (pathname === "/tags") return "标签";
     if (pathname === "/about") return "关于";
-    return "";
-  }, [pathname]);
+    if (pathname === "/music") return "音乐";
+    if (pathname === "/links") return "友链";
+    return siteName; // 默认显示站点名称
+  }, [pathname, siteName]);
 
   // 检测移动端
   useEffect(() => {
