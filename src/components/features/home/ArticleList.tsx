@@ -33,14 +33,14 @@ export function ArticleList({ articles, title = "最新文章", showMore = true 
 
   return (
     <section ref={containerRef} className="relative py-16 sm:py-24 overflow-hidden">
-      {/* 环境背景 */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* 环境背景 - 位置下移避免滚动时露出 */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl opacity-30"
+          className="absolute top-1/3 left-1/4 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
           style={{ background: "var(--anzhiyu-theme-op)" }}
         />
         <div
-          className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
+          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-15"
           style={{ background: "var(--anzhiyu-theme-op)" }}
         />
       </div>

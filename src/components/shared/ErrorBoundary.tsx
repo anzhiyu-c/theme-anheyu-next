@@ -45,35 +45,47 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // 默认错误 UI
+      // 默认错误 UI - 全屏居中布局
       return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
-          <div className="mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-              <span className="text-3xl">😵</span>
+        <div className="min-h-screen w-full bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-center max-w-md mx-auto">
+            {/* 图标 */}
+            <div className="mb-8">
+              <span className="text-5xl">😵</span>
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">出错了</h2>
-            <p className="text-muted-foreground max-w-md">页面遇到了一些问题，请尝试刷新页面或返回首页。</p>
-          </div>
 
-          {process.env.NODE_ENV === "development" && this.state.error && (
-            <div className="mb-6 p-4 bg-destructive/5 rounded-lg text-left max-w-md w-full">
-              <p className="text-sm font-mono text-destructive break-all">{this.state.error.message}</p>
+            {/* 标题和描述 */}
+            <h2 className="text-2xl font-semibold text-foreground mb-3">出错了</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-8">
+              页面遇到了一些问题，请尝试刷新页面或返回首页。
+            </p>
+
+            {/* 开发环境错误信息 */}
+            {process.env.NODE_ENV === "development" && this.state.error && (
+              <div className="mb-8 p-4 bg-destructive/5 border border-destructive/10 rounded-lg text-left w-full">
+                <p className="text-sm font-mono text-destructive break-all">{this.state.error.message}</p>
+              </div>
+            )}
+
+            {/* 操作按钮 */}
+            <div className="flex items-center gap-4">
+              <Button
+                color="default"
+                variant="light"
+                startContent={<RefreshCw className="w-4 h-4" />}
+                onPress={this.handleRetry}
+              >
+                重试
+              </Button>
+              <Button
+                color="default"
+                variant="light"
+                startContent={<Home className="w-4 h-4" />}
+                onPress={this.handleGoHome}
+              >
+                返回首页
+              </Button>
             </div>
-          )}
-
-          <div className="flex gap-3">
-            <Button
-              color="primary"
-              variant="flat"
-              startContent={<RefreshCw className="w-4 h-4" />}
-              onPress={this.handleRetry}
-            >
-              重试
-            </Button>
-            <Button variant="bordered" startContent={<Home className="w-4 h-4" />} onPress={this.handleGoHome}>
-              返回首页
-            </Button>
           </div>
         </div>
       );

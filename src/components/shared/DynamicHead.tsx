@@ -1,31 +1,83 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 
 /**
  * 动态 Head 组件
  * 根据站点配置动态更新 favicon、标题和 SEO meta 标签
- * 参考 anheyu-pro 实现
+ * 使用 MutationObserver 确保标题不被 Next.js metadata 覆盖
  */
 export function DynamicHead() {
   const { siteConfig, isLoaded } = useSiteConfigStore();
+  const targetTitleRef = useRef<string | null>(null);
+  const observerRef = useRef<MutationObserver | null>(null);
 
+  // 计算配置值
+  const appName = siteConfig.APP_NAME;
+  const subTitle = siteConfig.SUB_TITLE;
+  const targetTitle = appName ? (subTitle ? `${appName} - ${subTitle}` : appName) : null;
+
+  // 更新标题并监听变化
+  useEffect(() => {
+    if (!isLoaded || !targetTitle) return;
+
+    // 保存目标标题
+    targetTitleRef.current = targetTitle;
+
+    // 设置标题的函数
+    const setTitle = () => {
+      if (targetTitleRef.current && document.title !== targetTitleRef.current) {
+        document.title = targetTitleRef.current;
+      }
+    };
+
+    // 立即设置标题
+    setTitle();
+
+    // 使用 MutationObserver 监听 head 变化（包括 title 元素被替换的情况）
+    if (!observerRef.current) {
+      observerRef.current = new MutationObserver(mutations => {
+        // 检查是否有 title 相关的变化
+        const hasTitleChange = mutations.some(
+          m =>
+            m.target.nodeName === "TITLE" ||
+            m.target === document.head ||
+            Array.from(m.addedNodes).some(n => (n as Element).nodeName === "TITLE") ||
+            Array.from(m.removedNodes).some(n => (n as Element).nodeName === "TITLE")
+        );
+        if (hasTitleChange) {
+          // 使用 requestAnimationFrame 确保在 DOM 更新后设置标题
+          requestAnimationFrame(() => {
+            setTitle();
+          });
+        }
+      });
+
+      // 监听 head 元素的子节点变化
+      observerRef.current.observe(document.head, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    }
+
+    // 清理函数
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, [isLoaded, targetTitle]);
+
+  // 更新其他 meta 标签
   useEffect(() => {
     if (!isLoaded) return;
-
-    // 更新页面标题（参考 anheyu-pro 实现）
-    const appName = siteConfig.APP_NAME;
-    const subTitle = siteConfig.SUB_TITLE;
-    if (appName) {
-      // 组合标题：站点名称 - 副标题
-      document.title = subTitle ? `${appName} - ${subTitle}` : appName;
-    }
 
     // 更新 meta description
     if (subTitle) {
       let descMeta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-
       if (!descMeta) {
         descMeta = document.createElement("meta");
         descMeta.name = "description";
@@ -35,7 +87,6 @@ export function DynamicHead() {
 
       // 同时更新 OG description
       let ogDescMeta = document.querySelector('meta[property="og:description"]') as HTMLMetaElement | null;
-
       if (!ogDescMeta) {
         ogDescMeta = document.createElement("meta");
         ogDescMeta.setAttribute("property", "og:description");
@@ -45,50 +96,23 @@ export function DynamicHead() {
     }
 
     // 更新 OG title
-    if (appName) {
+    if (targetTitle) {
       let ogTitleMeta = document.querySelector('meta[property="og:title"]') as HTMLMetaElement | null;
-
       if (!ogTitleMeta) {
         ogTitleMeta = document.createElement("meta");
         ogTitleMeta.setAttribute("property", "og:title");
         document.head.appendChild(ogTitleMeta);
       }
-      ogTitleMeta.content = subTitle ? `${appName} - ${subTitle}` : appName;
+      ogTitleMeta.content = targetTitle;
     }
 
-    // 更新 Favicon（使用配置中的 ICON_URL，如果没有则使用默认值）
-    const iconUrl = siteConfig.ICON_URL || "/favicon.ico";
-    if (iconUrl) {
-      // 判断图标类型（注意：本项目的 .ico 文件实际是 PNG 格式）
-      const isSvg = iconUrl.endsWith(".svg");
-      // 由于 .ico 文件实际是 PNG，统一使用 image/png 保证兼容性
-      const iconType = isSvg ? "image/svg+xml" : "image/png";
-
-      // 更新主 favicon（删除旧的，创建新的以确保更新）
-      const existingFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
-      existingFavicons.forEach(el => el.remove());
-
-      // 创建新的 favicon link（添加时间戳避免缓存问题）
-      const cacheBuster = `?v=${Date.now()}`;
-      const faviconLink = document.createElement("link");
-      faviconLink.rel = "icon";
-      faviconLink.type = iconType;
-      faviconLink.href = iconUrl + cacheBuster;
-      document.head.appendChild(faviconLink);
-
-      // 创建 shortcut icon（兼容旧浏览器）
-      const shortcutIcon = document.createElement("link");
-      shortcutIcon.rel = "shortcut icon";
-      shortcutIcon.type = iconType;
-      shortcutIcon.href = iconUrl + cacheBuster;
-      document.head.appendChild(shortcutIcon);
-    }
+    // 注意：Favicon 由 layout.tsx 的 generateMetadata 在服务端设置
+    // 客户端不再重复设置，避免闪烁
 
     // 更新 Apple Touch Icon
     const logoUrl = siteConfig.LOGO_URL_192x192 || siteConfig.LOGO_URL;
     if (logoUrl) {
       let appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]') as HTMLLinkElement | null;
-
       if (!appleTouchIcon) {
         appleTouchIcon = document.createElement("link");
         appleTouchIcon.rel = "apple-touch-icon";
@@ -101,7 +125,6 @@ export function DynamicHead() {
     const tileLogoUrl = siteConfig.LOGO_URL || siteConfig.LOGO_URL_192x192;
     if (tileLogoUrl) {
       let msTileImageMeta = document.querySelector('meta[name="msapplication-TileImage"]') as HTMLMetaElement | null;
-
       if (!msTileImageMeta) {
         msTileImageMeta = document.createElement("meta");
         msTileImageMeta.name = "msapplication-TileImage";
@@ -110,11 +133,10 @@ export function DynamicHead() {
       msTileImageMeta.content = tileLogoUrl;
     }
 
-    // 更新 OG Image（社交分享图片）
+    // 更新 OG Image
     const ogImageUrl = siteConfig.LOGO_URL_512x512 || siteConfig.LOGO_URL;
     if (ogImageUrl) {
       let ogImageMeta = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null;
-
       if (!ogImageMeta) {
         ogImageMeta = document.createElement("meta");
         ogImageMeta.setAttribute("property", "og:image");
@@ -123,26 +145,21 @@ export function DynamicHead() {
       ogImageMeta.content = ogImageUrl;
     }
 
-    // 更新站点名称相关 meta
-    const siteName = siteConfig.APP_NAME;
-    if (siteName) {
-      // OG Site Name
+    // 更新 OG Site Name
+    if (appName) {
       let ogSiteNameMeta = document.querySelector('meta[property="og:site_name"]') as HTMLMetaElement | null;
-
       if (!ogSiteNameMeta) {
         ogSiteNameMeta = document.createElement("meta");
         ogSiteNameMeta.setAttribute("property", "og:site_name");
         document.head.appendChild(ogSiteNameMeta);
       }
-      ogSiteNameMeta.content = siteName;
+      ogSiteNameMeta.content = appName;
     }
 
     // 更新站点 URL
     const siteUrl = siteConfig.SITE_URL;
     if (siteUrl) {
-      // OG URL
       let ogUrlMeta = document.querySelector('meta[property="og:url"]') as HTMLMetaElement | null;
-
       if (!ogUrlMeta) {
         ogUrlMeta = document.createElement("meta");
         ogUrlMeta.setAttribute("property", "og:url");
@@ -150,9 +167,7 @@ export function DynamicHead() {
       }
       ogUrlMeta.content = siteUrl;
 
-      // Canonical URL
       let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-
       if (!canonicalLink) {
         canonicalLink = document.createElement("link");
         canonicalLink.rel = "canonical";
@@ -160,8 +175,7 @@ export function DynamicHead() {
       }
       canonicalLink.href = siteUrl;
     }
-  }, [siteConfig, isLoaded]);
+  }, [siteConfig, isLoaded, appName, subTitle, targetTitle]);
 
-  // 此组件不渲染任何 UI
   return null;
 }
