@@ -1,6 +1,6 @@
-import { Hero } from "@/components/frontend/home/Hero";
-import { ArticleList } from "@/components/frontend/home/ArticleList";
-import { Stats } from "@/components/frontend/home/Stats";
+import { Hero } from "@/components/features/home/Hero";
+import { ArticleList } from "@/components/features/home/ArticleList";
+import { Stats } from "@/components/features/home/Stats";
 import { getArticles, getBasicStatistics } from "@/lib/api/server";
 import type { Article, BasicStatistics } from "@/types";
 

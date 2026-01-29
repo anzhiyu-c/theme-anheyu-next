@@ -5,229 +5,11 @@
 
 import { create } from "zustand";
 import { apiClient } from "@/lib/api/client";
+import { CACHE_KEYS, CACHE_TTL } from "@/lib/constants";
+import type { SiteConfigData } from "@/types/site-config";
 
-// 缓存相关常量
-const LOCAL_STORAGE_KEY = "site_config_cache";
-const CACHE_EXPIRATION_TIME = 24 * 60 * 60 * 1000; // 24小时
-
-// 站点配置类型（与 anheyu-pro 保持一致）
-export interface SiteConfigData {
-  APP_NAME?: string;
-  APP_VERSION?: string;
-  SUB_TITLE?: string;
-  ICP_NUMBER?: string;
-  USER_AVATAR?: string;
-  ABOUT_LINK?: string;
-  API_URL?: string;
-  SITE_URL?: string;
-  ICON_URL?: string;
-  LOGO_HORIZONTAL_DAY?: string;
-  LOGO_HORIZONTAL_NIGHT?: string;
-  LOGO_URL?: string;
-  LOGO_URL_192x192?: string;
-  LOGO_URL_512x512?: string;
-  DEFAULT_THUMB_PARAM?: string;
-  DEFAULT_BIG_PARAM?: string;
-  SITE_ANNOUNCEMENT?: string;
-  GRAVATAR_URL?: string;
-  DEFAULT_GRAVATAR_TYPE?: string;
-  ENABLE_REGISTRATION?: boolean | string;
-  POLICE_RECORD_NUMBER?: string;
-  POLICE_RECORD_ICON?: string;
-
-  // 嵌套配置
-  frontDesk?: {
-    siteOwner?: {
-      name?: string;
-      email?: string;
-    };
-  };
-
-  header?: {
-    nav?: unknown;
-    menu?: unknown;
-  };
-
-  footer?: {
-    uptime_kuma?: {
-      enable?: boolean;
-      url?: string;
-    };
-    runtime?: {
-      enable?: boolean;
-      launch_time?: string;
-    };
-  };
-
-  sidebar?: {
-    author?: {
-      enable?: boolean;
-      description?: string;
-      statusImg?: string;
-      skills?: string[];
-      social?: Record<string, { icon: string; link: string }>;
-    };
-    weather?: {
-      enable?: boolean;
-      qweather_key?: string;
-    };
-    tags?: {
-      enable?: boolean;
-      highlight?: string[];
-    };
-    siteinfo?: {
-      totalPostCount?: number;
-      runtimeEnable?: boolean;
-      totalWordCount?: number;
-    };
-    series?: {
-      postCount?: number;
-    };
-  };
-
-  page?: {
-    one_image?: {
-      config?: unknown;
-      hitokoto_api?: string;
-      typing_speed?: number;
-    };
-    oneImageConfig?: unknown;
-  };
-
-  post?: {
-    waves?: {
-      enable?: boolean;
-    };
-    default?: {
-      cover?: string;
-    };
-    copyright?: {
-      enable?: boolean;
-      license?: string;
-      license_url?: string;
-    };
-    copy?: {
-      enable?: boolean;
-      min_length?: number;
-    };
-    code_block?: {
-      code_max_lines?: number;
-    };
-    reward?: {
-      enable?: boolean;
-      button_text?: string;
-      title?: string;
-      wechat_label?: string;
-      alipay_label?: string;
-      wechat_qr?: string;
-      alipay_qr?: string;
-      list_button_text?: string;
-      list_button_desc?: string;
-    };
-    subscribe?: {
-      enable?: boolean;
-      buttonText?: string;
-      dialogTitle?: string;
-      dialogDesc?: string;
-    };
-    page404?: {
-      default_image?: string;
-    };
-  };
-
-  comment?: {
-    enable?: boolean;
-  };
-
-  music?: {
-    player?: {
-      enable?: boolean;
-    };
-  };
-
-  copyright?: {
-    license?: string;
-    license_url?: string;
-  };
-
-  site?: {
-    url?: string;
-  };
-
-  // 文章多人共创配置
-  article?: {
-    multi_author?: {
-      enable?: boolean | string;
-      need_review?: boolean | string;
-    };
-  };
-
-  // AI 播客配置
-  ai_podcast?: {
-    button_text?: string;
-    button_icon?: string;
-  };
-
-  // 验证码配置
-  captcha?: {
-    provider?: string;
-  };
-
-  turnstile?: {
-    site_key?: string;
-  };
-
-  geetest?: {
-    captcha_id?: string;
-  };
-
-  // OAuth 配置
-  oauth?: {
-    qq?: { enable?: boolean };
-    wechat?: { enable?: boolean };
-    logto?: { enable?: boolean; display_name?: string };
-    oidc?: { enable?: boolean; display_name?: string };
-    rainbow?: {
-      enable?: boolean;
-      api_url?: string;
-      app_id?: string;
-      login_methods?: string;
-      callback_url?: string;
-    };
-  };
-
-  // 即刻配置
-  essay?: {
-    title?: string;
-    subtitle?: string;
-    tips?: string;
-    button_text?: string;
-    button_link?: string;
-    limit?: number;
-    home_enable?: boolean;
-    top_background?: string;
-  };
-
-  // 朋友圈配置
-  moments?: {
-    enable?: boolean;
-    title?: string;
-    subtitle?: string;
-    tips?: string;
-    button_text?: string;
-    button_link?: string;
-    top_background?: string;
-  };
-
-  // 最近评论配置
-  recent_comments?: {
-    enable?: boolean;
-    limit?: number;
-  };
-
-  // 任意其他配置
-  [key: string]: unknown;
-}
+// 重新导出类型以保持向后兼容
+export type { SiteConfigData } from "@/types/site-config";
 
 // 缓存数据结构
 interface CachedData {
@@ -309,11 +91,11 @@ export const useSiteConfigStore = create<SiteConfigState>((set, get) => ({
     // 尝试从缓存读取
     if (typeof window !== "undefined") {
       try {
-        const cachedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const cachedData = localStorage.getItem(CACHE_KEYS.SITE_CONFIG);
         if (cachedData) {
           const { config: cachedConfig, timestamp }: CachedData = JSON.parse(cachedData);
           // 检查缓存是否过期
-          if (Date.now() - timestamp < CACHE_EXPIRATION_TIME) {
+          if (Date.now() - timestamp < CACHE_TTL.SITE_CONFIG) {
             set({
               siteConfig: cachedConfig,
               isLoaded: true,
@@ -326,12 +108,12 @@ export const useSiteConfigStore = create<SiteConfigState>((set, get) => ({
             return;
           } else {
             // 缓存过期，清除
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            localStorage.removeItem(CACHE_KEYS.SITE_CONFIG);
           }
         }
       } catch (error) {
         console.error("[SiteConfig] 解析缓存数据失败:", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        localStorage.removeItem(CACHE_KEYS.SITE_CONFIG);
       }
     }
 
@@ -363,7 +145,7 @@ export const useSiteConfigStore = create<SiteConfigState>((set, get) => ({
             config: configData,
             timestamp: Date.now(),
           };
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToCache));
+          localStorage.setItem(CACHE_KEYS.SITE_CONFIG, JSON.stringify(dataToCache));
         }
 
         // 在控制台打印站点配置
@@ -384,7 +166,7 @@ export const useSiteConfigStore = create<SiteConfigState>((set, get) => ({
   // 清除缓存
   clearCache: () => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem(CACHE_KEYS.SITE_CONFIG);
     }
     set({ isLoaded: false });
     console.log("%c[SiteConfig] 配置缓存已清除", "color: #f59e0b; font-weight: bold;");
@@ -394,7 +176,7 @@ export const useSiteConfigStore = create<SiteConfigState>((set, get) => ({
   forceRefreshFromServer: async () => {
     // 先清除缓存
     if (typeof window !== "undefined") {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem(CACHE_KEYS.SITE_CONFIG);
     }
     set({ isLoaded: false });
 

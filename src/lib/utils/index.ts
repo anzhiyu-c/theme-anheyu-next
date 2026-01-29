@@ -1,10 +1,12 @@
 import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 /**
  * 合并 class 名称
+ * 使用 clsx 处理条件类名，使用 tailwind-merge 处理冲突的 Tailwind 类名
  */
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -26,7 +28,7 @@ export function truncate(str: string, length: number): string {
  * 延迟函数
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**

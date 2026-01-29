@@ -1,9 +1,16 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const isDev = process.env.NODE_ENV === "development";
 
 // Next.js SSR 配置
 const nextConfig: NextConfig = {
+  // Turbopack 配置 - 修复 Monorepo 环境下的 workspace root 问题
+  turbopack: {
+    // 明确指定项目根目录，避免 Turbopack 错误推断 Monorepo root
+    root: path.resolve(__dirname),
+  },
+
   // SSR 模式：使用 standalone 输出，便于 Docker 部署
   output: "standalone",
 

@@ -5,6 +5,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User, LoginResponse } from "@/types";
+import { CACHE_KEYS } from "@/lib/constants";
 
 interface AuthState {
   // 状态
@@ -44,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
 
         // 同步到 localStorage（兼容 anheyu-pro 格式）
         if (typeof window !== "undefined") {
-          localStorage.setItem("anheyu-user-info", JSON.stringify(data));
+          localStorage.setItem(CACHE_KEYS.AUTH_INFO, JSON.stringify(data));
         }
       },
 
@@ -54,10 +55,10 @@ export const useAuthStore = create<AuthState>()(
 
         // 同步到 localStorage
         if (typeof window !== "undefined") {
-          const stored = localStorage.getItem("anheyu-user-info");
+          const stored = localStorage.getItem(CACHE_KEYS.AUTH_INFO);
           if (stored) {
             const data = JSON.parse(stored);
-            localStorage.setItem("anheyu-user-info", JSON.stringify({ ...data, userInfo: user }));
+            localStorage.setItem(CACHE_KEYS.AUTH_INFO, JSON.stringify({ ...data, userInfo: user }));
           }
         }
       },
@@ -79,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
 
         // 清除 localStorage
         if (typeof window !== "undefined") {
-          localStorage.removeItem("anheyu-user-info");
+          localStorage.removeItem(CACHE_KEYS.AUTH_INFO);
         }
       },
 
@@ -91,7 +92,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const stored = localStorage.getItem("anheyu-user-info");
+          const stored = localStorage.getItem(CACHE_KEYS.AUTH_INFO);
           if (stored) {
             const data = JSON.parse(stored);
             if (data.accessToken) {

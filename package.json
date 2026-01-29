@@ -5,6 +5,7 @@
   "description": "Next - 一个现代化的博客主题，基于 Next.js 和 HeroUI 构建，适配 anheyu-pro 后端",
   "scripts": {
     "dev": "next dev --turbopack --port 3004",
+    "dev:webpack": "next dev --webpack --port 3004",
     "build": "next build",
     "start": "next start --port 3000",
     "lint": "eslint . --ext .ts,.tsx",
@@ -26,14 +27,16 @@
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "next-themes": "^0.4.6",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.2.0",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.91.2",
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",

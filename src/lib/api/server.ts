@@ -8,7 +8,7 @@ import type {
   Article,
   Category,
   Tag,
-  SiteConfig,
+  SiteConfigData,
   BasicStatistics,
   PaginatedResponse,
   ArticleListParams,
@@ -59,8 +59,8 @@ async function serverFetch<T>(endpoint: string, options: FetchOptions = {}): Pro
 /**
  * 获取站点配置
  */
-export async function getSiteConfig(): Promise<SiteConfig | null> {
-  return serverFetch<SiteConfig>("/api/public/site-config", {
+export async function getSiteConfig(): Promise<SiteConfigData | null> {
+  return serverFetch<SiteConfigData>("/api/public/site-config", {
     revalidate: 3600, // 1 小时缓存
     tags: ["site-config"],
   });
