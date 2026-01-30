@@ -3,12 +3,42 @@
 import { useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Moon, Sun, FileText, Clock, Type } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 
 import styles from "./styles.module.css";
 import type { NavConfig, MenuItem } from "../../types";
+
+// 判断是否为图片 URL
+const isImageUrl = (icon?: string) => {
+  return icon && (icon.startsWith("http://") || icon.startsWith("https://"));
+};
+
+// 判断是否为 Iconify 图标（包含 ":"）
+const isIconifyIcon = (icon?: string) => {
+  return icon && icon.includes(":");
+};
+
+// 渲染图标组件
+function MenuIcon({ icon, className }: { icon?: string; className?: string }) {
+  if (!icon) return null;
+
+  // 图片 URL
+  if (isImageUrl(icon)) {
+    return <img src={icon} alt="" className={cn(styles.menuIcon, styles.menuIconImg, className)} />;
+  }
+
+  // Iconify 图标
+  if (isIconifyIcon(icon)) {
+    return (
+      <Icon icon={icon} width="1em" height="1em" className={cn(styles.menuIcon, styles.menuIconIconify, className)} />
+    );
+  }
+
+  return null;
+}
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -202,6 +232,7 @@ export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMen
                       className={styles.backMenuItem}
                       onClick={item.target === "_self" ? handleInternalLinkClick : undefined}
                     >
+                      <MenuIcon icon={item.icon} />
                       <span className={styles.backMenuItemText}>{item.name}</span>
                     </a>
                   ))}
@@ -228,6 +259,7 @@ export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMen
                           rel="noopener noreferrer"
                           className={styles.menuGroupItem}
                         >
+                          <MenuIcon icon={child.icon} />
                           <span>{child.name}</span>
                         </a>
                       ) : (
@@ -237,6 +269,7 @@ export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMen
                           className={styles.menuGroupItem}
                           onClick={handleInternalLinkClick}
                         >
+                          <MenuIcon icon={child.icon} />
                           <span>{child.name}</span>
                         </Link>
                       )
@@ -244,10 +277,12 @@ export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMen
                   ) : menu.href ? (
                     menu.isExternal || menu.href?.startsWith("http://") || menu.href?.startsWith("https://") ? (
                       <a href={menu.href} target="_blank" rel="noopener noreferrer" className={styles.menuGroupItem}>
+                        <MenuIcon icon={menu.icon} />
                         <span>{menu.name}</span>
                       </a>
                     ) : (
                       <Link href={menu.href} className={styles.menuGroupItem} onClick={handleInternalLinkClick}>
+                        <MenuIcon icon={menu.icon} />
                         <span>{menu.name}</span>
                       </Link>
                     )

@@ -304,6 +304,11 @@
   object-fit: contain;
 }
 
+.menuIconIconify {
+  font-size: 14px;
+  vertical-align: -0.125em;
+}
+
 .menusItem:hover .menuTitle {
   color: var(--anzhiyu-white) !important;
   background: var(--anzhiyu-main);

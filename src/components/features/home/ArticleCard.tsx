@@ -47,7 +47,7 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
     >
       <Link
         href={`/posts/${article.slug}`}
-        className="block h-full relative overflow-hidden rounded-2xl transition-all duration-300"
+        className="block h-full relative overflow-hidden rounded-lg transition-all duration-300"
         style={{
           background: "var(--anzhiyu-card-bg)",
           border: "1px solid var(--anzhiyu-border-color)",
@@ -55,7 +55,7 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
       >
         {/* 鼠标跟随高光效果 */}
         <motion.div
-          className="absolute inset-0 pointer-events-none rounded-2xl z-10"
+          className="absolute inset-0 pointer-events-none rounded-lg z-10"
           animate={{ opacity: isHovering ? 1 : 0 }}
           transition={{ duration: 0.3 }}
           style={{
@@ -65,7 +65,7 @@ export function ArticleCard({ article, index = 0 }: ArticleCardProps) {
 
         {/* 边框高光效果 */}
         <motion.div
-          className="absolute inset-0 pointer-events-none rounded-2xl z-10"
+          className="absolute inset-0 pointer-events-none rounded-lg z-10"
           animate={{ opacity: isHovering ? 1 : 0 }}
           transition={{ duration: 0.3 }}
           style={{

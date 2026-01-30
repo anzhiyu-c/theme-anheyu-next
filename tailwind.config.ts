@@ -4,18 +4,9 @@ const { heroui } = require("@heroui/react");
 const typography = require("@tailwindcss/typography");
 
 const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}", "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"],
   // 确保 prose 类始终被包含
-  safelist: [
-    "prose",
-    "prose-lg",
-    "prose-invert",
-    "dark:prose-invert",
-    { pattern: /^prose-/ },
-  ],
+  safelist: ["prose", "prose-lg", "prose-invert", "dark:prose-invert", { pattern: /^prose-/ }],
   theme: {
     extend: {
       colors: {
@@ -104,11 +95,8 @@ const config: Config = {
           "50%": { transform: "scale(1.15)", opacity: "0.7" },
         },
       },
-      borderRadius: {
-        lg: "12px",
-        md: "10px",
-        sm: "8px",
-      },
+      // 注意：HeroUI 使用 CSS 变量定义圆角（--heroui-radius-large 等）
+      // 不要覆盖 large/medium/small，否则会与 HeroUI 冲突
       boxShadow: {
         card: "var(--anzhiyu-shadow-border)",
         "card-hover": "var(--anzhiyu-shadow-main)",

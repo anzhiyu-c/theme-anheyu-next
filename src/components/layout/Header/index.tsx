@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { Tooltip } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
@@ -140,16 +141,30 @@ export function Header() {
     return menuItem.items && menuItem.items.length > 0 ? "dropdown" : "direct";
   };
 
+  // 判断是否为图片 URL
+  const isImageUrl = (icon?: string) => {
+    return icon && (icon.startsWith("http://") || icon.startsWith("https://"));
+  };
+
+  // 判断是否为 Iconify 图标（包含 ":"）
+  const isIconifyIcon = (icon?: string) => {
+    return icon && icon.includes(":");
+  };
+
   // 渲染图标
   const renderIcon = (icon?: string) => {
     if (!icon) return null;
 
     // 图片 URL
-    if (icon.startsWith("http://") || icon.startsWith("https://")) {
+    if (isImageUrl(icon)) {
       return <img src={icon} alt="" className={cn(styles.menuIcon, styles.menuIconImg)} />;
     }
 
-    // 默认返回 null，可以扩展支持更多图标类型
+    // Iconify 图标（如 "ri:home-fill"）
+    if (isIconifyIcon(icon)) {
+      return <Icon icon={icon} width="1em" height="1em" className={cn(styles.menuIcon, styles.menuIconIconify)} />;
+    }
+
     return null;
   };
 

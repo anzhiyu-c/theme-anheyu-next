@@ -51,7 +51,7 @@ function StatCard({ stat, value, index }: { stat: (typeof statsConfig)[0]; value
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="relative p-6 overflow-hidden text-center transition-all duration-300 group rounded-2xl cursor-default"
+      className="relative p-6 overflow-hidden text-center transition-all duration-300 group rounded-lg cursor-default"
       style={{
         background: "var(--anzhiyu-card-bg)",
         border: "1px solid var(--anzhiyu-border-color)",
@@ -59,7 +59,7 @@ function StatCard({ stat, value, index }: { stat: (typeof statsConfig)[0]; value
     >
       {/* 鼠标跟随高光效果 */}
       <motion.div
-        className="absolute inset-0 pointer-events-none rounded-2xl"
+        className="absolute inset-0 pointer-events-none rounded-lg"
         animate={{ opacity: isHovering ? 1 : 0 }}
         transition={{ duration: 0.3 }}
         style={{
@@ -69,7 +69,7 @@ function StatCard({ stat, value, index }: { stat: (typeof statsConfig)[0]; value
 
       {/* 边框高光效果 */}
       <motion.div
-        className="absolute inset-0 pointer-events-none rounded-2xl"
+        className="absolute inset-0 pointer-events-none rounded-lg"
         animate={{ opacity: isHovering ? 1 : 0 }}
         transition={{ duration: 0.3 }}
         style={{

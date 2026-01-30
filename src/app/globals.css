@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* HeroUI 圆角样式 - 确保正确应用 */
+.rounded-large {
+  border-radius: var(--heroui-radius-large, 14px) !important;
+}
+.rounded-medium {
+  border-radius: var(--heroui-radius-medium, 12px) !important;
+}
+.rounded-small {
+  border-radius: var(--heroui-radius-small, 8px) !important;
+}
+.shadow-medium {
+  box-shadow: var(--heroui-box-shadow-medium, 0 4px 14px 0 rgba(0, 0, 0, 0.1)) !important;
+}
+.border-medium {
+  border-width: 2px !important;
+}
+
 /* 为主色调CSS变量启用过渡动画支持 */
 @property --anzhiyu-main {
   syntax: "<color>";
