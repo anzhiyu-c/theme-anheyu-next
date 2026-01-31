@@ -1,26 +1,326 @@
 @import "tailwindcss";
 
+/* AnHeYu Pro 配色方案 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 主色调 */
+  --primary: #163bf2;
+  --primary-op: rgba(22, 59, 242, 0.14);
+  --primary-op-deep: rgba(22, 59, 242, 0.87);
+  --primary-op-light: rgba(22, 59, 242, 0.05);
+  --primary-foreground: #ffffff;
+
+  /* 背景色 */
+  --background: #f7f9fe;
+  --foreground: #363636;
+  --card: #ffffff;
+  --card-foreground: #363636;
+
+  /* 边框 & 分割 */
+  --border: #e3e8f7;
+  --border-hover: var(--primary);
+
+  /* 次要色 */
+  --muted: #f1f3f8;
+  --muted-foreground: rgba(60, 60, 67, 0.8);
+  --secondary: #edf0f7;
+  --secondary-foreground: #363636;
+
+  /* 功能色 */
+  --blue: #3e86f6;
+  --red: #d80020;
+  --pink: #ff7c7c;
+  --green: #57bd6a;
+  --yellow: #c28b00;
+  --orange: #e38100;
+  --purple: #7a60d2;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 16px -4px rgba(44, 45, 48, 0.05);
+  --shadow-lg: 0 12px 24px -8px rgba(0, 0, 0, 0.08);
+  --shadow-primary: 0 8px 12px -3px var(--primary-op);
+
+  /* 滚动条 */
+  --scrollbar: rgba(60, 60, 67, 0.4);
+  --scrollbar-hover: rgba(60, 60, 67, 0.6);
+
+  /* 遮罩 */
+  --mask: rgba(255, 255, 255, 0.6);
+  --mask-deep: rgba(255, 255, 255, 0.85);
+
+  /* 高亮文本 */
+  --highlight: #1f2d3d;
+}
+
+.dark {
+  /* 主色调 - 金黄色 */
+  --primary: #dfa621;
+  --primary-op: rgba(223, 166, 33, 0.14);
+  --primary-op-deep: rgba(223, 166, 33, 0.87);
+  --primary-op-light: rgba(223, 166, 33, 0.05);
+  --primary-foreground: #ffffff;
+
+  /* 背景色 */
+  --background: #18171d;
+  --foreground: #f7f7fa;
+  --card: #1d1e22;
+  --card-foreground: #f7f7fa;
+
+  /* 边框 & 分割 */
+  --border: #3d3d3f;
+  --border-hover: var(--primary);
+
+  /* 次要色 */
+  --muted: #21232a;
+  --muted-foreground: #a1a2b8;
+  --secondary: #30343f;
+  --secondary-foreground: #f7f7fa;
+
+  /* 功能色 */
+  --blue: #0084ff;
+  --red: #ff3842;
+  --pink: #d44040;
+  --green: #3e9f50;
+  --yellow: #ffc93e;
+  --orange: #ff953e;
+  --purple: #7a60d2;
+
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 16px -4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
+  --shadow-primary: 0 8px 12px -3px var(--primary-op);
+
+  /* 滚动条 */
+  --scrollbar: rgba(200, 200, 223, 0.4);
+  --scrollbar-hover: rgba(200, 200, 223, 0.6);
+
+  /* 遮罩 */
+  --mask: rgba(0, 0, 0, 0.6);
+  --mask-deep: rgba(0, 0, 0, 0.85);
+
+  /* 高亮文本 */
+  --highlight: rgba(255, 255, 255, 0.9);
 }
 
 @theme inline {
+  /* 主色 */
+  --color-primary: var(--primary);
+  --color-primary-op: var(--primary-op);
+  --color-primary-op-light: var(--primary-op-light);
+  --color-primary-op-deep: var(--primary-op-deep);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* 背景色 */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  /* 边框 */
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+
+  /* 次要色 */
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  /* 功能色 */
+  --color-blue: var(--blue);
+  --color-red: var(--red);
+  --color-pink: var(--pink);
+  --color-green: var(--green);
+  --color-yellow: var(--yellow);
+  --color-orange: var(--orange);
+  --color-purple: var(--purple);
+
+  /* 阴影 */
+  --shadow-primary: var(--shadow-primary);
+
+  /* 字体 */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  /* 自定义动画 */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-in: fadeIn 0.8s ease-out forwards;
+  --animate-slide-up: slideUp 0.8s ease-out forwards;
+  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.8;
+    }
   }
 }
 
+/* 基础样式 */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 只为 body 添加背景色过渡 */
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 主题切换时的渐变背景过渡 */
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-from), var(--tw-gradient-to));
+}
+
+/* MUI 组件主题切换过渡 - 参考 anheyu-pro 使用较短的过渡时间 */
+.MuiOutlinedInput-root,
+.MuiInputLabel-root,
+.MuiFormHelperText-root {
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease !important;
+}
+
+.MuiOutlinedInput-notchedOutline {
+  transition: border-color 0.2s ease !important;
+}
+
+/* Selection color - 匹配 anheyu-pro */
+::selection {
+  background: var(--primary-op-deep);
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border: 2px solid var(--background);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+/* Glass morphism */
+.glass {
+  background: var(--mask);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+/* Card styles - 匹配 anheyu-pro */
+.card-widget {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 1rem;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
+}
+
+.card-widget:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero typography */
+.text-hero {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+/* Section spacing */
+.section-spacing {
+  padding: 80px 0;
+}
+
+@media (min-width: 640px) {
+  .section-spacing {
+    padding: 120px 0;
+  }
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 移动端滚动条优化 */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: auto;
+    height: 6px;
+  }
 }
