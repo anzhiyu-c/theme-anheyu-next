@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home } from "lucide-react";
-import { Icon } from "@iconify/react";
-import { Tooltip } from "@/components/ui";
+import { Tooltip, MenuIcon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { useHeader, useIsMobile } from "@/hooks";
@@ -24,7 +23,15 @@ import styles from "./Header.module.css";
 export function Header() {
   const pathname = usePathname();
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
+  const isConfigLoaded = useSiteConfigStore(state => state.isLoaded);
   const isMobile = useIsMobile();
+
+  // 使用 useSyncExternalStore 检测客户端挂载状态（React 19 推荐方式）
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const [isRouteChanging, setIsRouteChanging] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -63,8 +70,10 @@ export function Header() {
   }, [headerConfig]);
 
   const siteName = useMemo(() => {
-    return siteConfig?.APP_NAME || "AnHeYu";
-  }, [siteConfig]);
+    // 只在客户端且配置已加载后显示真实名称，避免水合闪现
+    if (!mounted || !isConfigLoaded) return "";
+    return siteConfig?.APP_NAME || "";
+  }, [siteConfig, mounted, isConfigLoaded]);
 
   const subTitle = useMemo(() => {
     return siteConfig?.SUB_TITLE || "";
@@ -89,13 +98,20 @@ export function Header() {
     return fullSiteTitle;
   }, [pathname, fullSiteTitle]);
 
-  // 监听路由变化
+  // 监听路由变化 - 将 setState 放入微任务避免同步调用
   useEffect(() => {
-    setIsRouteChanging(true);
+    let cancelled = false;
+    // 使用 queueMicrotask 将 setState 延迟到微任务中执行
+    queueMicrotask(() => {
+      if (!cancelled) setIsRouteChanging(true);
+    });
     const timer = setTimeout(() => {
-      setIsRouteChanging(false);
+      if (!cancelled) setIsRouteChanging(false);
     }, 50);
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [pathname]);
 
   // 监听搜索快捷键
@@ -141,33 +157,6 @@ export function Header() {
     return menuItem.items && menuItem.items.length > 0 ? "dropdown" : "direct";
   };
 
-  // 判断是否为图片 URL
-  const isImageUrl = (icon?: string) => {
-    return icon && (icon.startsWith("http://") || icon.startsWith("https://"));
-  };
-
-  // 判断是否为 Iconify 图标（包含 ":"）
-  const isIconifyIcon = (icon?: string) => {
-    return icon && icon.includes(":");
-  };
-
-  // 渲染图标
-  const renderIcon = (icon?: string) => {
-    if (!icon) return null;
-
-    // 图片 URL
-    if (isImageUrl(icon)) {
-      return <img src={icon} alt="" className={cn(styles.menuIcon, styles.menuIconImg)} />;
-    }
-
-    // Iconify 图标（如 "ri:home-fill"）
-    if (isIconifyIcon(icon)) {
-      return <Icon icon={icon} width="1em" height="1em" className={cn(styles.menuIcon, styles.menuIconIconify)} />;
-    }
-
-    return null;
-  };
-
   return (
     <>
       <header className={styles.frontendHeader}>
@@ -190,7 +179,13 @@ export function Header() {
               {/* 站点名称 */}
               <Link href="/" className={styles.siteNameLink} accessKey="h">
                 {!isMobile ? (
-                  <Tooltip content="返回主页" side="bottom" delayDuration={300}>
+                  <Tooltip
+                    content="返回主页"
+                    placement="bottom"
+                    delay={300}
+                    closeDelay={0}
+                    classNames={{ content: "custom-tooltip-content" }}
+                  >
                     <div>
                       <span className={styles.siteTitle}>{siteName}</span>
                       <Home size={22} />
@@ -207,17 +202,21 @@ export function Header() {
 
             {/* 页面名称（滚动后显示） */}
             <div className={styles.pageNameMask}>
-              {!isMobile ? (
-                <Tooltip content="返回顶部" side="bottom" delayDuration={300}>
-                  <div className={styles.pageNameContainer} onClick={scrollToTop}>
+              <div className={styles.pageNameContainer} onClick={scrollToTop}>
+                {!isMobile ? (
+                  <Tooltip
+                    content="返回顶部"
+                    placement="bottom"
+                    delay={300}
+                    closeDelay={0}
+                    classNames={{ content: "custom-tooltip-content" }}
+                  >
                     <span className={styles.pageName}>{currentPageTitle}</span>
-                  </div>
-                </Tooltip>
-              ) : (
-                <div className={styles.pageNameContainer} onClick={scrollToTop}>
+                  </Tooltip>
+                ) : (
                   <span className={styles.pageName}>{currentPageTitle}</span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* 主导航 */}
@@ -233,7 +232,12 @@ export function Header() {
                         rel={menuItem.isExternal ? "noopener noreferrer" : undefined}
                         className={cn(styles.menuTitle, styles.directLink, styles.sitePage)}
                       >
-                        {renderIcon(menuItem.icon)}
+                        <MenuIcon
+                          icon={menuItem.icon}
+                          className={styles.menuIcon}
+                          imageClassName={styles.menuIconImg}
+                          iconifyClassName={styles.menuIconIconify}
+                        />
                         <span>{menuItem.title}</span>
                       </Link>
                     ) : (
@@ -254,12 +258,22 @@ export function Header() {
                                   rel="noopener noreferrer"
                                   className={styles.sitePage}
                                 >
-                                  {renderIcon(item.icon)}
+                                  <MenuIcon
+                                    icon={item.icon}
+                                    className={styles.menuIcon}
+                                    imageClassName={styles.menuIconImg}
+                                    iconifyClassName={styles.menuIconIconify}
+                                  />
                                   <span>{item.title}</span>
                                 </a>
                               ) : (
                                 <Link href={item.path} className={styles.sitePage}>
-                                  {renderIcon(item.icon)}
+                                  <MenuIcon
+                                    icon={item.icon}
+                                    className={styles.menuIcon}
+                                    imageClassName={styles.menuIconImg}
+                                    iconifyClassName={styles.menuIconIconify}
+                                  />
                                   <span>{item.title}</span>
                                 </Link>
                               )}

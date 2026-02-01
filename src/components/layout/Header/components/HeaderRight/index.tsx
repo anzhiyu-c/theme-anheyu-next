@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Tooltip } from "@/components/ui";
+import { Tooltip, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
@@ -31,8 +32,6 @@ export function HeaderRight({
   const router = useRouter();
   const { user, isAuthenticated, logout, roles } = useAuthStore();
   const isMobile = useIsMobile();
-
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // 判断是否显示回到顶部按钮
   const showToTopButton = useMemo(() => !isTransparent, [isTransparent]);
@@ -74,18 +73,15 @@ export function HeaderRight({
   // 处理登出
   const handleLogout = useCallback(() => {
     logout();
-    setShowUserDropdown(false);
   }, [logout]);
 
   // 前往用户中心
   const handleGoToUserCenter = useCallback(() => {
-    setShowUserDropdown(false);
     router.push("/user-center");
   }, [router]);
 
   // 前往后台
   const handleGoToAdmin = useCallback(() => {
-    setShowUserDropdown(false);
     router.push("/admin");
   }, [router]);
 
@@ -93,78 +89,132 @@ export function HeaderRight({
     <div className={cn(styles.headerRight, isConsoleOpen && styles.consoleOpen)}>
       {/* 用户中心/登录注册 */}
       {!isAuthenticated ? (
-        <div
-          className={styles.userDropdownWrapper}
-          onMouseEnter={() => setShowUserDropdown(true)}
-          onMouseLeave={() => setShowUserDropdown(false)}
+        <Popover
+          placement="bottom-end"
+          offset={8}
+          showArrow={false}
+          classNames={{
+            content: "p-0 bg-card border border-border rounded-xl shadow-lg",
+          }}
         >
-          <button className={cn(styles.navButton, "ml-0!")}>
-            <Icon icon="ri:user-fill" width="1.3rem" height="1.3rem" />
-          </button>
-          {/* 桥接区域 */}
-          {showUserDropdown && <div className={styles.dropdownBridge} />}
-          {/* 下拉菜单 */}
-          {showUserDropdown && (
-            <div className={cn(styles.userDropdownMenu, styles.dropdownFadeEnter)}>
-              <Link href="/login" className={styles.dropdownItem}>
-                <Icon icon="ri:login-box-line" width={16} height={16} />
-                <span>登录</span>
-              </Link>
-              <Link href="/register" className={styles.dropdownItem}>
-                <Icon icon="ri:user-add-line" width={16} height={16} />
-                <span>注册</span>
-              </Link>
+          <PopoverTrigger>
+            <button className={cn(styles.navButton, "ml-0!")}>
+              <Icon icon="ri:user-fill" width="1.3rem" height="1.3rem" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div className={styles.loginPanel}>
+              <div className={styles.loginHeader}>
+                <Icon icon="ri:user-3-line" width={32} height={32} className={styles.loginIcon} />
+                <div className={styles.loginTitle}>欢迎访问</div>
+                <div className={styles.loginDesc}>登录后解锁更多功能</div>
+              </div>
+              <div className={styles.loginActions}>
+                <Link href="/login" className={styles.loginBtn}>
+                  <Icon icon="ri:login-box-line" width={16} height={16} />
+                  <span>登录</span>
+                </Link>
+                <Link href="/register" className={styles.registerBtn}>
+                  <Icon icon="ri:user-add-line" width={16} height={16} />
+                  <span>注册</span>
+                </Link>
+              </div>
             </div>
-          )}
-        </div>
+          </PopoverContent>
+        </Popover>
       ) : (
-        <div
-          className={styles.userDropdownWrapper}
-          onMouseEnter={() => setShowUserDropdown(true)}
-          onMouseLeave={() => setShowUserDropdown(false)}
+        <Popover
+          placement="bottom-end"
+          offset={8}
+          showArrow={false}
+          classNames={{
+            content: "p-0 bg-card border border-border rounded-xl shadow-lg",
+          }}
         >
-          <button className={cn(styles.navButton, styles.userCenterButton)}>
-            <Icon icon="ri:user-fill" width="1.3rem" height="1.3rem" />
-          </button>
-          {/* 桥接区域 */}
-          {showUserDropdown && <div className={styles.dropdownBridge} />}
-          {/* 下拉菜单 */}
-          {showUserDropdown && (
-            <div className={cn(styles.userDropdownMenu, styles.dropdownFadeEnter)} style={{ minWidth: "180px" }}>
-              <div className={styles.dropdownItem} onClick={handleGoToUserCenter}>
-                <Icon icon="ri:user-3-line" width={16} height={16} />
-                <span>用户中心</span>
+          <PopoverTrigger>
+            <button className={cn(styles.navButton, styles.userCenterButton, "ml-0!")}>
+              <Icon icon="ri:user-fill" width="1.3rem" height="1.3rem" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div className={styles.userPanel}>
+              {/* 用户信息头部 */}
+              <div className={styles.panelHeader}>
+                <Image
+                  src={user?.avatar || `https://cravatar.cn/avatar/${user?.email}?s=200&d=mp`}
+                  className={styles.userAvatar}
+                  alt="头像"
+                  width={48}
+                  height={48}
+                  unoptimized
+                />
+                <div className={styles.userInfo}>
+                  <div className={styles.userName}>{user?.nickname || user?.username}</div>
+                  <div className={styles.userDesc}>{user?.email}</div>
+                </div>
               </div>
-              {isAdmin && (
-                <>
-                  <div
-                    className={styles.dropdownItem}
-                    onClick={() => {
-                      setShowUserDropdown(false);
-                      router.push("/admin/posts/new");
-                    }}
-                  >
-                    <Icon icon="ri:article-line" width={16} height={16} />
-                    <span>发布文章</span>
+
+              {/* 功能网格 */}
+              <div className={styles.panelGrid}>
+                <div className={styles.gridItem} onClick={handleGoToUserCenter}>
+                  <div className={styles.gridIcon} style={{ background: "#e8f4ff", color: "#409eff" }}>
+                    <Icon icon="ri:user-3-line" width={20} height={20} />
                   </div>
-                  <div className={styles.dropdownItem} onClick={handleGoToAdmin}>
-                    <Icon icon="ri:settings-3-line" width={16} height={16} />
-                    <span>后台管理</span>
+                  <span>用户中心</span>
+                </div>
+                <div
+                  className={styles.gridItem}
+                  onClick={() => {
+                    window.open("/notifications", "_blank");
+                  }}
+                >
+                  <div className={styles.gridIcon} style={{ background: "#fff8e8", color: "#e6a23c" }}>
+                    <Icon icon="ri:notification-2-line" width={20} height={20} />
                   </div>
-                </>
-              )}
-              <div className={styles.dropdownItem} onClick={handleLogout}>
-                <Icon icon="ri:logout-box-r-line" width={16} height={16} />
-                <span>退出登录</span>
+                  <span>全部通知</span>
+                </div>
+                {isAdmin && (
+                  <>
+                    <div
+                      className={styles.gridItem}
+                      onClick={() => {
+                        window.open("/admin/post-management", "_blank");
+                      }}
+                    >
+                      <div className={styles.gridIcon} style={{ background: "#e8fff0", color: "#67c23a" }}>
+                        <Icon icon="ri:article-line" width={20} height={20} />
+                      </div>
+                      <span>发布文章</span>
+                    </div>
+                    <div className={styles.gridItem} onClick={handleGoToAdmin}>
+                      <div className={styles.gridIcon} style={{ background: "#f0e8ff", color: "#9c27b0" }}>
+                        <Icon icon="ri:settings-3-line" width={20} height={20} />
+                      </div>
+                      <span>后台管理</span>
+                    </div>
+                  </>
+                )}
+                <div className={styles.gridItem} onClick={handleLogout}>
+                  <div className={styles.gridIcon} style={{ background: "#ffebee", color: "#f44336" }}>
+                    <Icon icon="ri:logout-box-r-line" width={20} height={20} />
+                  </div>
+                  <span>退出登录</span>
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          </PopoverContent>
+        </Popover>
       )}
 
       {/* 随机文章 */}
       {!isMobile && (
-        <Tooltip content="随机前往一篇文章" side="bottom" delayDuration={300}>
+        <Tooltip
+          content="随机前往一篇文章"
+          placement="bottom"
+          delay={300}
+          closeDelay={0}
+          classNames={{ content: "custom-tooltip-content" }}
+        >
           <button className={styles.navButton} onClick={handleRandomArticle}>
             <Icon icon="fa6-solid:dice" width="1.5rem" height="1.5rem" />
           </button>
@@ -172,14 +222,26 @@ export function HeaderRight({
       )}
 
       {/* 搜索 */}
-      <Tooltip content="搜索" side="bottom" delayDuration={300}>
+      <Tooltip
+        content="搜索"
+        placement="bottom"
+        delay={300}
+        closeDelay={0}
+        classNames={{ content: "custom-tooltip-content" }}
+      >
         <button className={styles.navButton} onClick={handleSearchClick} aria-label="搜索">
-          <Icon icon="ri:search-line" width="1.3rem" height="1.3rem" />
+          <Icon icon="iconamoon:search-bold" width="1.5rem" height="1.5rem" />
         </button>
       </Tooltip>
 
       {/* 中控台切换按钮 */}
-      <Tooltip content={isConsoleOpen ? "关闭中控台" : "打开中控台"} side="bottom" delayDuration={300}>
+      <Tooltip
+        content={isConsoleOpen ? "关闭中控台" : "打开中控台"}
+        placement="bottom"
+        delay={300}
+        closeDelay={0}
+        classNames={{ content: "custom-tooltip-content" }}
+      >
         <label
           className={cn(styles.consoleLabel, isConsoleOpen && styles.consoleLabelActive)}
           onClick={onToggleConsole}

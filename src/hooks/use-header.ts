@@ -10,16 +10,41 @@ interface HeaderState {
   isFooterVisible: boolean;
 }
 
-// 节流函数
-function throttle<T extends (...args: unknown[]) => unknown>(func: T, limit: number): T {
-  let inThrottle: boolean;
-  return function (this: unknown, ...args: Parameters<T>) {
+// 节流函数 - 支持 leading 和 trailing
+function throttle<T extends (...args: unknown[]) => unknown>(func: T, limit: number): T & { cancel: () => void } {
+  let inThrottle = false;
+  let lastArgs: Parameters<T> | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const throttled = function (this: unknown, ...args: Parameters<T>) {
     if (!inThrottle) {
+      // Leading: 立即执行
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
+      timeoutId = setTimeout(() => {
+        inThrottle = false;
+        // Trailing: 如果有待处理的调用，执行最后一次
+        if (lastArgs) {
+          func.apply(this, lastArgs);
+          lastArgs = null;
+        }
+      }, limit);
+    } else {
+      // 保存最后一次调用的参数
+      lastArgs = args;
     }
-  } as T;
+  } as T & { cancel: () => void };
+
+  throttled.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    inThrottle = false;
+    lastArgs = null;
+  };
+
+  return throttled;
 }
 
 /**
@@ -53,8 +78,10 @@ export function useHeader(): HeaderState {
 
     lastScrollTopRef.current = scrollTop;
 
-    if (scrollHeight > clientHeight) {
-      setScrollPercent(Math.round((scrollTop / (scrollHeight - clientHeight)) * 100));
+    const scrollableHeight = scrollHeight - clientHeight;
+    // 当可滚动区域很小（小于 10px）或 scrollTop 接近 0 时，显示 0
+    if (scrollableHeight > 10 && scrollTop > 1) {
+      setScrollPercent(Math.round((scrollTop / scrollableHeight) * 100));
     } else {
       setScrollPercent(0);
     }
@@ -71,16 +98,20 @@ export function useHeader(): HeaderState {
     const throttledScrollHandler = throttle(handleScroll, 72);
 
     window.addEventListener("scroll", throttledScrollHandler);
-    handleScroll();
+    // 使用 requestAnimationFrame 延迟初始调用，避免同步 setState
+    const rafId = requestAnimationFrame(handleScroll);
 
     return () => {
       window.removeEventListener("scroll", throttledScrollHandler);
+      throttledScrollHandler.cancel();
+      cancelAnimationFrame(rafId);
     };
   }, [handleScroll]);
 
   // 路由变化时重置状态
   useEffect(() => {
-    handleScroll();
+    const rafId = requestAnimationFrame(handleScroll);
+    return () => cancelAnimationFrame(rafId);
   }, [pathname, handleScroll]);
 
   return useMemo(

@@ -3,11 +3,14 @@
 import { useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Moon, MessageCircle, Keyboard, Music, PanelRight, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { Tooltip } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useTags, useArchives, useLatestComments } from "@/hooks/queries";
+import type { Comment } from "@/lib/api/comment";
 
 import styles from "./styles.module.css";
 
@@ -16,52 +19,31 @@ interface ConsoleProps {
   onClose: () => void;
 }
 
-// 模拟数据 - 实际应从 API 获取
-const mockTags = [
-  { id: "1", name: "JavaScript", count: 12 },
-  { id: "2", name: "TypeScript", count: 8 },
-  { id: "3", name: "React", count: 15 },
-  { id: "4", name: "Next.js", count: 6 },
-  { id: "5", name: "Vue", count: 10 },
-  { id: "6", name: "Node.js", count: 7 },
-  { id: "7", name: "CSS", count: 5 },
-  { id: "8", name: "前端", count: 20 },
-];
-
-const mockArchives = [
-  { year: "2024", count: 42 },
-  { year: "2023", count: 38 },
-  { year: "2022", count: 25 },
-  { year: "2021", count: 18 },
-];
-
-const mockComments = [
-  {
-    id: "1",
-    nickname: "访客A",
-    email_md5: "abc123",
-    content_html: "<p>这篇文章写得很好！</p>",
-    target_title: "React 18 新特性详解",
-    target_path: "/posts/react-18",
-    created_at: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "2",
-    nickname: "开发者",
-    email_md5: "def456",
-    content_html: "<p>学到了很多，感谢分享！</p>",
-    target_title: "TypeScript 进阶指南",
-    target_path: "/posts/typescript-guide",
-    created_at: "2024-01-14T15:20:00Z",
-  },
-];
-
 export function Console({ isOpen, onClose }: ConsoleProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
 
   const isDark = theme === "dark";
+
+  // 获取标签数据
+  const { data: tags = [] } = useTags();
+
+  // 获取归档数据
+  const { data: archives = [] } = useArchives();
+
+  // 获取最近评论（只在控制台打开时请求）
+  const { data: commentsData } = useLatestComments({ page: 1, pageSize: 6 }, { enabled: isOpen });
+
+  const latestComments = commentsData?.list || [];
+
+  // 评论配置
+  const commentInfoConfig = useMemo(() => {
+    return {
+      gravatar_url: siteConfig?.GRAVATAR_URL || "https://cravatar.cn/",
+      default_gravatar_type: siteConfig?.DEFAULT_GRAVATAR_TYPE || "mp",
+    };
+  }, [siteConfig]);
 
   // 切换主题
   const handleThemeToggle = useCallback(() => {
@@ -80,7 +62,7 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
 
   // 跳转到文章
   const goToArticle = useCallback(
-    (comment: (typeof mockComments)[0]) => {
+    (comment: Comment) => {
       if (!comment?.target_path) return;
       router.push(`${comment.target_path}#comment-${comment.id}`);
       onClose();
@@ -96,15 +78,43 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
   }, []);
 
   // 获取头像 URL
-  const getAvatarUrl = useCallback((emailMd5: string) => {
-    return `https://cravatar.cn/avatar/${emailMd5}?s=140&d=mp`;
-  }, []);
+  const getAvatarUrl = useCallback(
+    (emailMd5: string) => {
+      const baseUrl = commentInfoConfig.gravatar_url.replace(/\/$/, "");
+      return `${baseUrl}/avatar/${emailMd5}?s=140&d=${commentInfoConfig.default_gravatar_type}`;
+    },
+    [commentInfoConfig]
+  );
+
+  // 按年份聚合归档数据
+  const archivesByYear = useMemo(() => {
+    if (!archives || archives.length === 0) return [];
+
+    const yearMap = new Map<number, number>();
+    archives.forEach(item => {
+      const year = item.year;
+      const currentCount = yearMap.get(year) || 0;
+      yearMap.set(year, currentCount + item.count);
+    });
+
+    return Array.from(yearMap, ([year, count]) => ({
+      year: String(year),
+      count,
+    }));
+  }, [archives]);
 
   // 显示的归档数据
   const displayArchives = useMemo(() => {
-    const totalCount = mockArchives.reduce((sum, a) => sum + a.count, 0);
-    return [...mockArchives.slice(0, 7), { year: "全部文章", count: totalCount }];
-  }, []);
+    const totalPostCount = siteConfig?.sidebar?.siteinfo?.totalPostCount || 0;
+    const yearArchives = archivesByYear.slice(0, 7);
+    if (totalPostCount > 0) {
+      yearArchives.push({
+        year: "全部文章",
+        count: totalPostCount,
+      });
+    }
+    return yearArchives;
+  }, [archivesByYear, siteConfig]);
 
   // ESC 关闭
   useEffect(() => {
@@ -118,26 +128,27 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // 禁止背景滚动
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  // 处理空白区域点击关闭（用于所有可能有空白区域的容器）
+  const handleBlankClick = useCallback(
+    (e: React.MouseEvent) => {
+      // 只有点击元素本身（空白区域）时才关闭，点击子元素不触发
+      if (e.target === e.currentTarget && isOpen) {
+        onClose();
+      }
+    },
+    [isOpen, onClose]
+  );
 
   return (
     <div className={cn(styles.console, isOpen && styles.show)}>
-      <div className={styles.consoleContent}>
-        <div className={styles.consoleCardGroup}>
+      {/* 背景遮罩 - 点击关闭控制台 */}
+      <div className={styles.consoleMask} onClick={handleBlankClick} />
+      <div className={styles.consoleContent} onClick={handleBlankClick}>
+        <div className={styles.consoleCardGroup} onClick={handleBlankClick}>
           {/* 左侧：最近评论 */}
-          <div className={styles.consoleCardGroupLeft}>
-            <div className={cn(styles.consoleCard, styles.cardNewestComments)}>
-              <div className={styles.cardContent}>
+          <div className={styles.consoleCardGroupLeft} onClick={handleBlankClick}>
+            <div className={cn(styles.consoleCard, styles.cardNewestComments)} onClick={handleBlankClick}>
+              <div className={styles.cardContent} onClick={handleBlankClick}>
                 <div className={styles.authorContentItemTips}>互动</div>
                 <div className={styles.cardHorContent}>
                   <span className={styles.authorContentItemTitle}>最近评论</span>
@@ -146,11 +157,12 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
                   </Link>
                 </div>
               </div>
-              <div className={styles.consoleRecentComments}>
-                {mockComments.length > 0 ? (
-                  mockComments.map(comment => (
+              <div className={styles.consoleRecentComments} onClick={handleBlankClick}>
+                {latestComments.length > 0 ? (
+                  latestComments.map(comment => (
                     <div key={comment.id} className={styles.commentCard} onClick={() => goToArticle(comment)}>
                       <div className={styles.commentInfo}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={getAvatarUrl(comment.email_md5)} alt="最近评论头像" />
                         <div>
                           <span className={styles.commentUser}>{comment.nickname}</span>
@@ -162,7 +174,7 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
                         dangerouslySetInnerHTML={{ __html: comment.content_html }}
                       />
                       <div className={styles.commentTitle} title={comment.target_title}>
-                        <MessageCircle size={12} />
+                        <Icon icon="ri:chat-1-fill" width={12} height={12} />
                         {comment.target_title}
                       </div>
                     </div>
@@ -175,26 +187,30 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
           </div>
 
           {/* 右侧：标签和归档 */}
-          <div className={styles.consoleCardGroupRight}>
+          <div className={styles.consoleCardGroupRight} onClick={handleBlankClick}>
             {/* 标签卡片 */}
-            <div className={cn(styles.consoleCard, styles.tags)}>
-              <div className={styles.cardContent}>
+            <div className={cn(styles.consoleCard, styles.tags)} onClick={handleBlankClick}>
+              <div className={styles.cardContent} onClick={handleBlankClick}>
                 <div className={styles.authorContentItemTips}>标签</div>
                 <div className={styles.authorContentItemTitle}>寻找感兴趣的领域</div>
               </div>
-              <div className={styles.cardTagCloud}>
-                {mockTags.map(tag => (
-                  <Link key={tag.id} href={`/tags/${tag.name}/`} className={styles.tagItem} onClick={onClose}>
-                    {tag.name}
-                    <sup>{tag.count}</sup>
-                  </Link>
-                ))}
+              <div className={styles.cardTagCloud} onClick={handleBlankClick}>
+                {tags.length > 0 ? (
+                  tags.map(tag => (
+                    <Link key={tag.id} href={`/tags/${tag.name}/`} className={styles.tagItem} onClick={onClose}>
+                      {tag.name}
+                      <sup>{tag.count}</sup>
+                    </Link>
+                  ))
+                ) : (
+                  <div className={styles.noTags}>暂无标签</div>
+                )}
               </div>
             </div>
 
             {/* 归档卡片 */}
-            <div className={cn(styles.consoleCard, styles.history)}>
-              <ul className={styles.cardArchiveList}>
+            <div className={cn(styles.consoleCard, styles.history)} onClick={handleBlankClick}>
+              <ul className={styles.cardArchiveList} onClick={handleBlankClick}>
                 {displayArchives.map(archive => (
                   <li
                     key={archive.year}
@@ -217,42 +233,86 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
 
         {/* 按钮组 */}
         <div className={styles.buttonGroup}>
-          <Tooltip content="显示模式切换" side="top" delayDuration={300}>
+          <Tooltip
+            content="显示模式切换"
+            placement="top"
+            delay={300}
+            closeDelay={0}
+            classNames={{ content: "custom-tooltip-content" }}
+          >
             <div className={cn(styles.consoleBtnItem, isDark && styles.on)}>
               <button className={styles.darkmodeSwitch} aria-label="显示模式切换" onClick={handleThemeToggle}>
-                <Moon size={24} />
+                <span className={cn(styles.themeIcon, styles.sunIcon, !isDark && styles.active)}>
+                  <Icon icon="solar:sun-bold" width={24} height={24} />
+                </span>
+                <span className={cn(styles.themeIcon, styles.moonIcon, isDark && styles.active)}>
+                  <Icon icon="solar:moon-bold" width={24} height={24} />
+                </span>
               </button>
             </div>
           </Tooltip>
 
-          <Tooltip content="热评开关" side="top" delayDuration={300}>
+          <Tooltip
+            content="热评开关"
+            placement="top"
+            delay={300}
+            closeDelay={0}
+            classNames={{ content: "custom-tooltip-content" }}
+          >
             <div className={styles.consoleBtnItem}>
               <button className={styles.commentBarrage} aria-label="热评开关">
-                <MessageCircle size={24} />
+                <Icon icon="ri:chat-1-fill" width={24} height={24} />
               </button>
             </div>
           </Tooltip>
 
-          <Tooltip content="快捷键开关" side="top" delayDuration={300}>
+          <Tooltip
+            content="快捷键开关"
+            placement="top"
+            delay={300}
+            closeDelay={0}
+            classNames={{ content: "custom-tooltip-content" }}
+          >
             <div className={styles.consoleBtnItem}>
               <button className={styles.keyboardSwitch} aria-label="快捷键开关">
-                <Keyboard size={24} />
+                <Icon icon="solar:keyboard-bold" width={24} height={24} />
               </button>
             </div>
           </Tooltip>
 
-          <Tooltip content="音乐胶囊开关" side="top" delayDuration={300}>
+          <Tooltip
+            content="音乐胶囊开关"
+            placement="top"
+            delay={300}
+            closeDelay={0}
+            classNames={{ content: "custom-tooltip-content" }}
+          >
             <div className={styles.consoleBtnItem}>
               <button className={styles.musicSwitch} aria-label="音乐胶囊开关">
-                <Music size={24} />
+                <Icon icon="solar:music-note-3-bold" width={24} height={24} />
               </button>
             </div>
           </Tooltip>
 
-          <Tooltip content="侧边栏开关" side="top" delayDuration={300}>
+          <Tooltip
+            content="侧边栏开关"
+            placement="top"
+            delay={300}
+            closeDelay={0}
+            classNames={{ content: "custom-tooltip-content" }}
+          >
             <div className={styles.consoleBtnItem}>
               <button className={styles.sidebarSwitch} aria-label="侧边栏开关">
-                <PanelRight size={24} />
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="28" viewBox="0 0 24 24">
+                  <g fill="currentColor">
+                    <path d="M17 22h2a4 4 0 0 0 4-4V6a4 4 0 0 0-4-4h-2z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M15 2H5a4 4 0 0 0-4 4v12a4 4 0 0 0 4 4h10zm-6.707 8.707a1 1 0 0 1 1.414-1.414l2 2a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1-1.414-1.414L9.586 12z"
+                      clipRule="evenodd"
+                    />
+                  </g>
+                </svg>
               </button>
             </div>
           </Tooltip>

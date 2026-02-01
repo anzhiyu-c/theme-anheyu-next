@@ -36,8 +36,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* 侧边栏 */}
         <aside
           className={cn(
-            "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform duration-300 lg:transform-none",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            "fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-card border-r border-border transition-transform duration-300",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            "lg:translate-x-0"
           )}
         >
           <AdminSidebar onClose={() => setSidebarOpen(false)} />

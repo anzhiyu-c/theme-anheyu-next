@@ -111,3 +111,6 @@ export * from "./auth";
 
 // 导出站点配置类型
 export * from "./site-config";
+
+// 导出文章相关类型
+export * from "./article";

@@ -65,15 +65,74 @@ export interface SiteConfigData {
     }>;
   };
 
+  // 即刻配置
+  essay?: {
+    home_enable?: boolean;
+  };
+
+  // 首页顶部配置
+  HOME_TOP?: {
+    title?: string;
+    subTitle?: string;
+    siteText?: string;
+    category?: Array<{
+      name: string;
+      path: string;
+      icon?: string;
+      background?: string;
+      isExternal?: boolean;
+    }>;
+    banner?: {
+      tips?: string;
+      title?: string;
+      image?: string;
+      link?: string;
+    };
+  };
+
+  // 创意图标配置
+  CREATIVITY?: {
+    creativity_list?: Array<{
+      name: string;
+      icon: string;
+      color: string;
+    }>;
+  };
+
   // Footer 配置
   footer?: {
     uptime_kuma?: {
-      enable?: boolean;
-      url?: string;
+      enable?: boolean | string;
+      page_url?: string;
     };
     runtime?: {
       enable?: boolean;
       launch_time?: string;
+    };
+    socialBar?: {
+      left?: Array<{ title: string; icon: string; link: string }>;
+      right?: Array<{ title: string; icon: string; link: string }>;
+      centerImg?: string;
+    };
+    project?: {
+      list?: Array<{
+        title: string;
+        links: Array<{ title: string; link: string }>;
+      }>;
+    };
+    list?: {
+      randomFriends?: number;
+    };
+    owner?: {
+      name?: string;
+      since?: string | number;
+    };
+    bar?: {
+      authorLink?: string;
+      linkList?: Array<{ text: string; link: string }>;
+      cc?: {
+        link?: string;
+      };
     };
   };
 
@@ -84,6 +143,43 @@ export interface SiteConfigData {
     github?: { enable?: boolean };
     logto?: { enable?: boolean; display_name?: string };
     oidc?: { enable?: boolean; display_name?: string };
+  };
+
+  // 侧边栏配置
+  sidebar?: {
+    author?: {
+      enable?: boolean;
+      description?: string;
+      statusImg?: string;
+      skills?: string[];
+      social?: Record<string, { icon: string; link: string }>;
+    };
+    wechat?: {
+      enable?: boolean;
+      face?: string;
+      backFace?: string;
+      blurBackground?: string;
+      link?: string;
+    };
+    tags?: {
+      enable?: boolean;
+      highlight?: string[];
+    };
+    siteinfo?: {
+      totalPostCount?: number;
+      runtimeEnable?: boolean;
+      totalWordCount?: number;
+    };
+  };
+
+  // 文章配置
+  post?: {
+    default?: {
+      enable_primary_color_tag?: boolean | string;
+      default_cover?: string;
+      double_column?: boolean | string;
+      page_size?: number;
+    };
   };
 
   // 任意其他配置

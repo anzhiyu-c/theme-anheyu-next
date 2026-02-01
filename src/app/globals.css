@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../../node_modules/@heroui/theme/dist/**/*.js";
+@plugin "../../hero.mjs";
+
 /* AnHeYu Pro 配色方案 */
 :root {
   /* 主色调 */
@@ -144,12 +147,24 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* 全局 hr 样式 */
+hr {
+  position: relative;
+  display: flex;
+  height: 0;
+  margin: 1rem 0;
+  background: transparent;
+  border: none;
+  border: 1px dashed var(--primary-op);
+}
+
 @theme {
   /* 自定义动画 */
   --animate-float: float 6s ease-in-out infinite;
   --animate-fade-in: fadeIn 0.8s ease-out forwards;
   --animate-slide-up: slideUp 0.8s ease-out forwards;
   --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+  --animate-glow-pulse: glow-pulse 8s ease-in-out infinite;
 
   @keyframes float {
     0%,
@@ -157,7 +172,7 @@
       transform: translateY(0px);
     }
     50% {
-      transform: translateY(-20px);
+      transform: translateY(calc(var(--float-distance, -20px) * -1));
     }
   }
 
@@ -190,6 +205,19 @@
     }
     50% {
       opacity: 0.8;
+    }
+  }
+
+  /* 优化后的 glow-pulse 动画 - 用于发光球体 */
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scale(1.15);
+      opacity: 0.7;
     }
   }
 }
@@ -287,12 +315,159 @@ body {
   background-clip: text;
 }
 
+/* Brand gradient text - 主题色渐变 */
+.gradient-text-brand {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 50%, var(--green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .gradient-text-brand {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--orange) 50%, var(--yellow) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Hero typography */
 .text-hero {
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: clamp(3rem, 12vw, 10rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.text-display {
+  font-size: clamp(2.5rem, 8vw, 6rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
   font-weight: 700;
+}
+
+/* Grid pattern background - subtle */
+.grid-pattern {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+.dark .grid-pattern {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Noise texture overlay - very subtle */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 1;
+}
+
+.dark .noise-overlay {
+  opacity: 0.015;
+}
+
+/* Ambient glow effects */
+.glow-primary {
+  box-shadow: 0 0 80px var(--primary-op), 0 0 160px var(--primary-op-light);
+}
+
+.glow-subtle {
+  box-shadow: 0 0 120px rgba(0, 0, 0, 0.03);
+}
+
+.dark .glow-subtle {
+  box-shadow: 0 0 120px rgba(255, 255, 255, 0.03);
+}
+
+/* Button styles - Apple inspired */
+.btn-primary {
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 500;
+  padding: 14px 28px;
+  border-radius: 980px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover {
+  opacity: 0.85;
+  transform: scale(1.02);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 500;
+  padding: 14px 28px;
+  border: 1px solid var(--border);
+  border-radius: 980px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  background: var(--muted);
+  border-color: var(--border-hover);
+}
+
+/* Link hover effect */
+.link-hover {
+  position: relative;
+}
+
+.link-hover::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.3s ease;
+}
+
+.link-hover:hover::after {
+  width: 100%;
+}
+
+/* Smooth reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Transition utilities */
+.transition-smooth {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-fast {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* GPU acceleration for animated elements */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Section spacing */
@@ -317,10 +492,200 @@ body {
   }
 }
 
+/* 屏幕阅读器专用文本 - 可访问性 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* 移动端滚动条优化 */
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
     width: auto;
     height: 6px;
+  }
+}
+
+/* ===================== 初始加载动画 ===================== */
+/* 用于 JS 加载前显示的加载动画，避免白屏 */
+#initial-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background, #f7f9fe);
+  z-index: 99999;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+  pointer-events: none;
+}
+
+html.dark #initial-loader {
+  background: var(--background, #18171d);
+}
+
+/* React hydration 完成后隐藏 */
+html[data-loaded="true"] #initial-loader {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-spinner {
+  width: 50px;
+  height: 50px;
+  animation: loader-rotate 2s linear infinite;
+}
+
+.loader-bg {
+  stroke: var(--primary-op, rgba(22, 59, 242, 0.2));
+}
+
+.loader-inner {
+  stroke: var(--primary, #163bf2);
+  stroke-linecap: round;
+  animation: loader-dash 1.5s ease-in-out infinite;
+}
+
+@keyframes loader-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+/* ===================== HeroUI Tooltip 全局样式 ===================== */
+/* HeroUI Tooltip 全局样式 - 统一所有 Tooltip 外观 */
+.custom-tooltip-content,
+[data-slot="content"][role="tooltip"] {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.875rem !important;
+  border-radius: 0.625rem !important;
+  box-shadow: 0 4px 14px 0 rgb(0 0 0 / 8%), 0 0 0 1px var(--border) !important;
+  backdrop-filter: blur(10px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(150%) !important;
+}
+
+/* Tooltip 箭头样式 */
+[data-slot="arrow"] {
+  background: var(--card) !important;
+  box-shadow: 1px 1px 2px 0 rgb(0 0 0 / 5%) !important;
+}
+
+/* 暗色主题下的 Tooltip */
+html.dark .custom-tooltip-content,
+html.dark [data-slot="content"][role="tooltip"] {
+  box-shadow: 0 4px 14px 0 rgb(0 0 0 / 25%), 0 0 0 1px var(--border) !important;
+}
+
+/* 即刻条容器 */
+.essay-bar-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  padding: 0.5rem 1.5rem 0;
+  margin: 0 auto;
+}
+
+/* 首页顶部区域容器 */
+.post-home-top-container {
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 1.5rem;
+  margin: 0 auto;
+  overflow: hidden;
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .post-home-top-container {
+    padding: 0 1rem;
+  }
+}
+
+/* ===================== AnHeYu Pro 变量映射 ===================== */
+:root {
+  /* AnHeYu Pro 主题色映射 */
+  --anzhiyu-main: var(--primary);
+  --anzhiyu-main-op: var(--primary-op);
+  --anzhiyu-main-op-deep: var(--primary-op-deep);
+  --anzhiyu-fontcolor: var(--foreground);
+  --anzhiyu-secondtext: var(--muted-foreground);
+  --anzhiyu-card-bg: var(--card);
+  --anzhiyu-secondbg: var(--muted);
+  --anzhiyu-white: #ffffff;
+  --anzhiyu-white-op: rgba(255, 255, 255, 0.2);
+  --anzhiyu-red: var(--red);
+  --anzhiyu-theme: var(--primary);
+
+  /* 边框样式 */
+  --style-border: 1px solid var(--border);
+  --style-border-hover: 1px solid var(--primary);
+  --style-border-always: 1px solid var(--border);
+  --style-border-avatar: 4px solid var(--card);
+
+  /* 阴影 */
+  --anzhiyu-shadow-main: var(--shadow-lg);
+}
+
+.dark {
+  --anzhiyu-white: #f7f7fa;
+  --anzhiyu-white-op: rgba(247, 247, 250, 0.2);
+}
+
+/* ===================== Content Inner 主内容区布局 ===================== */
+.content-inner {
+  display: flex;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 1400px;
+  padding: 0.5rem 1.5rem 1rem;
+  margin: 0 auto;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* 响应式 - 平板以下隐藏侧边栏 */
+@media (max-width: 992px) {
+  .content-inner {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-inner {
+    padding: 0 0.5rem;
   }
 }

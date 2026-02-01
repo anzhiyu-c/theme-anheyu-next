@@ -1,10 +1,6 @@
 import { Header, Footer } from "@/components/layout";
 
-export default function FrontendLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />

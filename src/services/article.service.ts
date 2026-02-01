@@ -8,11 +8,20 @@ interface GetArticlesParams {
   tag?: string;
 }
 
+/**
+ * 创建带有 Authorization 头的配置
+ */
+function createAuthConfig(token?: string) {
+  if (!token) return undefined;
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+}
+
 class ArticleService {
-  async getArticles(
-    params: GetArticlesParams = {},
-    token?: string
-  ): Promise<ApiResponse<PaginatedResponse<Article>>> {
+  async getArticles(params: GetArticlesParams = {}, token?: string): Promise<ApiResponse<PaginatedResponse<Article>>> {
     const { page = 1, pageSize = 10, category, tag } = params;
     const queryParams = new URLSearchParams({
       page: String(page),
@@ -22,33 +31,23 @@ class ArticleService {
     if (category) queryParams.append("category", category);
     if (tag) queryParams.append("tag", tag);
 
-    return apiClient.get<PaginatedResponse<Article>>(
-      `/api/articles?${queryParams}`,
-      { token }
-    );
+    return apiClient.get<PaginatedResponse<Article>>(`/api/articles?${queryParams}`, createAuthConfig(token));
   }
 
   async getArticle(slug: string): Promise<ApiResponse<Article>> {
     return apiClient.get<Article>(`/api/articles/${slug}`);
   }
 
-  async createArticle(
-    data: Partial<Article>,
-    token: string
-  ): Promise<ApiResponse<Article>> {
-    return apiClient.post<Article>("/api/articles", data, { token });
+  async createArticle(data: Partial<Article>, token: string): Promise<ApiResponse<Article>> {
+    return apiClient.post<Article>("/api/articles", data, createAuthConfig(token));
   }
 
-  async updateArticle(
-    id: string,
-    data: Partial<Article>,
-    token: string
-  ): Promise<ApiResponse<Article>> {
-    return apiClient.put<Article>(`/api/articles/${id}`, data, { token });
+  async updateArticle(id: string, data: Partial<Article>, token: string): Promise<ApiResponse<Article>> {
+    return apiClient.put<Article>(`/api/articles/${id}`, data, createAuthConfig(token));
   }
 
   async deleteArticle(id: string, token: string): Promise<ApiResponse<null>> {
-    return apiClient.delete<null>(`/api/articles/${id}`, { token });
+    return apiClient.delete<null>(`/api/articles/${id}`, createAuthConfig(token));
   }
 }
 

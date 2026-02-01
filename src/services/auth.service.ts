@@ -40,7 +40,15 @@ class AuthService {
    * 刷新访问令牌
    */
   async refreshToken(refreshToken: string): Promise<ApiResponse<RefreshTokenResponseData>> {
-    return apiClient.post<RefreshTokenResponseData>("/api/auth/refresh", { refreshToken }, { token: refreshToken });
+    return apiClient.post<RefreshTokenResponseData>(
+      "/api/auth/refresh",
+      { refreshToken },
+      {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      }
+    );
   }
 
   /**

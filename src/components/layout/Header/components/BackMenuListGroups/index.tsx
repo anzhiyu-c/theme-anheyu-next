@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import styles from "./styles.module.css";
@@ -36,7 +37,7 @@ function MenuItemIcon({ icon }: { icon?: string }) {
 
   switch (iconType) {
     case "image":
-      return <img className={styles.backMenuItemIcon} src={icon} alt="" />;
+      return <Image className={styles.backMenuItemIcon} src={icon!} alt="" width={24} height={24} unoptimized />;
     case "iconify":
       return (
         <Icon

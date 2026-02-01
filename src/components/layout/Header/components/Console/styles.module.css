@@ -40,6 +40,10 @@
 }
 
 .console.show .consoleCardGroup {
+  pointer-events: auto;
+}
+
+.console.show .consoleCardGroup {
   opacity: 1;
   transition-delay: 0.1s;
   transform: translateY(0);
@@ -54,12 +58,12 @@
   }
 }
 
-/* 控制台遮罩 */
+/* 控制台遮罩 - 点击关闭 */
 .consoleMask {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  z-index: -1;
+  z-index: 1;
   width: 100vw;
   height: 100dvh;
   background: rgba(255, 255, 255, 0.85);
@@ -68,6 +72,7 @@
   transform: translateZ(0);
   backface-visibility: hidden;
   transform-style: preserve-3d;
+  cursor: pointer;
 }
 
 :global(.dark) .consoleMask {
@@ -78,6 +83,7 @@
 .consoleContent {
   position: fixed;
   left: 50%;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -334,6 +340,16 @@
   box-shadow: 0 8px 12px -3px var(--primary-op, rgba(66, 89, 239, 0.14));
 }
 
+.noTags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 2rem;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
 .tagItem sup {
   position: relative;
   top: -0.4rem;
@@ -470,6 +486,40 @@
 
 .consoleBtnItem.on button:hover {
   filter: brightness(1.2);
+}
+
+/* 主题切换图标动画 */
+.darkmodeSwitch {
+  position: relative;
+  overflow: hidden;
+}
+
+.themeIcon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.sunIcon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0);
+}
+
+.sunIcon.active {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.moonIcon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0);
+}
+
+.moonIcon.active {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 /* 响应式 */

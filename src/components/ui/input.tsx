@@ -9,12 +9,22 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   helperText?: string;
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
+  /** 用于可访问性的唯一 ID，如果未提供则自动生成 */
+  inputId?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, error, helperText, startAdornment, endAdornment, value, defaultValue, ...props }, ref) => {
+  (
+    { className, type, label, error, helperText, startAdornment, endAdornment, value, defaultValue, inputId, ...props },
+    ref
+  ) => {
     const [isFocused, setIsFocused] = React.useState(false);
     const [hasValue, setHasValue] = React.useState(Boolean(value !== undefined && value !== "" ? value : defaultValue));
+
+    // 生成唯一 ID 用于可访问性
+    const generatedId = React.useId();
+    const id = inputId || props.id || generatedId;
+    const helperId = `${id}-helper`;
 
     // 监听 value 变化（受控组件）
     React.useEffect(() => {
@@ -59,9 +69,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
 
           <input
+            id={id}
             type={type}
             value={value}
             defaultValue={defaultValue}
+            aria-invalid={error}
+            aria-describedby={helperText ? helperId : undefined}
             className={cn(
               "peer flex h-11 w-full rounded-lg border px-3 py-2.5 text-sm",
               "transition-all duration-200 ease-out",
@@ -85,6 +98,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {/* 浮动标签 */}
           {label && (
             <label
+              htmlFor={id}
               className={cn(
                 "absolute left-3 pointer-events-none",
                 "bg-card px-1",
@@ -109,6 +123,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
           {/* 帮助文本或错误信息 - 带淡入动画 */}
           <p
+            id={helperId}
+            role={error ? "alert" : undefined}
             className={cn(
               "absolute -bottom-5 left-0 text-xs",
               "transition-all duration-200 ease-out",

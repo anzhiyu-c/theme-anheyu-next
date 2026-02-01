@@ -1,11 +1,20 @@
-import { Hero, Stats, ArticleList } from "@/components/home";
+/*
+ * @Description:
+ * @Author: 安知鱼
+ * @Date: 2026-01-31 14:55:41
+ * @LastEditTime: 2026-01-31 17:19:44
+ * @LastEditors: 安知鱼
+ */
+import { HomePageContent } from "@/components/home";
 
 export default function HomePage() {
   return (
-    <>
-      <Hero />
-      <Stats />
-      <ArticleList articles={[]} />
-    </>
+    <main className="relative">
+      {/* 噪点纹理 - 全局覆盖 */}
+      <div className="noise-overlay" />
+
+      {/* 首页内容（带 Framer Motion 动画） */}
+      <HomePageContent />
+    </main>
   );
 }

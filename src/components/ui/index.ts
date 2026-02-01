@@ -5,3 +5,4 @@ export * from "./input";
 export * from "./tooltip";
 export * from "./badge";
 export * from "./spinner";
+export * from "./menu-icon";
