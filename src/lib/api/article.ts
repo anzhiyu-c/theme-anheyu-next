@@ -8,9 +8,10 @@ import type {
   FeedListResponse,
   GetFeedListParams,
   PostCategory,
-  CategoryListResponse,
   PostTag,
   Archive,
+  ArticleListResponse,
+  GetArticleListParams,
 } from "@/types/article";
 
 // ===================================
@@ -42,6 +43,29 @@ export const articleApi = {
   },
 
   /**
+   * 获取文章列表（仅文章）
+   * @param params 查询参数
+   */
+  async getPublicArticles(params: GetArticleListParams = {}): Promise<ArticleListResponse> {
+    const { page = 1, pageSize = 10, category, tag, year, month } = params;
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", String(page));
+    queryParams.append("pageSize", String(pageSize));
+    if (category) queryParams.append("category", category);
+    if (tag) queryParams.append("tag", tag);
+    if (year) queryParams.append("year", String(year));
+    if (month) queryParams.append("month", String(month));
+
+    const response = await apiClient.get<ArticleListResponse>(`/api/public/articles?${queryParams.toString()}`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取文章列表失败");
+  },
+
+  /**
    * 获取分类列表
    */
   async getCategoryList(): Promise<PostCategory[]> {
@@ -57,8 +81,10 @@ export const articleApi = {
   /**
    * 获取标签列表
    */
-  async getTagList(): Promise<PostTag[]> {
-    const response = await apiClient.get<PostTag[]>(`/api/post-tags`);
+  async getTagList(sort: "count" | "name" = "count"): Promise<PostTag[]> {
+    const response = await apiClient.get<PostTag[]>(`/api/post-tags`, {
+      params: { sort },
+    });
 
     if (response.code === 200 && response.data) {
       return response.data;
@@ -82,4 +108,13 @@ export const articleApi = {
   },
 };
 
-export type { FeedItem, FeedListResponse, PostCategory, PostTag, Archive, GetFeedListParams };
+export type {
+  FeedItem,
+  FeedListResponse,
+  PostCategory,
+  PostTag,
+  Archive,
+  GetFeedListParams,
+  ArticleListResponse,
+  GetArticleListParams,
+};

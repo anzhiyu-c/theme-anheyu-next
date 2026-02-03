@@ -228,45 +228,45 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     <div className={styles.searchModal}>
       {/* 搜索对话框 */}
       <div className={cn(styles.searchDialog, isAnimating && styles.show)} onTransitionEnd={handleAnimationEnd}>
-        <div className={styles.searchNav}>
-          <div className={styles.searchDialogTitle}>搜索</div>
-          <button className={styles.searchCloseButton} aria-label="关闭搜索框" onClick={closeModal}>
-            <X size={18} />
-          </button>
-        </div>
-
         <div className={styles.searchWrap}>
+          {/* 关闭按钮 */}
+          <button className={styles.searchCloseButton} aria-label="关闭搜索框" onClick={closeModal}>
+            <X size={16} />
+          </button>
+
           {/* 搜索输入框 */}
           <Input
-              ref={inputRef}
+            ref={inputRef}
             value={keyword}
             onChange={handleInput}
             onKeyDown={handleEnter}
-              type="text"
-            placeholder="输入关键字，按 Enter 搜索"
-            size="lg"
-            variant="bordered"
-            startContent={<Search size={18} className="text-default-400" />}
+            type="text"
+            placeholder="搜索文章..."
+            size="md"
+            variant="flat"
+            startContent={<Search size={16} className="text-default-400" />}
             classNames={{
               base: "w-full",
               inputWrapper: [
-                "bg-default-100/50",
-                "backdrop-blur-sm",
+                "bg-default-100/70",
                 "hover:bg-default-100",
                 "group-data-[focus=true]:bg-default-100",
-                "border-default-200",
-                "group-data-[focus=true]:border-primary",
+                "border-none",
+                "shadow-none",
+                "h-10",
               ],
-              input: "text-base",
+              input: "text-sm",
             }}
           />
 
           {/* 提示 */}
           {tipsVisible && !keyword.trim() && (
             <div className={styles.searchTips}>
-              <span>按 Esc 关闭</span>
+              <kbd>Esc</kbd>
+              <span>关闭</span>
               <span>·</span>
-              <span>按 Ctrl/⌘ + K 打开</span>
+              <kbd>⌘K</kbd>
+              <span>打开</span>
             </div>
           )}
 

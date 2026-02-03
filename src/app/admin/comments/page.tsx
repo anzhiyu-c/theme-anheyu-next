@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button } from "@/components/ui";
 import {
@@ -13,7 +12,6 @@ import {
   ExternalLink,
   Clock,
   CheckCircle,
-  XCircle,
   AlertCircle,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";

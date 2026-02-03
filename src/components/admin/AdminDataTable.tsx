@@ -9,7 +9,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  MoreHorizontal,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,

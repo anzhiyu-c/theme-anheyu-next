@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column, EmptyState } from "@/components/admin";
+import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button } from "@/components/ui";
 import {
   HeadphonesIcon,
-  Plus,
-  MessageSquare,
   CheckCircle,
   Clock,
   AlertCircle,

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { FileText, Plus, Edit, Trash2, Eye, EyeOff, Clock, CheckCircle, XCircle, Filter, Tag } from "lucide-react";
+import { FileText, Plus, Edit, Trash2, Eye, EyeOff, Clock, CheckCircle, Tag } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 // 模拟文章数据
@@ -205,7 +205,7 @@ export default function PostsPage() {
           searchable
           searchPlaceholder="搜索文章标题..."
           searchKeys={["title", "category", "author"]}
-          rowActions={post => (
+          rowActions={() => (
             <div className="flex items-center gap-1 justify-end">
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <Edit className="w-4 h-4" />

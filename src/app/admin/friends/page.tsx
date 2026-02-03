@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column, EmptyState } from "@/components/admin";
+import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
 import { Button } from "@/components/ui";
 import {
   Link2,
@@ -93,62 +93,6 @@ export default function FriendsPage() {
   const [filter, setFilter] = useState("all");
 
   const filteredFriends = filter === "all" ? friends : friends.filter(f => f.status === filter);
-
-  const columns: Column<FriendItem>[] = [
-    {
-      key: "name",
-      header: "站点",
-      render: friend => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary font-medium">
-            {friend.name[0]}
-          </div>
-          <div>
-            <p className="font-medium">{friend.name}</p>
-            <a
-              href={friend.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
-            >
-              {friend.url}
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "description",
-      header: "描述",
-      render: friend => <p className="max-w-xs truncate text-muted-foreground">{friend.description}</p>,
-    },
-    {
-      key: "status",
-      header: "状态",
-      render: friend => {
-        const config = statusConfig[friend.status];
-        const Icon = config.icon;
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              config.className
-            )}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "createdAt",
-      header: "添加时间",
-      sortable: true,
-      render: friend => <span className="text-sm text-muted-foreground">{formatDate(friend.createdAt)}</span>,
-    },
-  ];
 
   const FriendCard = ({ friend, index }: { friend: FriendItem; index: number }) => {
     const config = statusConfig[friend.status];

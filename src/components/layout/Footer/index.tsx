@@ -73,8 +73,7 @@ function SocialIcon({ icon, title }: { icon: string; title: string }) {
   if (isIconifyIcon(icon)) {
     return <Icon icon={icon} className={styles.socialIconIconify} />;
   }
-  // 其他图标类型（如 fa 图标）
-  return <i className={icon} />;
+  return null;
 }
 
 export function Footer() {

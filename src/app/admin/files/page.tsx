@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, AdminDataTable, EmptyState, type Column } from "@/components/admin";
+import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button, Input } from "@/components/ui";
 import {
   FolderOpen,
@@ -17,7 +17,6 @@ import {
   Archive,
   Download,
   Trash2,
-  MoreHorizontal,
   Eye,
   Copy,
   FolderPlus,
@@ -247,7 +246,7 @@ export default function FilesPage() {
             data={files}
             columns={columns}
             searchable={false}
-            rowActions={file => (
+            rowActions={() => (
               <div className="flex items-center gap-1 justify-end">
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <Download className="w-4 h-4" />

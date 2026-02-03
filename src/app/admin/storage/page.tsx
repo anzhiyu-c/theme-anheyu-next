@@ -14,7 +14,6 @@ import {
   Server,
   Database,
   Settings,
-  ExternalLink,
   CheckCircle,
   Circle,
 } from "lucide-react";

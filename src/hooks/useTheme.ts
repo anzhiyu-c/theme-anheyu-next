@@ -1,15 +1,11 @@
 "use client";
 
 import { useTheme as useNextTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useMounted } from "./useMounted";
 
 export function useTheme() {
   const { theme, setTheme, systemTheme } = useNextTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   const currentTheme = theme === "system" ? systemTheme : theme;
   const isDark = currentTheme === "dark";

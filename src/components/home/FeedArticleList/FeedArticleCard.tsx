@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useState, useMemo, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
+import { FaBagShopping, FaBook, FaFire, FaHashtag, FaThumbtack } from "react-icons/fa6";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import type { FeedItem } from "@/types/article";
@@ -153,12 +154,14 @@ export const FeedArticleCard = memo(function FeedArticleCard({
   const goToCategoryPage = (e: React.MouseEvent, categoryName: string) => {
     e.stopPropagation();
     router.push(`/categories/${encodeURIComponent(categoryName)}/`);
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   // 跳转到标签页面
   const goToTagPage = (e: React.MouseEvent, tagName: string) => {
     e.stopPropagation();
     router.push(`/tags/${encodeURIComponent(tagName)}/`);
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   return (
@@ -189,7 +192,7 @@ export const FeedArticleCard = memo(function FeedArticleCard({
               {/* 商品标签 */}
               {isProduct && (
                 <span className={cn(styles.metaTag, styles.productTag)}>
-                  <i className="anzhiyufont anzhiyu-icon-shopping-bag" />
+                  <FaBagShopping className={styles.metaTagIcon} aria-hidden="true" />
                   <span>商品</span>
                 </span>
               )}
@@ -213,7 +216,7 @@ export const FeedArticleCard = memo(function FeedArticleCard({
               {/* 置顶标签 */}
               {!isProduct && article.pin_sort && article.pin_sort > 0 && (
                 <span className={cn(styles.metaTag, styles.stickyTag)}>
-                  <i className="anzhiyufont anzhiyu-icon-thumbtack" />
+                  <FaThumbtack className={styles.metaTagIcon} aria-hidden="true" />
                   <span>置顶</span>
                 </span>
               )}
@@ -221,7 +224,7 @@ export const FeedArticleCard = memo(function FeedArticleCard({
               {/* 多人互动标签 */}
               {!isProduct && article.comment_count && article.comment_count > 10 && (
                 <span className={cn(styles.metaTag, styles.hotTag)}>
-                  <i className="anzhiyufont anzhiyu-icon-fire" />
+                  <FaFire className={styles.metaTagIcon} aria-hidden="true" />
                   <span>多人互动</span>
                 </span>
               )}
@@ -229,7 +232,7 @@ export const FeedArticleCard = memo(function FeedArticleCard({
               {/* 文档标签 */}
               {!isProduct && (article.is_doc || article.doc_series_id) && (
                 <span className={cn(styles.metaTag, styles.docTag)}>
-                  <i className="anzhiyufont anzhiyu-icon-book" />
+                  <FaBook className={styles.metaTagIcon} aria-hidden="true" />
                   <span>文档</span>
                 </span>
               )}
@@ -245,21 +248,21 @@ export const FeedArticleCard = memo(function FeedArticleCard({
               {/* 旧版标签样式 */}
               {isProduct && (
                 <span className={styles.articleMeta}>
-                  <i className="anzhiyufont anzhiyu-icon-shopping-bag" />
+                  <FaBagShopping className={styles.metaTagIcon} aria-hidden="true" />
                   <span>商品</span>
                 </span>
               )}
 
               {!isProduct && article.pin_sort && article.pin_sort > 0 && (
                 <span className={cn(styles.articleMeta, styles.stickyWarp)}>
-                  <i className="anzhiyufont anzhiyu-icon-thumbtack" />
+                  <FaThumbtack className={styles.metaTagIcon} aria-hidden="true" />
                   <span>置顶</span>
                 </span>
               )}
 
               {!isProduct && article.comment_count && article.comment_count > 10 && (
                 <span className={cn(styles.articleMeta, styles.hotInteractionWarp)}>
-                  <i className="anzhiyufont anzhiyu-icon-fire" />
+                  <FaFire className={styles.metaTagIcon} aria-hidden="true" />
                   <span>多人互动</span>
                 </span>
               )}
@@ -298,10 +301,8 @@ export const FeedArticleCard = memo(function FeedArticleCard({
               <span className={styles.tags}>
                 {article.post_tags?.map(tag => (
                   <span key={tag.id} className={styles.articleMetaTags} onClick={e => goToTagPage(e, tag.name)}>
-                    <span>
-                      <i className="anzhiyufont anzhiyu-icon-hashtag" />
-                      {tag.name}
-                    </span>
+                    <FaHashtag className={styles.tagIcon} />
+                    {tag.name}
                   </span>
                 ))}
               </span>

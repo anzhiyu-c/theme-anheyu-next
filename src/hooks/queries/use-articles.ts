@@ -4,7 +4,7 @@
 
 import { useQuery, queryOptions } from "@tanstack/react-query";
 import { articleApi } from "@/lib/api/article";
-import type { GetFeedListParams } from "@/types/article";
+import type { GetFeedListParams, GetArticleListParams } from "@/types/article";
 
 // ===================================
 //          Query Keys
@@ -14,6 +14,7 @@ export const articleKeys = {
   all: ["articles"] as const,
   feed: () => [...articleKeys.all, "feed"] as const,
   feedList: (params: GetFeedListParams) => [...articleKeys.feed(), params] as const,
+  list: (params: GetArticleListParams) => [...articleKeys.all, "list", params] as const,
   categories: () => [...articleKeys.all, "categories"] as const,
   tags: () => [...articleKeys.all, "tags"] as const,
   archives: () => [...articleKeys.all, "archives"] as const,
@@ -30,6 +31,13 @@ export const feedListQueryOptions = (params: GetFeedListParams = {}) =>
     staleTime: 1000 * 60 * 5, // 5 分钟
   });
 
+export const articleListQueryOptions = (params: GetArticleListParams = {}) =>
+  queryOptions({
+    queryKey: articleKeys.list(params),
+    queryFn: () => articleApi.getPublicArticles(params),
+    staleTime: 1000 * 60 * 5, // 5 分钟
+  });
+
 export const categoriesQueryOptions = () =>
   queryOptions({
     queryKey: articleKeys.categories(),
@@ -37,10 +45,10 @@ export const categoriesQueryOptions = () =>
     staleTime: 1000 * 60 * 10, // 10 分钟
   });
 
-export const tagsQueryOptions = () =>
+export const tagsQueryOptions = (sort: "count" | "name" = "count") =>
   queryOptions({
-    queryKey: articleKeys.tags(),
-    queryFn: () => articleApi.getTagList(),
+    queryKey: [...articleKeys.tags(), sort],
+    queryFn: () => articleApi.getTagList(sort),
     staleTime: 1000 * 60 * 10, // 10 分钟
   });
 
@@ -66,6 +74,16 @@ export function useFeedList(params: GetFeedListParams = {}, options?: { enabled?
 }
 
 /**
+ * 获取文章列表（仅文章）
+ */
+export function useArticleList(params: GetArticleListParams = {}, options?: { enabled?: boolean }) {
+  return useQuery({
+    ...articleListQueryOptions(params),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+/**
  * 获取分类列表
  */
 export function useCategories(options?: { enabled?: boolean }) {
@@ -78,9 +96,9 @@ export function useCategories(options?: { enabled?: boolean }) {
 /**
  * 获取标签列表
  */
-export function useTags(options?: { enabled?: boolean }) {
+export function useTags(sort: "count" | "name" = "count", options?: { enabled?: boolean }) {
   return useQuery({
-    ...tagsQueryOptions(),
+    ...tagsQueryOptions(sort),
     enabled: options?.enabled ?? true,
   });
 }

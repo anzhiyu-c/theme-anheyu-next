@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { MessageCircle, Plus, Heart, MessageSquare, Edit, Trash2, Image, MapPin, Globe, Lock } from "lucide-react";
+import { MessageCircle, Plus, Heart, MessageSquare, Edit, Trash2, Image as ImageIcon, MapPin, Globe, Lock } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 // 模拟说说数据
@@ -109,9 +109,9 @@ export default function EssaysPage() {
             essay.images.length >= 3 && "grid-cols-3"
           )}
         >
-          {essay.images.map((img, i) => (
+          {essay.images.map((_, i) => (
             <div key={i} className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-              <Image className="w-8 h-8 text-muted-foreground" />
+              <ImageIcon className="w-8 h-8 text-muted-foreground" />
             </div>
           ))}
         </div>

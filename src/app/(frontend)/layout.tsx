@@ -1,11 +1,16 @@
-import { Header, Footer } from "@/components/layout";
+import { Header, Footer, OneImageBanner } from "@/components/layout";
+import { ScrollInitializer } from "@/components/providers";
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <div id="frontend-layout" className="frontend-layout">
+      <ScrollInitializer />
       <Header />
-      <main className="flex-1">{children}</main>
+      <OneImageBanner />
+      <main id="frontend-main" className="flex-1">
+        {children}
+      </main>
       <Footer />
-    </>
+    </div>
   );
 }

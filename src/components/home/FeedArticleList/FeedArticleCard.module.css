@@ -197,7 +197,7 @@
   color: var(--anzhiyu-red);
 }
 
-.recentPostInfoTopTips.legacy .hotInteractionWarp i {
+.recentPostInfoTopTips.legacy .hotInteractionWarp svg {
   font-size: 0.75rem;
 }
 
@@ -242,8 +242,9 @@
   transition: all 0.2s ease;
 }
 
-.metaTag i {
+.metaTagIcon {
   font-size: 0.7rem;
+  flex-shrink: 0;
 }
 
 /* 分类标签 */
@@ -325,8 +326,10 @@
 }
 
 .articleMetaTags {
-  display: inline;
-  padding: 3px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 6px;
   overflow: hidden;
   color: var(--anzhiyu-secondtext);
   border-radius: 4px;
@@ -339,9 +342,11 @@
   background-color: var(--anzhiyu-main);
 }
 
-.articleMetaTags .anzhiyu-icon-hashtag {
-  font-size: 13px;
-  opacity: 0.6;
+
+.tagIcon {
+  font-size: 0.65em;
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .postMetaDate {

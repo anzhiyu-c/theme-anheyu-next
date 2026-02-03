@@ -1,6 +1,24 @@
 /**
  * 站点配置类型（与 anheyu-pro 后端 API 保持一致）
  */
+export interface PageOneImageItem {
+  enable?: boolean;
+  background?: string;
+  mediaType?: "image" | "video";
+  mainTitle?: string;
+  subTitle?: string;
+  typingEffect?: boolean;
+  hitokoto?: boolean;
+  videoAutoplay?: boolean;
+  videoLoop?: boolean;
+  videoMuted?: boolean;
+  mobileBackground?: string;
+  mobileMediaType?: "image" | "video";
+  mobileVideoAutoplay?: boolean;
+  mobileVideoLoop?: boolean;
+  mobileVideoMuted?: boolean;
+}
+
 export interface SiteConfigData {
   // 基础配置
   APP_NAME?: string;
@@ -33,6 +51,27 @@ export interface SiteConfigData {
     siteOwner?: {
       name?: string;
       email?: string;
+    };
+  };
+
+
+  // 页面配置
+  page?: {
+    one_image?: {
+      config?: {
+        home?: PageOneImageItem;
+        categories?: PageOneImageItem;
+        tags?: PageOneImageItem;
+        archives?: PageOneImageItem;
+      };
+      hitokoto_api?: string;
+      typing_speed?: number;
+    };
+    oneImageConfig?: {
+      home?: PageOneImageItem;
+      categories?: PageOneImageItem;
+      tags?: PageOneImageItem;
+      archives?: PageOneImageItem;
     };
   };
 
@@ -180,6 +219,64 @@ export interface SiteConfigData {
       double_column?: boolean | string;
       page_size?: number;
     };
+    code_block?: {
+      /** 代码块最大显示行数，超过则折叠。-1 表示不折叠 */
+      code_max_lines?: number;
+      /** 是否启用 Mac 风格 */
+      mac_style?: boolean;
+    };
+    // 打赏配置
+    reward?: {
+      enable?: boolean;
+      button_text?: string;
+      title?: string;
+      wechat_enable?: boolean;
+      wechat_qr?: string;
+      wechat_label?: string;
+      alipay_enable?: boolean;
+      alipay_qr?: string;
+      alipay_label?: string;
+      list_button_text?: string;
+      list_button_desc?: string;
+    };
+    // 订阅配置
+    subscribe?: {
+      enable?: boolean;
+      buttonText?: string;
+      dialogTitle?: string;
+      dialogDesc?: string;
+    };
+    // 版权区域按钮全局开关
+    copyright?: {
+      showRewardButton?: boolean;
+      show_reward_button?: boolean;
+      showShareButton?: boolean;
+      show_share_button?: boolean;
+      showSubscribeButton?: boolean;
+      show_subscribe_button?: boolean;
+      // 版权声明模板
+      originalTemplate?: string;
+      original_template?: string;
+      reprintTemplateWithUrl?: string;
+      reprint_template_with_url?: string;
+      reprintTemplateWithoutUrl?: string;
+      reprint_template_without_url?: string;
+    };
+    // 404 页面配置
+    page404?: {
+      default_image?: string;
+    };
+  };
+
+  // 版权配置
+  copyright?: {
+    license?: string;
+    license_url?: string;
+  };
+
+  // 站点配置
+  site?: {
+    url?: string;
   };
 
   // 任意其他配置

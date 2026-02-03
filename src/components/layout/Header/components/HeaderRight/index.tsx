@@ -12,10 +12,12 @@ import { useIsMobile } from "@/hooks";
 
 import styles from "./styles.module.css";
 import type { NavConfig } from "../../types";
+import { Console } from "../Console";
 
 interface HeaderRightProps {
   navConfig?: NavConfig;
   isTransparent: boolean;
+  isTextWhite?: boolean;
   scrollPercent: number;
   isFooterVisible: boolean;
   isConsoleOpen: boolean;
@@ -24,6 +26,7 @@ interface HeaderRightProps {
 
 export function HeaderRight({
   isTransparent,
+  isTextWhite = false,
   scrollPercent,
   isFooterVisible,
   isConsoleOpen,
@@ -86,7 +89,7 @@ export function HeaderRight({
   }, [router]);
 
   return (
-    <div className={cn(styles.headerRight, isConsoleOpen && styles.consoleOpen)}>
+    <div className={cn(styles.headerRight, isTextWhite && styles.textIsWhite)}>
       {/* 用户中心/登录注册 */}
       {!isAuthenticated ? (
         <Popover
@@ -251,6 +254,9 @@ export function HeaderRight({
           <i className={cn(styles.consoleIcon, styles.right)} />
         </label>
       </Tooltip>
+
+      {/* 中控台面板（保持在 HeaderRight 内，确保关闭按钮层级更高） */}
+      <Console isOpen={isConsoleOpen} onClose={onToggleConsole} />
 
       {/* 回到顶部 */}
       <div

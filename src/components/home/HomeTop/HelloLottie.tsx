@@ -95,6 +95,7 @@ const extractLottieJson = async (lottiePath: string): Promise<unknown> => {
 export function HelloLottie({ width = "100%", height = "100%" }: HelloLottieProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationInstanceRef = useRef<unknown>(null);
+  const loadingRef = useRef(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -120,7 +121,6 @@ export function HelloLottie({ width = "100%", height = "100%" }: HelloLottieProp
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (lottie as any).loadAnimation || (lottie as any).default?.loadAnimation || lottie;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const instance = loadAnimation({
           container: containerRef.current,
           renderer: "svg",
@@ -131,35 +131,43 @@ export function HelloLottie({ width = "100%", height = "100%" }: HelloLottieProp
 
         animationInstanceRef.current = instance;
 
+        const markLoaded = () => {
+          loadingRef.current = false;
+          setIsLoading(false);
+        };
+
         // 监听加载完成事件
         instance.addEventListener("DOMLoaded", () => {
-          if (isMounted) setIsLoading(false);
+          if (isMounted) markLoaded();
         });
 
         instance.addEventListener("complete", () => {
-          if (isMounted) setIsLoading(false);
+          if (isMounted) markLoaded();
         });
 
         // 如果动画已经加载完成
         if (instance.isLoaded) {
-          setIsLoading(false);
+          markLoaded();
         }
 
         instance.addEventListener("data_failed", () => {
-          if (isMounted) setIsLoading(false);
+          if (isMounted) markLoaded();
           console.error("Failed to load Lottie animation");
         });
 
         // 超时保护
         setTimeout(() => {
-          if (isMounted && isLoading) {
-            setIsLoading(false);
+          if (isMounted && loadingRef.current) {
+            markLoaded();
             console.warn("Lottie animation loading timeout");
           }
         }, 3000);
       } catch (error) {
         console.error("Error loading Lottie animation:", error);
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          loadingRef.current = false;
+          setIsLoading(false);
+        }
       }
     };
 

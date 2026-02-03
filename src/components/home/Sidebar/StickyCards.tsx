@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState, useEffect, useCallback, memo } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback, memo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { useTags, useArchives } from "@/hooks/queries";
+import { useTagFilter } from "@/contexts/TagFilterContext";
 import styles from "./StickyCards.module.css";
 
 interface TagsCardProps {
@@ -14,11 +15,13 @@ interface TagsCardProps {
 /**
  * 标签云组件
  * 使用 memo 优化性能
+ * 在标签详情页时支持状态驱动切换，其他页面使用路由导航
  */
 const TagsCard = memo(function TagsCard({ highlightIds = [] }: TagsCardProps) {
   const { data: tags = [], isLoading } = useTags();
   const tagCloudRef = useRef<HTMLDivElement>(null);
   const [isOverflow, setIsOverflow] = useState(false);
+  const tagFilter = useTagFilter(); // 在标签详情页时有值，其他页面为 null
 
   const checkOverflow = useCallback(() => {
     if (tagCloudRef.current) {
@@ -31,6 +34,17 @@ const TagsCard = memo(function TagsCard({ highlightIds = [] }: TagsCardProps) {
     window.addEventListener("resize", checkOverflow);
     return () => window.removeEventListener("resize", checkOverflow);
   }, [checkOverflow, tags]);
+
+  const handleTagClick = useCallback(
+    (e: React.MouseEvent, tagName: string) => {
+      // 只有在标签详情页时才阻止默认导航，使用状态切换
+      if (tagFilter) {
+        e.preventDefault();
+        tagFilter.onTagChange(tagName);
+      }
+    },
+    [tagFilter]
+  );
 
   if (isLoading) {
     return <div className={styles.loadingTip}>标签云加载中...</div>;
@@ -46,11 +60,15 @@ const TagsCard = memo(function TagsCard({ highlightIds = [] }: TagsCardProps) {
         <div ref={tagCloudRef} className={`${styles.cardTagCloud} ${isOverflow ? styles.isOverflow : ""}`}>
           {tags.map(tag => {
             const isHighlight = highlightIds.includes(tag.id);
+            const isSelected = tagFilter?.selectedTag === tag.name;
             return (
               <Link
                 key={tag.id}
-                href={`/tags/${tag.name}/`}
-                className={`${styles.tagLink} ${isHighlight ? styles.isHighlight : ""}`}
+                href={`/tags/${encodeURIComponent(tag.name)}/`}
+                onClick={e => handleTagClick(e, tag.name)}
+                className={`${styles.tagLink} ${isHighlight ? styles.isHighlight : ""} ${
+                  isSelected ? styles.isSelected : ""
+                }`}
               >
                 {tag.name}
                 <sup>{tag.count}</sup>
@@ -77,34 +95,44 @@ TagsCard.displayName = "TagsCard";
  * 使用 memo 优化性能
  */
 const ArchivesCard = memo(function ArchivesCard() {
+  // 使用 useSyncExternalStore 检测客户端挂载状态（React 19 推荐方式）
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const { data: archives = [] } = useArchives();
 
   const monthMap = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
 
   const getMonthName = (month: number) => monthMap[month - 1] || "";
 
-  if (archives.length === 0) {
+  // 服务端渲染或客户端未挂载或数据为空时，返回 null
+  if (!mounted || archives.length === 0) {
     return null;
   }
 
   return (
-    <div className={styles.cardArchives}>
-      <ul className={styles.archiveList}>
-        {archives.map(archive => (
-          <li key={`${archive.year}-${archive.month}`} className={styles.archiveItem}>
-            <Link href={`/archives/${archive.year}/${archive.month}/`} className={styles.archiveLink}>
-              <span className={styles.archiveDate}>
-                {getMonthName(archive.month)} {archive.year}
-              </span>
-              <div className={styles.archiveCountGroup}>
-                <span className={styles.archiveCount}>{archive.count}</span>
-                <span>篇</span>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <div className={styles.cardArchives}>
+        <ul className={styles.archiveList}>
+          {archives.map(archive => (
+            <li key={`${archive.year}-${archive.month}`} className={styles.archiveItem}>
+              <Link href={`/archives/${archive.year}/${archive.month}/`} className={styles.archiveLink}>
+                <span className={styles.archiveDate}>
+                  {getMonthName(archive.month)} {archive.year}
+                </span>
+                <div className={styles.archiveCountGroup}>
+                  <span className={styles.archiveCount}>{archive.count}</span>
+                  <span>篇</span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <hr className={styles.divider} />
+    </>
   );
 });
 
@@ -236,7 +264,6 @@ export const StickyCards = memo(function StickyCards() {
 
         {/* 归档 */}
         <ArchivesCard />
-        <hr className={styles.divider} />
 
         {/* 网站信息 */}
         <WebInfoCard />

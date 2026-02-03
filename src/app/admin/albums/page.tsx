@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { Image, Plus, Edit, Trash2, Eye, Lock, Globe, FolderPlus, ImagePlus } from "lucide-react";
+import { Image as ImageIcon, Edit, Trash2, Eye, Lock, Globe, FolderPlus, ImagePlus } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 // 模拟相册数据
@@ -80,7 +80,7 @@ export default function AlbumsPage() {
       {/* 封面 */}
       <div className="relative aspect-[4/3] bg-linear-to-br from-muted to-muted/50">
         <div className="absolute inset-0 flex items-center justify-center">
-          <Image className="w-16 h-16 text-muted-foreground/50" />
+          <ImageIcon className="w-16 h-16 text-muted-foreground/50" />
         </div>
 
         {/* 悬停遮罩 */}
@@ -140,7 +140,7 @@ export default function AlbumsPage() {
       <AdminPageHeader
         title="相册管理"
         description="创建和管理您的照片相册"
-        icon={Image}
+        icon={ImageIcon}
         primaryAction={{
           label: "新建相册",
           icon: FolderPlus,
@@ -178,7 +178,7 @@ export default function AlbumsPage() {
       ) : (
         <AdminCard>
           <EmptyState
-            icon={Image}
+            icon={ImageIcon}
             title="暂无相册"
             description="创建您的第一个相册，开始分享美好时刻"
             action={{

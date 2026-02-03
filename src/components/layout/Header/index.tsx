@@ -7,13 +7,14 @@ import { Home } from "lucide-react";
 import { Tooltip, MenuIcon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { usePageStore } from "@/store/pageStore";
 import { useHeader, useIsMobile } from "@/hooks";
+import { updateMetaThemeColorDynamic } from "@/utils/themeManager";
 
 // 子组件
 import { HeaderRight } from "./components/HeaderRight";
 import { MobileMenu } from "./components/MobileMenu";
 import { SearchModal } from "./components/SearchModal";
-import { Console } from "./components/Console";
 import { BackMenuListGroups } from "./components/BackMenuListGroups";
 
 // 类型和样式
@@ -24,6 +25,7 @@ export function Header() {
   const pathname = usePathname();
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
   const isConfigLoaded = useSiteConfigStore(state => state.isLoaded);
+  const pageTitle = usePageStore(state => state.pageTitle);
   const isMobile = useIsMobile();
 
   // 使用 useSyncExternalStore 检测客户端挂载状态（React 19 推荐方式）
@@ -48,12 +50,23 @@ export function Header() {
     return pathname === "/music";
   }, [pathname]);
 
+  // 是否为一图流页面
+  const isOneImagePage = useMemo(() => {
+    const pageConfig = siteConfig?.page?.one_image?.config || siteConfig?.page?.oneImageConfig;
+    if (!pageConfig) return false;
+    if (pathname === "/" && pageConfig.home?.enable) return true;
+    if (pathname === "/categories" && pageConfig.categories?.enable) return true;
+    if (pathname === "/tags" && pageConfig.tags?.enable) return true;
+    if (pathname?.startsWith("/archives") && pageConfig.archives?.enable) return true;
+    return false;
+  }, [pathname, siteConfig]);
+
   const { isHeaderTransparent, isScrolled, scrollPercent, isFooterVisible } = useHeader();
 
   // 是否应该显示白色文字
   const shouldShowTextWhite = useMemo(() => {
-    return isHeaderTransparent && (isPostDetailPage || isMusicPage);
-  }, [isHeaderTransparent, isPostDetailPage, isMusicPage]);
+    return isHeaderTransparent && (isPostDetailPage || isMusicPage || isOneImagePage);
+  }, [isHeaderTransparent, isPostDetailPage, isMusicPage, isOneImagePage]);
 
   // 获取配置
   const headerConfig = useMemo<HeaderConfig | undefined>(() => {
@@ -88,15 +101,16 @@ export function Header() {
   const currentPageTitle = useMemo(() => {
     // 根据路由获取页面标题
     if (pathname === "/") return fullSiteTitle;
-    if (pathname?.startsWith("/posts/")) return "文章详情";
-    if (pathname === "/archives") return "归档";
-    if (pathname === "/categories") return "分类";
-    if (pathname === "/tags") return "标签";
+    // 文章详情页：优先使用 store 中的文章标题
+    if (pathname?.startsWith("/posts/")) return pageTitle || "文章详情";
+    if (pathname?.startsWith("/archives")) return "归档";
+    if (pathname?.startsWith("/categories")) return "分类";
+    if (pathname?.startsWith("/tags")) return "标签";
     if (pathname === "/about") return "关于";
     if (pathname === "/music") return "音乐";
     if (pathname === "/links") return "友链";
     return fullSiteTitle;
-  }, [pathname, fullSiteTitle]);
+  }, [pathname, fullSiteTitle, pageTitle]);
 
   // 监听路由变化 - 将 setState 放入微任务避免同步调用
   useEffect(() => {
@@ -138,6 +152,24 @@ export function Header() {
     };
   }, []);
 
+  // 动态更新浏览器 meta theme-color
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (isHeaderTransparent) {
+      if (isPostDetailPage || isMusicPage) {
+        // 文章详情页/音乐页顶部：使用主题色（文章主色调或默认主色）
+        updateMetaThemeColorDynamic("var(--primary)");
+      } else {
+        // 其他页面顶部：使用背景色
+        updateMetaThemeColorDynamic("var(--background)");
+      }
+    } else {
+      // 滚动后：使用卡片背景色
+      updateMetaThemeColorDynamic("var(--card)");
+    }
+  }, [mounted, isHeaderTransparent, isPostDetailPage, isMusicPage]);
+
   // 滚动到顶部
   const scrollToTop = useCallback(() => {
     window.scrollTo({
@@ -159,22 +191,21 @@ export function Header() {
 
   return (
     <>
-      <header className={styles.frontendHeader}>
+      <header className={cn(styles.frontendHeader, isPostDetailPage && styles.isPostDetail)}>
         <div
           className={cn(
             styles.headerWrapper,
             isHeaderTransparent && styles.isTransparent,
             shouldShowTextWhite && styles.textIsWhite,
             isScrolled && styles.isScrolled,
-            isRouteChanging && styles.isRouteChanging,
-            isConsoleOpen && styles.consoleOpen
+            isRouteChanging && styles.isRouteChanging
           )}
         >
           <div className={styles.headerContent}>
             {/* 左侧区域 */}
             <div className={styles.headerLeft}>
               {/* 快捷菜单按钮 - 桌面端显示 */}
-              {!isMobile && <BackMenuListGroups navConfig={navConfig} />}
+              {!isMobile && <BackMenuListGroups navConfig={navConfig} isTextWhite={shouldShowTextWhite} />}
 
               {/* 站点名称 */}
               <Link href="/" className={styles.siteNameLink} accessKey="h">
@@ -291,6 +322,7 @@ export function Header() {
             <HeaderRight
               navConfig={navConfig}
               isTransparent={isHeaderTransparent}
+              isTextWhite={shouldShowTextWhite}
               scrollPercent={scrollPercent}
               isFooterVisible={isFooterVisible}
               isConsoleOpen={isConsoleOpen}
@@ -299,9 +331,6 @@ export function Header() {
           </div>
         </div>
       </header>
-
-      {/* 中控台 */}
-      <Console isOpen={isConsoleOpen} onClose={() => setIsConsoleOpen(false)} />
 
       {/* 移动端菜单 */}
       <MobileMenu

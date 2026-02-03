@@ -8,6 +8,7 @@ import type { NavConfig } from "../../types";
 
 interface BackMenuListGroupsProps {
   navConfig?: NavConfig;
+  isTextWhite?: boolean;
 }
 
 // 默认图标
@@ -60,13 +61,13 @@ function MenuItemIcon({ icon }: { icon?: string }) {
   }
 }
 
-export function BackMenuListGroups({ navConfig }: BackMenuListGroupsProps) {
+export function BackMenuListGroups({ navConfig, isTextWhite = false }: BackMenuListGroupsProps) {
   if (!navConfig?.menu || navConfig.menu.length === 0) {
     return null;
   }
 
   return (
-    <div className={styles.backHomeButton}>
+    <div className={cn(styles.backHomeButton, isTextWhite && styles.textIsWhite)}>
       <Icon icon="ri:apps-fill" className={styles.triggerIcon} />
       <div className={styles.backMenuListGroups}>
         {navConfig.menu.map(group => (

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { Palette, Download, Check, Eye, Star, Heart, ExternalLink, Sparkles, Crown } from "lucide-react";
+import { Palette, Download, Check, Eye, Star, ExternalLink, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 模拟主题数据

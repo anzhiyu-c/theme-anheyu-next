@@ -7,7 +7,6 @@ import {
   ShoppingCart,
   Eye,
   Package,
-  Truck,
   CheckCircle,
   XCircle,
   Clock,
@@ -15,7 +14,7 @@ import {
   Download,
   Sparkles,
 } from "lucide-react";
-import { cn, formatDate, formatCurrency } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 
 // 模拟订单数据
 const mockOrders = [
@@ -249,7 +248,7 @@ export default function OrdersPage() {
           searchable
           searchPlaceholder="搜索订单号或买家..."
           searchKeys={["id", "buyer", "productName"]}
-          rowActions={order => (
+          rowActions={() => (
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <Eye className="w-4 h-4" />
             </Button>

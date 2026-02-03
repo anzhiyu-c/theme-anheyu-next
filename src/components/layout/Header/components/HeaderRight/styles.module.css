@@ -175,6 +175,24 @@
   background: var(--primary);
 }
 
+/* 白色文字状态（页面顶部透明时） */
+.textIsWhite .navButton {
+  color: #fff;
+}
+
+.textIsWhite .navButton:not(.navTotop):hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.textIsWhite .consoleIcon {
+  background: #fff;
+}
+
+.textIsWhite .toggleMenu {
+  color: #fff;
+}
+
 /* 用户中心按钮 */
 .userCenterButton {
   position: relative;

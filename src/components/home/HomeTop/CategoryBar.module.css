@@ -80,11 +80,13 @@
   color: var(--anzhiyu-fontcolor);
 }
 
-.categoryBarNext i {
+.scrollIcon {
+  width: 1rem;
+  height: 1rem;
   transition: transform 0.3s ease-in-out;
 }
 
-.categoryBarNext i.isRotated {
+.scrollIcon.isRotated {
   transform: rotate(180deg);
 }
 

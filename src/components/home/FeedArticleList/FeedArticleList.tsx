@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { FaFileLines, FaTriangleExclamation } from "react-icons/fa6";
 import { useFeedList } from "@/hooks/queries";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { cn } from "@/lib/utils";
@@ -82,7 +83,7 @@ export function FeedArticleList({ category, tag, pageSize: propPageSize }: FeedA
     return (
       <div className={styles.feedArticleList}>
         <div className={styles.errorState}>
-          <i className="anzhiyufont anzhiyu-icon-warning" />
+          <FaTriangleExclamation aria-hidden="true" />
           <p>加载文章列表失败，请稍后重试</p>
         </div>
       </div>
@@ -94,7 +95,7 @@ export function FeedArticleList({ category, tag, pageSize: propPageSize }: FeedA
     return (
       <div className={styles.feedArticleList}>
         <div className={styles.emptyState}>
-          <i className="anzhiyufont anzhiyu-icon-article" />
+          <FaFileLines aria-hidden="true" />
           <p>暂无文章</p>
         </div>
       </div>

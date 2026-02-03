@@ -129,7 +129,7 @@
   border-radius: 12px;
 }
 
-.errorState i {
+.errorState svg {
   font-size: 3rem;
   color: var(--anzhiyu-red);
   margin-bottom: 1rem;
@@ -152,7 +152,7 @@
   border-radius: 12px;
 }
 
-.emptyState i {
+.emptyState svg {
   font-size: 3rem;
   color: var(--anzhiyu-secondtext);
   margin-bottom: 1rem;

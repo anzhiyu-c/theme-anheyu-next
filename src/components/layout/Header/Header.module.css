@@ -8,6 +8,12 @@
   font-size: 1rem;
 }
 
+/* 文章详情页 - 降低 header 的 z-index，让浏览器可以从 PostHeader 采样颜色 */
+.frontendHeader.isPostDetail {
+  position: fixed;
+  z-index: 99;
+}
+
 .frontendHeader a {
   color: var(--foreground);
   text-decoration: none;
@@ -22,7 +28,7 @@
 .headerWrapper {
   position: fixed;
   top: 0;
-  z-index: 10000;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -335,26 +341,30 @@
   transform: translateX(-50%) translateY(-52px) translateZ(0);
 }
 
-/* 透明状态 */
+/* 透明状态 - 普通页面在顶部时 */
 .headerWrapper.isTransparent {
   background-color: var(--background);
   outline-color: transparent;
 }
 
-/* 文章详情页和音乐页顶部时，导航栏完全透明 */
 .headerWrapper.isTransparent.textIsWhite {
   background-color: transparent;
 }
 
-/* 白色文字状态 */
-.headerWrapper.textIsWhite a,
+/* 白色文字状态 - 只影响 Header 主内容区的直接元素，不影响下拉菜单 */
+.headerWrapper.textIsWhite .siteNameLink,
 .headerWrapper.textIsWhite .navButton,
 .headerWrapper.textIsWhite .backMenuButton {
   transition: color 0.2s ease-out;
   color: #fff;
 }
 
-.headerWrapper.textIsWhite a:hover,
+.headerWrapper.textIsWhite .siteNameLink svg,
+.headerWrapper.textIsWhite .siteTitle {
+  color: #fff;
+}
+
+.headerWrapper.textIsWhite .siteNameLink:hover,
 .headerWrapper.textIsWhite .navButton:hover,
 .headerWrapper.textIsWhite .backMenuButton:hover {
   color: #fff;
@@ -366,23 +376,15 @@
   color: #fff;
 }
 
-.headerWrapper.textIsWhite .siteNameLink:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.headerWrapper.textIsWhite .menuTitle {
+/* 主菜单项 - 只影响一级菜单，不影响下拉菜单 */
+.headerWrapper.textIsWhite .menusItem > .menuTitle {
   transition: color 0.2s ease-out;
   color: #fff;
 }
 
-.headerWrapper.textIsWhite .menuTitle:hover {
+.headerWrapper.textIsWhite .menusItem > .menuTitle:hover {
   color: #fff;
-}
-
-.headerWrapper.textIsWhite .menusItem:hover .menuTitle {
   background: rgba(255, 255, 255, 0.2);
-  color: #fff !important;
 }
 
 /* 切换菜单按钮 */

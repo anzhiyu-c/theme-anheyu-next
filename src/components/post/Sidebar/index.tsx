@@ -1,0 +1,120 @@
+/**
+ * 文章详情页侧边栏组件
+ * 包含：作者信息卡片、微信卡片、目录、系列文章、最近文章
+ */
+"use client";
+
+import { useMemo } from "react";
+import { AuthorInfoCard } from "@/components/home/Sidebar/AuthorInfoCard";
+import { CardWechat } from "@/components/home/Sidebar/CardWechat";
+import { CardToc } from "./CardToc";
+import { CardSeriesPost } from "./CardSeriesPost";
+import { CardRecentPost } from "./CardRecentPost";
+import { useSiteConfigStore } from "@/store/siteConfigStore";
+import type { Article, RecentArticle } from "@/types/article";
+import styles from "./PostSidebar.module.css";
+
+interface PostSidebarProps {
+  article: Article;
+  recentArticles?: RecentArticle[];
+}
+
+export function PostSidebar({ article, recentArticles = [] }: PostSidebarProps) {
+  const siteConfig = useSiteConfigStore(state => state.siteConfig);
+
+  // 提取系列分类
+  const seriesCategory = useMemo(() => {
+    if (!article.post_categories) return null;
+    const found = article.post_categories.find(cat => cat.is_series);
+    if (!found) return null;
+    return {
+      id: parseInt(found.id) || 0,
+      name: found.name,
+      is_series: found.is_series || false,
+    };
+  }, [article.post_categories]);
+
+  // 提取系列文章（从相关文章中筛选同系列的）
+  const seriesArticles = useMemo(() => {
+    if (!seriesCategory || !article.related_articles) return [];
+    return article.related_articles.map(art => ({
+      id: parseInt(art.id) || 0,
+      title: art.title,
+      abbrlink: art.abbrlink || "",
+      cover_url: art.cover_url,
+      created_at: art.created_at,
+    }));
+  }, [seriesCategory, article.related_articles]);
+
+  // 作者信息配置 - 从 sidebar.author 获取
+  const authorInfoConfig = useMemo(() => {
+    const author = siteConfig?.sidebar?.author;
+    if (!author?.enable) return null;
+    const owner = siteConfig?.frontDesk?.siteOwner;
+    return {
+      ownerName: owner?.name || "安知鱼",
+      subTitle: "",
+      description: author.description || "",
+      userAvatar: siteConfig?.USER_AVATAR || "",
+      statusImg: author.statusImg || "",
+      skills: author.skills || [],
+      social: author.social || {},
+    };
+  }, [siteConfig]);
+
+  // 微信配置 - 从 sidebar.wechat 获取
+  const wechatConfig = useMemo(() => {
+    const wechat = siteConfig?.sidebar?.wechat;
+    if (!wechat?.enable) return null;
+    return {
+      face: wechat.face || "",
+      backFace: wechat.backFace || "",
+      blurBackground: wechat.blurBackground || "",
+      link: wechat.link,
+    };
+  }, [siteConfig]);
+
+  // 默认封面
+  const defaultCover = siteConfig?.post?.default?.default_cover || "/images/default-cover.webp";
+
+  // 当前文章 ID (转换为 number)
+  const currentArticleId = parseInt(article.id) || 0;
+
+  return (
+    <aside className={styles.postSidebar}>
+      {/* 作者信息卡片 */}
+      {authorInfoConfig && <AuthorInfoCard config={authorInfoConfig} />}
+
+      {/* 微信卡片 */}
+      {wechatConfig && <CardWechat config={wechatConfig} />}
+
+      {/* 粘性区域 */}
+      <div className={styles.stickyContainer}>
+        {/* 系列文章 */}
+        {seriesCategory && seriesArticles.length > 0 && (
+          <CardSeriesPost
+            seriesArticles={seriesArticles}
+            seriesCategory={seriesCategory}
+            currentArticleId={currentArticleId}
+            defaultCover={defaultCover}
+          />
+        )}
+
+        {/* 文章目录 */}
+        {article.content_html && <CardToc contentHtml={article.content_html} />}
+
+        {/* 最近发布 */}
+        {recentArticles.length > 0 && (
+          <CardRecentPost articles={recentArticles} currentArticleId={currentArticleId} defaultCover={defaultCover} />
+        )}
+      </div>
+    </aside>
+  );
+}
+
+// 导出子组件
+export { CardToc } from "./CardToc";
+export { CardSeriesPost } from "./CardSeriesPost";
+export { CardRecentPost } from "./CardRecentPost";
+
+export default PostSidebar;

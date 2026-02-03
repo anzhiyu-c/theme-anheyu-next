@@ -10,15 +10,13 @@ import {
   Globe,
   User,
   Mail,
-  Link,
-  Image,
+  Image as ImageIcon,
   FileText,
   Bell,
   Shield,
   Palette,
   Code,
   MessageSquare,
-  Sparkles,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -90,7 +88,7 @@ export default function SettingsPage() {
         <label className="text-sm font-medium">网站 Logo</label>
         <div className="flex items-center gap-4">
           <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center">
-            <Image className="w-8 h-8 text-muted-foreground" />
+            <ImageIcon className="w-8 h-8 text-muted-foreground" />
           </div>
           <Button variant="outline">上传 Logo</Button>
         </div>
@@ -100,7 +98,7 @@ export default function SettingsPage() {
         <label className="text-sm font-medium">网站 Favicon</label>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-            <Image className="w-5 h-5 text-muted-foreground" />
+            <ImageIcon className="w-5 h-5 text-muted-foreground" />
           </div>
           <Button variant="outline">上传 Favicon</Button>
         </div>

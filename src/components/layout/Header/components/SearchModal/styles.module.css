@@ -34,26 +34,36 @@
   z-index: 10002;
   display: flex;
   flex-direction: column;
-  width: 40rem;
+  width: 32rem;
   max-width: 90vw;
   height: fit-content;
   max-height: 80dvh;
   padding: 0;
-  margin: 5rem auto;
+  margin: 8rem auto;
   pointer-events: none;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 20px 25px -5px rgba(0, 0, 0, 0.06);
   opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
-  transform: translateY(24px) scale(0.96);
+  transition:
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+  transform: translateY(16px) scale(0.98);
   will-change: transform, opacity;
 }
 
 :global(.dark) .searchDialog {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 10px 15px -3px rgba(0, 0, 0, 0.25),
+    0 20px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
 .searchDialog.show {
@@ -62,45 +72,44 @@
   transform: translateY(0) scale(1);
 }
 
+/* 隐藏标题栏，用更紧凑的设计 */
 .searchNav {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  display: none;
 }
 
 .searchDialogTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--foreground);
+  display: none;
 }
 
 .searchCloseButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 1.75rem;
+  height: 1.75rem;
   color: var(--muted-foreground);
   cursor: pointer;
   background: transparent;
   border: none;
-  border-radius: 50%;
-  transition: background-color 0.2s, color 0.2s;
+  border-radius: 6px;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .searchCloseButton:hover {
-  color: var(--primary-foreground);
-  background: var(--primary);
+  color: var(--foreground);
+  background: var(--muted);
 }
 
 .searchWrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 1.25rem;
+  padding: 0.75rem;
   overflow-y: auto;
 }
 
@@ -142,53 +151,62 @@
 
 .searchTips {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
   align-items: center;
   justify-content: center;
-  margin-top: 0.75rem;
-  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
   color: var(--muted-foreground);
+}
+
+.searchTips kbd {
+  padding: 0.125rem 0.375rem;
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border-radius: 4px;
 }
 
 /* 搜索结果 */
 .searchResults {
   display: flex;
   flex-direction: column;
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
 }
 
 .resultsHeader {
-  padding-left: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
 .resultsCount {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
 .resultsList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.25rem;
 }
 
 .resultItem {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.75rem;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: 0.625rem 0.75rem;
   cursor: pointer;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  transition: all 0.25s ease-in-out;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  transition: background-color 0.15s;
 }
 
 .resultItem:hover {
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px var(--primary-op, rgba(66, 89, 239, 0.14));
-  transform: translateY(-2px);
+  background: var(--muted);
 }
 
 .resultItem:hover .resultArrow {
@@ -197,29 +215,28 @@
 }
 
 .resultItem:hover .resultThumbnail img {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .resultThumbnail {
   flex-shrink: 0;
-  width: 6rem;
-  height: 6rem;
+  width: 3rem;
+  height: 3rem;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .resultThumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease-out;
+  transition: transform 0.2s ease-out;
 }
 
 .resultDetails {
   display: flex;
   flex-grow: 1;
   flex-direction: column;
-  align-self: stretch;
   min-width: 0;
 }
 
@@ -231,15 +248,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
 }
 
 .resultTitle {
   display: -webkit-box;
   flex: 1;
   overflow: hidden;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--foreground);
   -webkit-line-clamp: 1;
@@ -254,13 +270,12 @@
 
 .resultSnippet {
   display: -webkit-box;
-  margin-bottom: 0.75rem;
   overflow: hidden;
-  font-size: 0.9rem;
-  line-height: 1.6;
+  font-size: 0.75rem;
+  line-height: 1.5;
   color: var(--muted-foreground);
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
 }
 
@@ -271,21 +286,11 @@
 }
 
 .resultFooter {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 0.5rem;
-  margin-top: auto;
+  display: none;
 }
 
 .resultMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  font-size: 0.8rem;
-  color: var(--muted-foreground);
+  display: none;
 }
 
 .resultAuthor,
@@ -294,94 +299,95 @@
 }
 
 .resultTags {
-  display: flex;
-  gap: 0.375rem;
+  display: none;
 }
 
 .tag {
-  padding: 0.15rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.65rem;
   color: var(--primary);
   white-space: nowrap;
   background: var(--primary-op, rgba(66, 89, 239, 0.14));
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 .resultArrow {
-  font-size: 1.25rem;
-  color: var(--primary);
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--muted-foreground);
   opacity: 0;
-  transition: all 0.25s ease-in-out;
-  transform: translateX(-5px);
+  transition: all 0.15s;
+  transform: translateX(-4px);
 }
 
 /* 分页 */
 .pagination {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
   justify-content: center;
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
   border-top: 1px solid var(--border);
 }
 
 .pageBtn {
-  padding: 0.5rem 1rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   cursor: pointer;
-  background: var(--card);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 6px;
-  transition: all 0.2s ease;
+  transition: all 0.15s;
 }
 
 .pageBtn:hover:not(:disabled) {
   color: var(--primary);
-  background: var(--primary-op, rgba(66, 89, 239, 0.14));
+  background: var(--primary-op, rgba(66, 89, 239, 0.1));
   border-color: var(--primary);
 }
 
 .pageBtn:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .pageInfo {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
 /* 无结果和加载中 */
 .noResults,
 .loading {
-  padding: 2rem;
+  padding: 1.5rem 1rem;
   text-align: center;
 }
 
 .noResultsText {
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
   color: var(--foreground);
 }
 
 .noResultsTip {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
 .loadingSpinner {
-  width: 2rem;
-  height: 2rem;
-  margin: 0 auto 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0 auto 0.75rem;
   border: 2px solid var(--border);
   border-top: 2px solid var(--primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 .loadingText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -397,17 +403,12 @@
 /* 响应式 */
 @media (max-width: 640px) {
   .searchDialog {
-    margin: 2rem auto;
-    max-height: 90dvh;
-  }
-
-  .resultItem {
-    flex-direction: column;
-    gap: 0.75rem;
+    margin: 4rem auto;
+    max-height: 85dvh;
   }
 
   .resultThumbnail {
-    width: 100%;
-    height: 8rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
 }

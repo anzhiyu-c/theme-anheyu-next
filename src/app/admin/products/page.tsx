@@ -4,8 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { Package, Plus, Edit, Trash2, Eye, EyeOff, Tag, ShoppingCart, TrendingUp, Sparkles } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { Package, Plus, Edit, Trash2, Eye, EyeOff, ShoppingCart, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // 模拟商品数据
 const mockProducts = [

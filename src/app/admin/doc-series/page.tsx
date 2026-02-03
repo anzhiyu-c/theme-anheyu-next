@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column, EmptyState } from "@/components/admin";
+import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { BookOpen, Plus, Edit, Trash2, Eye, FileText, Calendar, ArrowRight, GripVertical } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { BookOpen, Plus, Edit, Trash2, Eye, FileText, Calendar, ArrowRight } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 // 模拟文档系列数据
 const mockDocSeries = [

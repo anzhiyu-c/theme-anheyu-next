@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button } from "@/components/ui";
-import { Crown, Plus, Edit, Ban, CheckCircle, Clock, Star, Gift, Calendar, TrendingUp, Sparkles } from "lucide-react";
+import { Crown, Edit, CheckCircle, Clock, Star, Gift, Calendar, TrendingUp, Sparkles } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 // 模拟会员数据
@@ -271,7 +271,7 @@ export default function MembershipsPage() {
           searchable
           searchPlaceholder="搜索会员..."
           searchKeys={["username", "email"]}
-          rowActions={member => (
+          rowActions={() => (
             <div className="flex items-center gap-1 justify-end">
               <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-primary">
                 <Gift className="w-3.5 h-3.5" />

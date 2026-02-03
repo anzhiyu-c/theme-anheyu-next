@@ -113,6 +113,12 @@
   box-shadow: var(--anzhiyu-shadow-theme);
 }
 
+.tagLink.isSelected {
+  color: var(--anzhiyu-white);
+  background: var(--anzhiyu-main);
+  border-radius: 4px;
+}
+
 .tagLink sup {
   margin-left: 2px;
   font-size: 0.7em;

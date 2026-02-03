@@ -3,20 +3,7 @@
 import { useState } from "react";
 import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button } from "@/components/ui";
-import {
-  Users,
-  Plus,
-  Edit,
-  Trash2,
-  Shield,
-  ShieldCheck,
-  ShieldAlert,
-  Mail,
-  Calendar,
-  MoreHorizontal,
-  Ban,
-  CheckCircle,
-} from "lucide-react";
+import { Users, Plus, Edit, Trash2, Shield, ShieldCheck, Mail, Ban, CheckCircle } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 
 // 模拟用户数据

@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { Icon } from "@iconify/react";
 import styles from "./AuthorInfoCard.module.css";
 
 interface AuthorConfig {
@@ -71,8 +72,11 @@ export function AuthorInfoCard({ config }: AuthorInfoCardProps) {
 
   // 渲染社交图标
   const renderSocialIcon = (name: string, social: { icon: string; link: string }) => {
+    if (!social.icon) return null;
     const isImageUrl = social.icon?.startsWith("http://") || social.icon?.startsWith("https://");
     const isIconify = social.icon?.includes(":");
+
+    if (!isImageUrl && !isIconify) return null;
 
     return (
       <a
@@ -86,12 +90,8 @@ export function AuthorInfoCard({ config }: AuthorInfoCardProps) {
       >
         {isImageUrl ? (
           <img src={social.icon} alt={name} className={styles.socialIconImg} width={24} height={24} />
-        ) : isIconify ? (
-          // Iconify 图标 - 使用 span 作为占位
-          <span className={styles.socialIconify}>{social.icon}</span>
         ) : (
-          // anzhiyu 图标字体
-          <i className={`anzhiyufont ${social.icon}`} />
+          <Icon icon={social.icon} className={styles.socialIconify} aria-hidden="true" />
         )}
       </a>
     );

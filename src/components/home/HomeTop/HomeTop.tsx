@@ -216,7 +216,7 @@ export function HomeTop() {
                   <span className={styles.recentPostTopText}>荐</span>
                   <Image
                     className={styles.postBg}
-                    src={article.cover_url || "/images/default-cover.jpg"}
+                    src={article.cover_url || "/images/default-cover.webp"}
                     alt={article.title}
                     fill
                     sizes="(max-width: 768px) 200px, 33vw"

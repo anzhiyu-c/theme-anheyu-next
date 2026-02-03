@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column, EmptyState } from "@/components/admin";
-import { Button, Input } from "@/components/ui";
+import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
+import { Button } from "@/components/ui";
 import {
   Brain,
   Plus,
-  Edit,
   Trash2,
-  Search,
   FileText,
   MessagesSquare,
   Zap,
@@ -19,7 +17,7 @@ import {
   Sparkles,
   Upload,
 } from "lucide-react";
-import { cn, formatDate, formatBytes } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 
 // 模拟知识库数据
 const mockKnowledge = [
@@ -75,61 +73,6 @@ export default function KnowledgePage() {
   // 计算统计数据
   const totalDocs = knowledgeBases.reduce((acc, kb) => acc + kb.documentCount, 0);
   const totalSize = knowledgeBases.reduce((acc, kb) => acc + kb.size, 0);
-
-  const columns: Column<KnowledgeItem>[] = [
-    {
-      key: "name",
-      header: "知识库",
-      render: kb => (
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Brain className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="font-medium">{kb.name}</p>
-            <p className="text-xs text-muted-foreground">{kb.description}</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "documentCount",
-      header: "文档数",
-      sortable: true,
-      align: "center",
-      render: kb => (
-        <div className="flex items-center justify-center gap-1.5 text-muted-foreground">
-          <FileText className="w-4 h-4" />
-          {kb.documentCount}
-        </div>
-      ),
-    },
-    {
-      key: "size",
-      header: "大小",
-      sortable: true,
-      render: kb => <span className="text-muted-foreground">{formatBytes(kb.size)}</span>,
-    },
-    {
-      key: "status",
-      header: "状态",
-      render: kb => {
-        const config = statusConfig[kb.status];
-        return (
-          <span className={cn("inline-flex items-center px-2 py-1 rounded-full text-xs font-medium", config.className)}>
-            {kb.status === "indexing" && <RefreshCw className="w-3 h-3 mr-1 animate-spin" />}
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "lastUpdated",
-      header: "更新时间",
-      sortable: true,
-      render: kb => <span className="text-sm text-muted-foreground">{formatDate(kb.lastUpdated)}</span>,
-    },
-  ];
 
   const KnowledgeCard = ({ kb, index }: { kb: KnowledgeItem; index: number }) => {
     const config = statusConfig[kb.status];

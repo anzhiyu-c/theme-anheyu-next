@@ -28,6 +28,19 @@
 .triggerIcon {
   width: 1.375rem;
   height: 1.375rem;
+  color: inherit;
+  transition: color 0.2s ease-out;
+}
+
+/* 白色文字状态（页面顶部透明时） */
+.backHomeButton.textIsWhite {
+  color: #fff;
+}
+
+.backHomeButton.textIsWhite:hover {
+  color: var(--primary-foreground);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
 }
 
 .backHomeButton:hover {

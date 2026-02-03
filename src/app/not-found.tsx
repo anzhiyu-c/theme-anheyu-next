@@ -1,52 +1,154 @@
 /*
- * @Description: 404 页面
+ * @Description: 404 页面 - 复刻 anheyu-pro 设计
  * @Author: 安知鱼
- * @Date: 2026-02-01
+ * @Date: 2026-02-03
  */
+"use client";
 
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Home, ArrowLeft, Search } from "lucide-react";
+import Image from "next/image";
+import { Home } from "lucide-react";
+import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { articleApi } from "@/lib/api/article";
+import { formatRelativeTime } from "@/lib/utils";
+import type { FeedItem } from "@/types/article";
+import styles from "./not-found.module.css";
+
+// 默认封面图
+const FALLBACK_COVER = "/images/default-cover.webp";
+
+// 默认 404 页面图片
+const DEFAULT_404_IMAGE = "/static/img/background-effect.gif";
 
 export default function NotFound() {
+  const router = useRouter();
+  const siteConfig = useSiteConfigStore(state => state.siteConfig);
+  const [randomArticles, setRandomArticles] = useState<FeedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 从配置中获取默认封面
+  const defaultCover = useMemo(() => {
+    return siteConfig?.post?.default?.default_cover || FALLBACK_COVER;
+  }, [siteConfig]);
+
+  // 从配置中获取 404 页面图片
+  const error404Image = useMemo(() => {
+    return siteConfig?.post?.page404?.default_image || DEFAULT_404_IMAGE;
+  }, [siteConfig]);
+
+  // 获取随机文章列表
+  const fetchRandomArticles = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await articleApi.getFeedList({
+        page: 1,
+        pageSize: 6,
+      });
+      if (response.list) {
+        setRandomArticles(response.list);
+      }
+    } catch (error) {
+      console.error("获取文章列表失败:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRandomArticles();
+  }, [fetchRandomArticles]);
+
+  // 跳转到文章
+  const goToArticle = useCallback(
+    (article: FeedItem) => {
+      // 如果是文档类型，跳转到文档详情页
+      if (article.is_doc || article.doc_series_id) {
+        router.push(`/doc/${article.id}`);
+      } else {
+        router.push(`/posts/${article.id}`);
+      }
+    },
+    [router]
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <div className="max-w-lg w-full text-center">
-        {/* 404 数字 */}
-        <div className="mb-8">
-          <h1 className="text-[120px] sm:text-[180px] font-bold leading-none gradient-text-brand">404</h1>
+    <div className={styles.errorPage}>
+      <div className={styles.errorBox}>
+        <div className={styles.errorWrap}>
+          <div className={styles.errorContent}>
+            {/* 错误图片 */}
+            <div
+              className={styles.errorImg}
+              style={{
+                backgroundImage: `url(${error404Image})`,
+              }}
+            />
+
+            {/* 错误信息 */}
+            <div className={styles.errorInfo}>
+              <h1 className={styles.errorTitle}>404</h1>
+              <div className={styles.errorSubtitle}>请尝试站内搜索寻找文章</div>
+              <Link href="/" className={styles.buttonAnimated}>
+                <Home size={18} />
+                回到主页
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* 错误信息 */}
-        <h2 className="text-2xl font-bold text-foreground mb-3">页面不存在</h2>
-        <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
-          抱歉，您访问的页面可能已被移除、名称已更改或暂时不可用。
-        </p>
-
-        {/* 操作按钮 */}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium transition-all hover:opacity-90 hover:scale-[1.02]"
-          >
-            <Home className="w-4 h-4" />
-            返回首页
-          </Link>
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground rounded-full font-medium transition-all hover:bg-muted"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            返回上页
-          </button>
-        </div>
-
-        {/* 搜索建议 */}
-        <div className="mt-12 pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground mb-4">或者尝试搜索您想要的内容</p>
-          <Link href="/search" className="inline-flex items-center gap-2 text-primary hover:underline">
-            <Search className="w-4 h-4" />
-            前往搜索
-          </Link>
+        {/* 随机文章列表 */}
+        <div className={styles.asideList}>
+          <div className={styles.asideListGroup}>
+            {loading ? (
+              <div className={styles.loadingContainer}>
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className={styles.loadingItem}>
+                    <div className={styles.loadingThumbnail} />
+                    <div className={styles.loadingContent}>
+                      <div className={styles.loadingTitle} />
+                      <div className={styles.loadingDate} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : randomArticles.length > 0 ? (
+              randomArticles.map(article => (
+                <div key={article.id} className={styles.asideListItem} onClick={() => goToArticle(article)}>
+                  <div className={styles.thumbnail}>
+                    <Image
+                      src={article.cover_url || defaultCover}
+                      alt={article.title}
+                      width={100}
+                      height={100}
+                      style={{ objectFit: "cover" }}
+                      onError={e => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = defaultCover;
+                      }}
+                    />
+                  </div>
+                  <div className={styles.content}>
+                    <div className={styles.title} title={article.title}>
+                      {article.title}
+                    </div>
+                    {article.created_at && (
+                      <time
+                        className={styles.time}
+                        dateTime={article.created_at}
+                        title={`发表于 ${formatRelativeTime(article.created_at)}`}
+                      >
+                        {formatRelativeTime(article.created_at)}
+                      </time>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className={styles.noData}>暂无文章</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
