@@ -14,10 +14,32 @@ interface DashboardStatCardProps {
     label?: string;
   };
   className?: string;
+  isLoading?: boolean;
 }
 
-export function DashboardStatCard({ title, value, subtitle, icon, trend, className }: DashboardStatCardProps) {
+export function DashboardStatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  trend,
+  className,
+  isLoading,
+}: DashboardStatCardProps) {
   const displayValue = typeof value === "number" ? formatNumber(value) : value;
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-card rounded-xl border border-border p-5 animate-pulse", className)}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="h-4 w-16 bg-muted rounded" />
+          <div className="w-8 h-8 bg-muted rounded-lg" />
+        </div>
+        <div className="h-8 w-20 bg-muted rounded mb-1" />
+        <div className="h-3 w-24 bg-muted rounded" />
+      </div>
+    );
+  }
 
   return (
     <div

@@ -5,3 +5,4 @@
 export * from "./client";
 export * from "./essay";
 export * from "./comment";
+export * from "./admin";

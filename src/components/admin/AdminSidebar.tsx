@@ -147,17 +147,15 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
           <Icon icon="ri:external-link-line" className="w-4 h-4" />
           <span>访问前台</span>
         </Link>
-        {mounted && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start gap-2.5 h-10 px-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all"
-            onClick={toggleTheme}
-          >
-            <Icon icon={isDark ? "ri:sun-line" : "ri:moon-line"} className="w-4 h-4" />
-            <span className="text-sm">{isDark ? "浅色模式" : "深色模式"}</span>
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2.5 h-10 px-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all"
+          onClick={toggleTheme}
+        >
+          <Icon icon={mounted ? (isDark ? "ri:sun-line" : "ri:moon-line") : "ri:contrast-2-line"} className="w-4 h-4" />
+          <span className="text-sm">{mounted ? (isDark ? "浅色模式" : "深色模式") : "切换主题"}</span>
+        </Button>
         <Button
           variant="ghost"
           size="sm"

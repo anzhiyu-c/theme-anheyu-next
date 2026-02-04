@@ -29,16 +29,19 @@ interface BrowserData {
 interface SourceChartProps {
   data: SourceData[];
   className?: string;
+  isLoading?: boolean;
 }
 
 interface DeviceChartProps {
   data: DeviceData[];
   className?: string;
+  isLoading?: boolean;
 }
 
 interface BrowserChartProps {
   data: BrowserData[];
   className?: string;
+  isLoading?: boolean;
 }
 
 // 来源颜色
@@ -53,11 +56,65 @@ const sourceTextColors = [
   "text-pink-500",
 ];
 
+// 格式化来源名称
+function formatSourceName(name: string): string {
+  if (!name || name === "/") return "首页";
+  try {
+    // 尝试解码 URL
+    const decoded = decodeURIComponent(name);
+    // 如果是 URL 路径，简化显示
+    if (decoded.startsWith("/posts/") || decoded.startsWith("/article/")) {
+      const parts = decoded.split("#");
+      const slug = parts[0].replace(/^\/(posts|article)\//, "");
+      const anchor = parts[1] ? `#${parts[1]}` : "";
+      // 如果有锚点，显示锚点内容
+      if (anchor) {
+        return decodeURIComponent(anchor.slice(1)).slice(0, 15) + "...";
+      }
+      return slug.slice(0, 15) + (slug.length > 15 ? "..." : "");
+    }
+    // 如果是完整 URL，提取域名
+    if (decoded.startsWith("http")) {
+      try {
+        const url = new URL(decoded);
+        return url.hostname;
+      } catch {
+        return decoded.slice(0, 20) + "...";
+      }
+    }
+    return decoded.slice(0, 20) + (decoded.length > 20 ? "..." : "");
+  } catch {
+    return name.slice(0, 20) + (name.length > 20 ? "..." : "");
+  }
+}
+
 /**
  * 访问来源饼图
  */
-export function SourceChart({ data, className }: SourceChartProps) {
+export function SourceChart({ data, className, isLoading }: SourceChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-card border border-border rounded-xl p-5 flex flex-col min-h-0 animate-pulse", className)}>
+        <div className="h-5 w-24 bg-muted rounded mb-4" />
+        <div className="flex items-center gap-6 flex-1 min-h-0">
+          <div className="w-28 h-28 bg-muted rounded-full shrink-0" />
+          <div className="flex-1 space-y-3">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-muted rounded-full" />
+                  <div className="h-4 w-16 bg-muted rounded" />
+                </div>
+                <div className="h-4 w-8 bg-muted rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
   const radius = 16;
   const innerRadius = 10;
   const cx = 16;
@@ -118,14 +175,16 @@ export function SourceChart({ data, className }: SourceChartProps) {
         </div>
 
         {/* 图例 */}
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 min-w-0 space-y-2 overflow-hidden">
           {data.slice(0, 5).map((item, index) => (
-            <div key={item.name} className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <span className={cn("w-2 h-2 rounded-full", sourceColors[index % sourceColors.length])} />
-                <span className="text-muted-foreground">{item.name}</span>
+            <div key={item.name} className="flex items-center justify-between gap-2 text-sm">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className={cn("w-2 h-2 rounded-full shrink-0", sourceColors[index % sourceColors.length])} />
+                <span className="text-muted-foreground truncate" title={item.name}>
+                  {formatSourceName(item.name)}
+                </span>
               </div>
-              <span className="font-medium">{item.percentage}%</span>
+              <span className="font-medium shrink-0">{item.percentage}%</span>
             </div>
           ))}
         </div>
@@ -137,8 +196,28 @@ export function SourceChart({ data, className }: SourceChartProps) {
 /**
  * 设备分布图
  */
-export function DeviceChart({ data, className }: DeviceChartProps) {
+export function DeviceChart({ data, className, isLoading }: DeviceChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-card border border-border rounded-xl p-5 animate-pulse", className)}>
+        <div className="h-5 w-24 bg-muted rounded mb-4" />
+        <div className="space-y-5">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="flex items-center gap-2 shrink-0 w-24">
+                <div className="w-4 h-4 bg-muted rounded" />
+                <div className="h-4 w-12 bg-muted rounded" />
+              </div>
+              <div className="flex-1 h-2 bg-muted rounded-full" />
+              <div className="h-4 w-10 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // 为不同设备设置不同颜色
   const deviceColors = ["bg-primary", "bg-blue-500", "bg-cyan-500"];

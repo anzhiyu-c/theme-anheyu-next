@@ -17,13 +17,17 @@ interface TopArticle {
 interface TopArticlesProps {
   articles: TopArticle[];
   className?: string;
+  isLoading?: boolean;
 }
 
-// 格式化时长
+// 格式化时长（秒数转为可读格式）
 function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}秒`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+  // 处理浮点数和无效值
+  const secs = Math.round(seconds);
+  if (!secs || secs < 1) return "0秒";
+  if (secs < 60) return `${secs}秒`;
+  const minutes = Math.floor(secs / 60);
+  const remainingSeconds = secs % 60;
   if (minutes < 60) {
     return remainingSeconds > 0 ? `${minutes}分${remainingSeconds}秒` : `${minutes}分`;
   }
@@ -32,8 +36,51 @@ function formatDuration(seconds: number): string {
   return `${hours}时${remainingMinutes}分`;
 }
 
-export function TopArticles({ articles, className }: TopArticlesProps) {
+// 解码并格式化标题
+function formatTitle(title: string): string {
+  try {
+    // 尝试解码 URL 编码的标题
+    const decoded = decodeURIComponent(title);
+    // 移除 URL 路径前缀和锚点
+    return (
+      decoded
+        .replace(/^\/posts\/[^#]*#?/, "")
+        .replace(/^\/article\/[^#]*#?/, "")
+        .replace(/^\//, "") || decoded
+    );
+  } catch {
+    return title;
+  }
+}
+
+export function TopArticles({ articles, className, isLoading }: TopArticlesProps) {
   const maxViews = Math.max(...articles.map(a => a.total_views), 1);
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-card border border-border rounded-xl animate-pulse", className)}>
+        <div className="flex items-center justify-between p-5 pb-0">
+          <div>
+            <div className="h-5 w-24 bg-muted rounded mb-2" />
+            <div className="h-4 w-32 bg-muted rounded" />
+          </div>
+          <div className="h-4 w-16 bg-muted rounded" />
+        </div>
+        <div className="p-5 pt-4 space-y-4">
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-muted rounded-md shrink-0" />
+              <div className="flex-1">
+                <div className="h-4 w-3/4 bg-muted rounded mb-2" />
+                <div className="h-3 w-1/2 bg-muted rounded mb-2" />
+                <div className="h-1 w-full bg-muted rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("bg-card border border-border rounded-xl", className)}>
@@ -76,9 +123,12 @@ export function TopArticles({ articles, className }: TopArticlesProps) {
                     </span>
 
                     {/* 内容 */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate group-hover:text-primary transition-colors cursor-pointer">
-                        {article.title}
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <p
+                        className="text-sm font-medium truncate group-hover:text-primary transition-colors cursor-pointer"
+                        title={formatTitle(article.title)}
+                      >
+                        {formatTitle(article.title)}
                       </p>
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">

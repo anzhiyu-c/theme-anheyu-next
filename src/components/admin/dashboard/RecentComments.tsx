@@ -22,6 +22,7 @@ interface RecentCommentsProps {
   onApprove?: (id: string | number) => void;
   onReject?: (id: string | number) => void;
   className?: string;
+  isLoading?: boolean;
 }
 
 const statusConfig: Record<CommentStatus, { label: string; className: string }> = {
@@ -48,7 +49,36 @@ function formatRelativeTime(dateString: string): string {
   return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
 
-export function RecentComments({ comments, onApprove, onReject, className }: RecentCommentsProps) {
+export function RecentComments({ comments, onApprove, onReject, className, isLoading }: RecentCommentsProps) {
+  if (isLoading) {
+    return (
+      <div className={cn("bg-card border border-border rounded-xl animate-pulse", className)}>
+        <div className="flex items-center justify-between p-5 pb-0">
+          <div>
+            <div className="h-5 w-24 bg-muted rounded mb-2" />
+            <div className="h-4 w-32 bg-muted rounded" />
+          </div>
+          <div className="h-4 w-16 bg-muted rounded" />
+        </div>
+        <div className="p-5 pt-4 space-y-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="flex gap-3">
+              <div className="w-9 h-9 bg-muted rounded-full shrink-0" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-4 w-16 bg-muted rounded" />
+                  <div className="h-4 w-12 bg-muted rounded" />
+                </div>
+                <div className="h-4 w-full bg-muted rounded mb-2" />
+                <div className="h-3 w-32 bg-muted rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("bg-card border border-border rounded-xl", className)}>
       {/* 头部 */}
