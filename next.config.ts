@@ -54,6 +54,40 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.r2.cloudflarestorage.com",
       },
+      // Gravatar 头像服务
+      {
+        protocol: "https",
+        hostname: "cravatar.cn",
+      },
+      {
+        protocol: "https",
+        hostname: "gravatar.com",
+      },
+      {
+        protocol: "https",
+        hostname: "www.gravatar.com",
+      },
+      {
+        protocol: "https",
+        hostname: "secure.gravatar.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.gravatar.com",
+      },
+      // QQ 头像服务
+      {
+        protocol: "https",
+        hostname: "thirdqq.qlogo.cn",
+      },
+      {
+        protocol: "https",
+        hostname: "q.qlogo.cn",
+      },
+      {
+        protocol: "https",
+        hostname: "*.qlogo.cn",
+      },
     ],
   },
 

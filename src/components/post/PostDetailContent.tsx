@@ -17,6 +17,7 @@ import { PostHeader } from "./PostHeader";
 import { PostContent } from "./PostContent";
 import { PostCopyright } from "./PostCopyright";
 import { PostPagination } from "./PostPagination";
+import { CommentSection } from "./Comment";
 import { PostSidebar } from "./Sidebar";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { usePageStore } from "@/store/pageStore";
@@ -104,10 +105,8 @@ export function PostDetailContent({ article, recentArticles = [] }: PostDetailCo
             {/* 上下篇导航 */}
             <PostPagination prevArticle={article.prev_article} nextArticle={article.next_article} />
 
-            {/* 评论区占位 */}
-            <div id="post-comment" className={styles.commentSection}>
-              {/* TODO: 评论组件 */}
-            </div>
+            {/* 评论区 */}
+            <CommentSection targetTitle={article.title} className={styles.commentSection} />
           </div>
         </main>
 

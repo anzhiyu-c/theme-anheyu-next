@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui";
-import { LogOut, Sun, Moon, ChevronDown, Sparkles } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { useShallow } from "zustand/shallow";
 import { useTheme } from "@/hooks";
-import { Logo } from "@/components/common";
 import { cn } from "@/lib/utils";
 import { adminMenuConfig, type AdminMenuGroup, type AdminMenuItem } from "@/config/admin-menu";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getUserAvatarUrl } from "@/lib/avatar";
 
 interface AdminSidebarProps {
   onClose?: () => void;
@@ -26,6 +28,36 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
       logout: state.logout,
     }))
   );
+
+  // 获取站点配置
+  const { siteConfig, getLogo, getTitle } = useSiteConfigStore(
+    useShallow(state => ({
+      siteConfig: state.siteConfig,
+      getLogo: state.getLogo,
+      getTitle: state.getTitle,
+    }))
+  );
+
+  // 获取 Logo URL
+  const logoUrl = getLogo();
+  const siteTitle = getTitle();
+
+  // 计算用户头像
+  const avatarUrl = useMemo(() => {
+    if (!user) return null;
+    return getUserAvatarUrl(
+      {
+        avatar: user.avatar,
+        email: user.email,
+        nickname: user.nickname,
+      },
+      {
+        gravatarUrl: siteConfig.GRAVATAR_URL,
+        defaultGravatarType: siteConfig.DEFAULT_GRAVATAR_TYPE,
+      },
+      80
+    );
+  }, [user, siteConfig.GRAVATAR_URL, siteConfig.DEFAULT_GRAVATAR_TYPE]);
 
   // 展开的菜单组
   const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
@@ -56,23 +88,37 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
   return (
     <div className="flex flex-col h-full bg-linear-to-b from-card to-card/95">
       {/* Logo */}
-      <div className="hidden lg:flex items-center h-16 px-6 border-b border-border/50">
-        <Logo href="/admin" className="text-xl" />
+      <div className="hidden lg:flex items-center shrink-0 h-16 px-6 border-b border-border/50">
+        <Link href="/admin" className="flex items-center gap-2">
+          <Image src={logoUrl} alt={siteTitle} width={32} height={32} className="rounded-lg" />
+          <span className="font-bold text-lg">{siteTitle}</span>
+        </Link>
         <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">Admin</span>
       </div>
 
       {/* 用户信息 */}
-      <div className="p-4 border-b border-border/50">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/10">
+      <div className="shrink-0 p-4 border-b border-border/50">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-primary/70 flex items-center justify-center text-white font-semibold shadow-lg shadow-primary/20">
-              {user?.nickname?.[0] || user?.username?.[0] || "U"}
-            </div>
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={user?.nickname || "用户"}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover shadow-sm"
+                unoptimized
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold">
+                {user?.nickname?.[0] || "U"}
+              </div>
+            )}
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green rounded-full border-2 border-card" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate text-sm">{user?.nickname || user?.username || "用户"}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email || "管理员"}</p>
+            <p className="font-semibold truncate text-sm">{user?.nickname || "用户"}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
           </div>
         </div>
       </div>
@@ -91,8 +137,16 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
         ))}
       </nav>
 
-      {/* 底部操作 */}
-      <div className="p-3 border-t border-border/50 space-y-1.5">
+      {/* 底部操作 - shrink-0 确保始终显示在底部 */}
+      <div className="shrink-0 p-3 border-t border-border/50 space-y-1.5">
+        <Link
+          href="/"
+          target="_blank"
+          className="flex items-center w-full justify-start gap-2.5 h-10 px-3 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all text-sm"
+        >
+          <Icon icon="ri:external-link-line" className="w-4 h-4" />
+          <span>访问前台</span>
+        </Link>
         {mounted && (
           <Button
             variant="ghost"
@@ -100,7 +154,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
             className="w-full justify-start gap-2.5 h-10 px-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all"
             onClick={toggleTheme}
           >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <Icon icon={isDark ? "ri:sun-line" : "ri:moon-line"} className="w-4 h-4" />
             <span className="text-sm">{isDark ? "浅色模式" : "深色模式"}</span>
           </Button>
         )}
@@ -110,7 +164,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
           className="w-full justify-start gap-2.5 h-10 px-3 text-red hover:text-red hover:bg-red/10 rounded-lg transition-all"
           onClick={handleLogout}
         >
-          <LogOut className="w-4 h-4" />
+          <Icon icon="ri:logout-box-r-line" className="w-4 h-4" />
           <span className="text-sm">退出登录</span>
         </Button>
       </div>
@@ -128,7 +182,6 @@ interface MenuGroupProps {
 
 function MenuGroup({ group, isExpanded, onToggle, isItemActive, onItemClick }: MenuGroupProps) {
   const hasActiveItem = group.items.some(item => isItemActive(item.href));
-  const GroupIcon = group.icon;
 
   return (
     <div className="space-y-0.5">
@@ -140,9 +193,12 @@ function MenuGroup({ group, isExpanded, onToggle, isItemActive, onItemClick }: M
           hasActiveItem ? "text-primary bg-primary/5" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         )}
       >
-        <GroupIcon className="w-4 h-4 shrink-0" />
+        <Icon icon={group.icon} className="w-4 h-4 shrink-0" />
         <span className="flex-1 text-left">{group.label}</span>
-        <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isExpanded ? "rotate-180" : "")} />
+        <Icon
+          icon="ri:arrow-down-s-line"
+          className={cn("w-4 h-4 transition-transform duration-200", isExpanded ? "rotate-180" : "")}
+        />
       </button>
 
       {/* 子菜单项 */}
@@ -174,8 +230,6 @@ interface MenuItemProps {
 }
 
 function MenuItem({ item, isActive, onClick }: MenuItemProps) {
-  const ItemIcon = item.icon;
-
   return (
     <Link
       href={item.href || "#"}
@@ -187,7 +241,10 @@ function MenuItem({ item, isActive, onClick }: MenuItemProps) {
           : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
       )}
     >
-      <ItemIcon className={cn("w-4 h-4 shrink-0", isActive ? "" : "group-hover:scale-110 transition-transform")} />
+      <Icon
+        icon={item.icon}
+        className={cn("w-4 h-4 shrink-0", isActive ? "" : "group-hover:scale-110 transition-transform")}
+      />
       <span className="flex-1">{item.label}</span>
 
       {/* PRO 标识 */}
@@ -198,7 +255,7 @@ function MenuItem({ item, isActive, onClick }: MenuItemProps) {
             isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-yellow/10 text-yellow"
           )}
         >
-          <Sparkles className="w-2.5 h-2.5" />
+          <Icon icon="ri:sparkling-line" className="w-2.5 h-2.5" />
           PRO
         </span>
       )}

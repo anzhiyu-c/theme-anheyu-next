@@ -8,3 +8,4 @@ export { PostContent } from "./PostContent";
 export { PostCopyright } from "./PostCopyright";
 export { PostPagination } from "./PostPagination";
 export { PostSidebar, CardToc, CardSeriesPost, CardRecentPost } from "./Sidebar";
+export { CommentSection } from "./Comment";

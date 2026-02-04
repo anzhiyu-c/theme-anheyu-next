@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { useTags, useArchives, useLatestComments } from "@/hooks/queries";
+import { sanitizeCommentHtml } from "@/components/post/Comment/comment-utils";
 import type { Comment } from "@/lib/api/comment";
 
 import styles from "./styles.module.css";
@@ -159,26 +160,29 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
               </div>
               <div className={styles.consoleRecentComments} onClick={handleBlankClick}>
                 {latestComments.length > 0 ? (
-                  latestComments.map(comment => (
-                    <div key={comment.id} className={styles.commentCard} onClick={() => goToArticle(comment)}>
-                      <div className={styles.commentInfo}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={getAvatarUrl(comment.email_md5)} alt="最近评论头像" />
-                        <div>
-                          <span className={styles.commentUser}>{comment.nickname}</span>
+                  latestComments.map(comment => {
+                    const commentTitle = comment.target_title || comment.target_path || "评论";
+                    return (
+                      <div key={comment.id} className={styles.commentCard} onClick={() => goToArticle(comment)}>
+                        <div className={styles.commentInfo}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={getAvatarUrl(comment.email_md5)} alt="最近评论头像" />
+                          <div>
+                            <span className={styles.commentUser}>{comment.nickname}</span>
+                          </div>
+                          <span className={styles.commentTime}>{formatCommentDate(comment.created_at)}</span>
                         </div>
-                        <span className={styles.commentTime}>{formatCommentDate(comment.created_at)}</span>
+                        <div
+                          className={styles.commentContent}
+                          dangerouslySetInnerHTML={{ __html: sanitizeCommentHtml(comment.content_html) }}
+                        />
+                        <div className={styles.commentTitle} title={commentTitle}>
+                          <Icon icon="ri:chat-1-fill" width={12} height={12} />
+                          {commentTitle}
+                        </div>
                       </div>
-                      <div
-                        className={styles.commentContent}
-                        dangerouslySetInnerHTML={{ __html: comment.content_html }}
-                      />
-                      <div className={styles.commentTitle} title={comment.target_title}>
-                        <Icon icon="ri:chat-1-fill" width={12} height={12} />
-                        {comment.target_title}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className={styles.noComments}>暂无评论</div>
                 )}

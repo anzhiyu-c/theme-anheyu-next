@@ -27,6 +27,7 @@ function MenuIcon({ icon, className }: { icon?: string; className?: string }) {
 
   // 图片 URL
   if (isImageUrl(icon)) {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={icon} alt="" className={cn(styles.menuIcon, styles.menuIconImg, className)} />;
   }
 

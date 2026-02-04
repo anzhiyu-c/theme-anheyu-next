@@ -62,8 +62,10 @@ function WavesArea() {
 
 export function PostHeader({ article }: PostHeaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>("");
 
   // 客户端挂载检测 - 使用 useSyncExternalStore 避免 hydration 问题
   const subscribeNoop = useCallback(() => () => {}, []);
@@ -99,10 +101,44 @@ export function PostHeader({ article }: PostHeaderProps) {
     return article.is_reprint ? "转载" : "原创";
   }, [article.is_reprint]);
 
-  // 封面图片
+  // 封面图片 URL - 优先使用 top_img_url，其次 cover_url，最后使用默认封面
   const topCoverUrl = useMemo(() => {
-    return article.top_img_url || article.cover_url || "/images/default-cover.webp";
+    const url = article.top_img_url || article.cover_url;
+    // 确保返回有效的 URL
+    if (!url || url.trim() === "") {
+      return "/images/default-cover.webp";
+    }
+    return url;
   }, [article.top_img_url, article.cover_url]);
+
+  // 初始化图片源（用于 SSR）
+  const currentImageSrc = imageSrc || topCoverUrl;
+
+  // 当 topCoverUrl 变化时，重置图片加载状态
+  useEffect(() => {
+    if (topCoverUrl !== imageSrc) {
+      setImageSrc(topCoverUrl);
+      setIsImageLoaded(false);
+    }
+  }, [topCoverUrl, imageSrc]);
+
+  // 检查图片是否已经加载完成（处理浏览器缓存的情况）
+  useEffect(() => {
+    const img = imageRef.current;
+    if (img && img.complete && img.naturalWidth > 0) {
+      setIsImageLoaded(true);
+    }
+  }, [currentImageSrc]);
+
+  // 图片加载错误时使用默认封面
+  const handleImageError = () => {
+    if (currentImageSrc !== "/images/default-cover.webp") {
+      setImageSrc("/images/default-cover.webp");
+    } else {
+      // 默认封面也加载失败，直接显示背景色
+      setIsImageLoaded(true);
+    }
+  };
 
   // 动态主题色 + 确保 position 非静态（Framer Motion useScroll 需要）
   const dynamicStyles = useMemo(() => {
@@ -234,10 +270,12 @@ export function PostHeader({ article }: PostHeaderProps) {
       <motion.div className={styles.postTopCover} style={isMobile ? undefined : { transform: coverTransform }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={topCoverUrl}
+          ref={imageRef}
+          src={currentImageSrc}
           alt={article.title}
           className={cn(styles.postTopBg, isImageLoaded && styles.isLoaded)}
           onLoad={() => setIsImageLoaded(true)}
+          onError={handleImageError}
         />
       </motion.div>
 

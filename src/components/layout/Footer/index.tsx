@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { Tooltip } from "@/components/ui";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { apiClient } from "@/lib/api/client";
 import styles from "./Footer.module.css";
 
 interface SocialItem {
@@ -56,11 +57,7 @@ const isBackendRenderedPath = (link: string) => {
 const isInternalLink = (link: string) => {
   if (!link) return false;
   if (isBackendRenderedPath(link)) return false;
-  return (
-    link.startsWith("/") ||
-    link.startsWith("#") ||
-    (!link.startsWith("http://") && !link.startsWith("https://"))
-  );
+  return link.startsWith("/") || link.startsWith("#") || (!link.startsWith("http://") && !link.startsWith("https://"));
 };
 
 /**
@@ -137,8 +134,9 @@ export function Footer() {
     setRotationCount(prev => prev + 1);
 
     try {
-      const response = await fetch(`/api/public/links/random?num=${footerConfig.randomFriendsCount}`);
-      const result = await response.json();
+      const result = await apiClient.get<FriendLink[]>(`/api/public/links/random`, {
+        params: { num: footerConfig.randomFriendsCount },
+      });
       if (result.code === 200 && result.data?.length > 0) {
         setDisplayedFriends(result.data);
       }
@@ -353,12 +351,7 @@ export function Footer() {
               {copyrightText && (
                 <div className={styles.copyrightInfo}>
                   &copy;{copyrightText.yearRange} By{" "}
-                  <a
-                    className={styles.barLink}
-                    href={copyrightText.authorLink}
-                    target="_blank"
-                    rel="noopener"
-                  >
+                  <a className={styles.barLink} href={copyrightText.authorLink} target="_blank" rel="noopener">
                     {copyrightText.author}
                   </a>
                 </div>
@@ -383,11 +376,7 @@ export function Footer() {
                         rel="noopener"
                       >
                         {policeRecordIcon && (
-                          <img
-                            src={policeRecordIcon}
-                            alt="公安备案"
-                            className={styles.policeRecordIcon}
-                          />
+                          <img src={policeRecordIcon} alt="公安备案" className={styles.policeRecordIcon} />
                         )}
                         {policeRecordNumber}
                       </a>
@@ -403,12 +392,7 @@ export function Footer() {
                       offset={8}
                       classNames={{ content: "custom-tooltip-content" }}
                     >
-                      <a
-                        className={styles.recordLink}
-                        href="https://beian.miit.gov.cn/"
-                        target="_blank"
-                        rel="noopener"
-                      >
+                      <a className={styles.recordLink} href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">
                         {icpNumber}
                       </a>
                     </Tooltip>
@@ -424,7 +408,9 @@ export function Footer() {
                       classNames={{ content: "custom-tooltip-content" }}
                     >
                       <a
-                        className={`${styles.uptimeStatusIndicator} ${styles[`status${uptimeStatus.charAt(0).toUpperCase() + uptimeStatus.slice(1)}`]}`}
+                        className={`${styles.uptimeStatusIndicator} ${
+                          styles[`status${uptimeStatus.charAt(0).toUpperCase() + uptimeStatus.slice(1)}`]
+                        }`}
                         href={uptimeKumaConfig.page_url || "#"}
                         target={uptimeKumaConfig.page_url ? "_blank" : undefined}
                         rel="noopener"
@@ -457,13 +443,7 @@ export function Footer() {
                   );
                 }
                 return (
-                  <a
-                    key={link.text}
-                    className={styles.barLink}
-                    href={link.link}
-                    target="_blank"
-                    rel="noopener"
-                  >
+                  <a key={link.text} className={styles.barLink} href={link.link} target="_blank" rel="noopener">
                     {link.text}
                   </a>
                 );

@@ -8,8 +8,10 @@ import { LoginForm } from "@/components/auth";
 function LoginPage() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/admin";
+  const registerParam = searchParams.get("register");
+  const initialStep = registerParam ? "register" : undefined;
 
-  return <LoginForm redirectUrl={redirectUrl} />;
+  return <LoginForm redirectUrl={redirectUrl} initialStep={initialStep} />;
 }
 
 export default function LoginPageWrapper() {

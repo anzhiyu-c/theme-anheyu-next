@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Icon } from "@iconify/react";
 import type { Article } from "@/types/article";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { apiClient } from "@/lib/api/client";
 import { generatePoster, downloadPoster } from "@/utils/posterGenerator";
 import { formatDate } from "@/utils/date";
 import styles from "./PostCopyright.module.css";
@@ -271,19 +272,13 @@ export function PostCopyright({ article }: PostCopyrightProps) {
 
     try {
       setIsSendingCode(true);
-      const response = await fetch("/api/public/subscribe/code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: subscribeEmail }),
-      });
+      const result = await apiClient.post<null>("/api/public/subscribe/code", { email: subscribeEmail });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.code === 200) {
         alert("验证码已发送，请查收邮件");
         setCodeCountdown(60);
       } else {
-        alert(data.message || "发送验证码失败，请稍后重试");
+        alert(result.message || "发送验证码失败，请稍后重试");
       }
     } catch {
       alert("发送验证码失败，请稍后重试");
@@ -312,22 +307,19 @@ export function PostCopyright({ article }: PostCopyrightProps) {
 
     try {
       setIsSubscribing(true);
-      const response = await fetch("/api/public/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: subscribeEmail, code: subscribeCode }),
+      const result = await apiClient.post<null>("/api/public/subscribe", {
+        email: subscribeEmail,
+        code: subscribeCode,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.code === 200) {
         alert("订阅成功！您将在新文章发布时收到邮件通知");
         setShowSubscribeDialog(false);
         setSubscribeEmail("");
         setSubscribeCode("");
         setCodeCountdown(0);
       } else {
-        alert(data.message || "订阅失败，请稍后重试");
+        alert(result.message || "订阅失败，请稍后重试");
       }
     } catch {
       alert("订阅失败，请稍后重试");
@@ -512,6 +504,7 @@ export function PostCopyright({ article }: PostCopyrightProps) {
               <div className={styles.posterPreviewSide}>
                 {posterDataUrl ? (
                   <div className={styles.posterImageWrapper}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={posterDataUrl} alt="分享海报" className={styles.posterImage} />
                   </div>
                 ) : (

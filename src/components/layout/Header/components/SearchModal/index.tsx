@@ -281,6 +281,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 {searchResults.map(result => (
                   <div key={result.id} className={styles.resultItem} onClick={() => handleResultClick(result)}>
                     <div className={styles.resultThumbnail}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={result.cover_url || defaultCover} alt={result.title} />
                     </div>
                     <div className={styles.resultDetails}>
@@ -332,10 +333,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     onClick={() => changePage(currentPage + 1)}
                   >
                     下一页
-              </button>
+                  </button>
                 </div>
-            )}
-          </div>
+              )}
+            </div>
           )}
 
           {/* 无结果 */}
@@ -343,7 +344,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div className={styles.noResults}>
               <div className={styles.noResultsText}>未找到相关结果</div>
               <div className={styles.noResultsTip}>尝试使用其他关键词或检查拼写</div>
-          </div>
+            </div>
           )}
 
           {/* 加载中 */}
@@ -351,9 +352,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div className={styles.loading}>
               <div className={styles.loadingSpinner} />
               <div className={styles.loadingText}>搜索中...</div>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 遮罩 */}

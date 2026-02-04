@@ -1,3 +1,10 @@
+/*
+ * @Description:
+ * @Author: 安知鱼
+ * @Date: 2026-01-31 14:55:41
+ * @LastEditTime: 2026-02-04 11:39:31
+ * @LastEditors: 安知鱼
+ */
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -7,8 +14,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { ArrowLeft, Eye, EyeOff, Lock, User } from "lucide-react";
+import { addToast } from "@heroui/react";
 import { Input } from "@/components/ui";
 import { authService } from "@/services";
+import { getErrorMessage } from "@/lib/api/client";
 import { useAuthStore } from "@/store/authStore";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
 import { ThemeToggle } from "@/components/common";
@@ -27,6 +36,7 @@ type Step = "check-email" | "login-password" | "confirm-register" | "register";
 
 interface LoginFormProps {
   redirectUrl?: string;
+  initialStep?: Step;
 }
 
 // 主按钮组件 - 紧凑版
@@ -83,7 +93,7 @@ const pageVariants = {
 const DEFAULT_LOGO_DAY = "/static/img/logo-horizontal-day.png";
 const DEFAULT_LOGO_NIGHT = "/static/img/logo-horizontal-night.png";
 
-export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
+export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProps) {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
   const setAuth = useAuthStore(state => state.setAuth);
@@ -102,7 +112,7 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
   const logoSrc = configLogo || defaultLogo;
   const siteName = mounted ? getTitle() : "AnHeYu";
 
-  const [step, setStep] = useState<Step>("check-email");
+  const [step, setStep] = useState<Step>(initialStep ?? "check-email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -124,8 +134,14 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
   const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleCheckEmail = async () => {
-    if (!email) return setError("请输入邮箱地址");
-    if (!validateEmail(email)) return setError("请输入有效的邮箱地址");
+    if (!email) {
+      setError("请输入邮箱地址");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError("请输入有效的邮箱地址");
+      return;
+    }
 
     setIsLoading(true);
     setError("");
@@ -135,9 +151,11 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
       if (response.code === 200) {
         switchStep(response.data?.exists ? "login-password" : "confirm-register");
       } else {
-        setError(response.message || "检查邮箱失败");
+        addToast({ title: response.message || "检查邮箱失败", color: "danger", timeout: 3000 });
       }
-    } catch {
+    } catch (err) {
+      // 检查邮箱失败时，默认进入密码登录步骤
+      console.warn("检查邮箱失败:", getErrorMessage(err));
       switchStep("login-password");
     } finally {
       setIsLoading(false);
@@ -145,10 +163,12 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
   };
 
   const handleLogin = async () => {
-    if (!password) return setError("请输入密码");
+    if (!password) {
+      addToast({ title: "请输入密码", color: "warning", timeout: 3000 });
+      return;
+    }
 
     setIsLoading(true);
-    setError("");
 
     try {
       const response = await authService.login({ email, password });
@@ -160,42 +180,43 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
           userInfo: response.data.userInfo,
           roles: response.data.roles,
         });
+        addToast({ title: "登录成功", color: "success", timeout: 3000 });
         router.push(redirectUrl);
       } else {
-        setError(response.message || "登录失败");
+        addToast({ title: response.message || "登录失败", color: "danger", timeout: 3000 });
       }
-    } catch {
-      // 演示模式
-      setAuth({
-        accessToken: "demo-access-token",
-        refreshToken: "demo-refresh-token",
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        userInfo: {
-          id: "demo-user-id",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          username: email,
-          nickname: "演示用户",
-          avatar: "",
-          email: email,
-          lastLoginAt: new Date().toISOString(),
-          userGroupID: 1,
-          userGroup: { id: "1", name: "管理员", description: "系统管理员" },
-          status: 1,
-        },
-        roles: ["1"],
-      });
-      router.push(redirectUrl);
+    } catch (err) {
+      addToast({ title: getErrorMessage(err), color: "danger", timeout: 3000 });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRegister = async () => {
-    if (!nickname) return setError("请输入昵称");
-    if (!password) return setError("请输入密码");
-    if (password.length < 6) return setError("密码至少 6 位");
-    if (password !== repeatPassword) return setError("两次密码不一致");
+    if (!email) {
+      addToast({ title: "请输入邮箱地址", color: "warning", timeout: 3000 });
+      return;
+    }
+    if (!validateEmail(email)) {
+      addToast({ title: "请输入有效的邮箱地址", color: "warning", timeout: 3000 });
+      return;
+    }
+    if (!nickname) {
+      addToast({ title: "请输入昵称", color: "warning", timeout: 3000 });
+      return;
+    }
+    if (!password) {
+      addToast({ title: "请输入密码", color: "warning", timeout: 3000 });
+      return;
+    }
+    if (password.length < 6) {
+      addToast({ title: "密码至少 6 位", color: "warning", timeout: 3000 });
+      return;
+    }
+    if (password !== repeatPassword) {
+      setError("两次密码不一致");
+      return;
+    }
 
     setIsLoading(true);
     setError("");
@@ -209,16 +230,16 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
       });
       if (response.code === 200) {
         if (response.data?.activation_required) {
-          alert("注册成功！请查收激活邮件。");
+          addToast({ title: "注册成功！请查收激活邮件。", color: "success", timeout: 3000 });
           switchStep("check-email");
         } else {
           await handleLogin();
         }
       } else {
-        setError(response.message || "注册失败");
+        addToast({ title: response.message || "注册失败", color: "danger", timeout: 3000 });
       }
-    } catch {
-      setError("注册服务暂不可用");
+    } catch (err) {
+      addToast({ title: getErrorMessage(err), color: "danger", timeout: 3000 });
     } finally {
       setIsLoading(false);
     }
@@ -435,11 +456,19 @@ export function LoginForm({ redirectUrl = "/admin" }: LoginFormProps) {
                 className="space-y-6"
               >
                 <Input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  autoFocus
+                  startAdornment={<MailIcon className="w-5 h-5" />}
+                />
+
+                <Input
                   type="text"
                   placeholder="昵称"
                   value={nickname}
                   onChange={e => setNickname(e.target.value)}
-                  autoFocus
                   startAdornment={<User className="w-4 h-4" />}
                 />
 

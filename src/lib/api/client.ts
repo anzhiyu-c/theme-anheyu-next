@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosHeaders } from "axios";
 import type { ApiResponse } from "@/types";
+import type { RefreshTokenResponseData } from "@/types/auth";
 
 /**
  * API 客户端配置
@@ -18,7 +19,9 @@ const API_TIMEOUT = 30000; // 30 秒超时
 class TokenManager {
   private static instance: TokenManager;
   private getTokenFn: (() => string | null) | null = null;
+  private getRefreshTokenFn: (() => string | null) | null = null;
   private clearTokenFn: (() => void) | null = null;
+  private updateTokenFn: ((accessToken: string, expires: string) => void) | null = null;
 
   private constructor() {}
 
@@ -37,10 +40,24 @@ class TokenManager {
   }
 
   /**
+   * 设置 refresh token 获取函数（用于与 Zustand store 集成）
+   */
+  setRefreshTokenGetter(fn: () => string | null): void {
+    this.getRefreshTokenFn = fn;
+  }
+
+  /**
    * 设置 token 清除函数（用于与 Zustand store 集成）
    */
   setTokenClearer(fn: () => void): void {
     this.clearTokenFn = fn;
+  }
+
+  /**
+   * 设置 token 更新函数（用于与 Zustand store 集成）
+   */
+  setTokenUpdater(fn: (accessToken: string, expires: string) => void): void {
+    this.updateTokenFn = fn;
   }
 
   /**
@@ -70,6 +87,30 @@ class TokenManager {
   }
 
   /**
+   * 获取 refresh token
+   * 优先使用注入的函数，否则从 localStorage 获取
+   */
+  getRefreshToken(): string | null {
+    if (typeof window === "undefined") return null;
+
+    if (this.getRefreshTokenFn) {
+      return this.getRefreshTokenFn();
+    }
+
+    try {
+      const authStorage = localStorage.getItem("auth-storage");
+      if (authStorage) {
+        const parsed = JSON.parse(authStorage);
+        return parsed.state?.refreshToken || null;
+      }
+    } catch {
+      // 忽略解析错误
+    }
+
+    return null;
+  }
+
+  /**
    * 清除 token
    */
   clearToken(): void {
@@ -77,9 +118,79 @@ class TokenManager {
       this.clearTokenFn();
     }
   }
+
+  /**
+   * 更新 token（刷新后调用）
+   */
+  updateToken(accessToken: string, expires: string): void {
+    if (this.updateTokenFn) {
+      this.updateTokenFn(accessToken, expires);
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+
+    try {
+      const authStorage = localStorage.getItem("auth-storage");
+      if (authStorage) {
+        const parsed = JSON.parse(authStorage);
+        const nextState = {
+          ...parsed,
+          state: {
+            ...parsed.state,
+            accessToken,
+            expires,
+          },
+        };
+        localStorage.setItem("auth-storage", JSON.stringify(nextState));
+      }
+    } catch {
+      // 忽略解析错误
+    }
+  }
 }
 
 export const tokenManager = TokenManager.getInstance();
+
+const AUTH_WHITELIST = ["/api/auth/refresh-token", "/api/auth/login", "/api/auth/register", "/api/auth/check-email"];
+const PUBLIC_PREFIX = "/api/public/";
+
+interface RetryableRequestConfig extends AxiosRequestConfig {
+  _isRetryAfterRefresh?: boolean;
+}
+
+const isAuthEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return AUTH_WHITELIST.some(path => url.includes(path));
+};
+
+const isPublicEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  return url.includes(PUBLIC_PREFIX);
+};
+
+const shouldAttachAccessToken = (config: AxiosRequestConfig): boolean => {
+  if ((config as RetryableRequestConfig)._isRetryAfterRefresh) {
+    return false;
+  }
+  if (config.headers?.Authorization) {
+    return false;
+  }
+  if (isAuthEndpoint(config.url)) {
+    return false;
+  }
+  const method = config.method?.toLowerCase();
+  if (method === "get" && isPublicEndpoint(config.url)) {
+    return false;
+  }
+  return true;
+};
+
+const dispatchUnauthorized = (): void => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+  }
+};
 
 /**
  * 获取 API 基础地址
@@ -97,6 +208,69 @@ function getApiBaseUrl(): string {
   return backendUrl;
 }
 
+function buildApiUrl(path: string): string {
+  const baseUrl = getApiBaseUrl();
+  if (!baseUrl) return path;
+  return `${baseUrl}${path}`;
+}
+
+interface RetryRequest {
+  config: AxiosRequestConfig;
+  resolve: (value: unknown) => void;
+  reject: (error: Error) => void;
+}
+
+let isRefreshing = false;
+let retryQueue: RetryRequest[] = [];
+
+function addRetryRequest(config: AxiosRequestConfig): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    retryQueue.push({ config, resolve, reject });
+  });
+}
+
+function processQueue(token?: string, error?: Error): void {
+  retryQueue.forEach(item => {
+    if (error) {
+      item.reject(error);
+      return;
+    }
+    if (token) {
+      item.config.headers = item.config.headers ?? {};
+      item.config.headers.Authorization = `Bearer ${token}`;
+      (item.config as RetryableRequestConfig)._isRetryAfterRefresh = true;
+      item.resolve(axiosInstance(item.config));
+    }
+  });
+  retryQueue = [];
+}
+
+async function handleRefreshToken(): Promise<string> {
+  const refreshToken = tokenManager.getRefreshToken();
+  if (!refreshToken) {
+    throw new Error("缺少 refresh token，无法刷新登录状态");
+  }
+
+  const response = await axios.post<ApiResponse<RefreshTokenResponseData>>(
+    buildApiUrl("/api/auth/refresh-token"),
+    { refreshToken },
+    {
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      },
+      timeout: API_TIMEOUT,
+    }
+  );
+
+  const data = response.data?.data;
+  if (!data?.accessToken || !data?.expires) {
+    throw new Error("刷新 token 响应缺少必要字段");
+  }
+
+  tokenManager.updateToken(data.accessToken, data.expires);
+  return data.accessToken;
+}
+
 /**
  * 创建 axios 实例
  */
@@ -112,9 +286,13 @@ const createAxiosInstance = (): AxiosInstance => {
   // 请求拦截器
   instance.interceptors.request.use(
     config => {
-      // 从 TokenManager 获取 token
+      if (!shouldAttachAccessToken(config)) {
+        return config;
+      }
+
       const token = tokenManager.getToken();
-      if (token && config.headers) {
+      if (token) {
+        config.headers = config.headers ?? {};
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
@@ -129,20 +307,50 @@ const createAxiosInstance = (): AxiosInstance => {
     response => {
       return response;
     },
-    (error: AxiosError) => {
+    async (error: AxiosError) => {
       // 统一错误处理
       if (error.response) {
         // 服务器返回了错误响应
         const status = error.response.status;
         switch (status) {
           case 401:
-            // 未授权，清除 token 并触发登出
-            tokenManager.clearToken();
-            // 可以在这里触发全局登录弹窗事件
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+            // 登录/刷新接口自身返回 401，不触发刷新
+            if (isAuthEndpoint(error.config?.url)) {
+              if (error.config?.url?.includes("/api/auth/refresh-token")) {
+                tokenManager.clearToken();
+                dispatchUnauthorized();
+              }
+              return Promise.reject(error);
             }
-            break;
+
+            if (!isRefreshing) {
+              isRefreshing = true;
+              try {
+                const newAccessToken = await handleRefreshToken();
+                processQueue(newAccessToken);
+                if (!error.config) {
+                  return Promise.reject(error);
+                }
+
+                const headers = AxiosHeaders.from(error.config.headers ?? {});
+                headers.set("Authorization", `Bearer ${newAccessToken}`);
+                error.config.headers = headers;
+                (error.config as RetryableRequestConfig)._isRetryAfterRefresh = true;
+                return axiosInstance(error.config);
+              } catch (refreshError) {
+                processQueue(undefined, refreshError as Error);
+                tokenManager.clearToken();
+                dispatchUnauthorized();
+                return Promise.reject(refreshError);
+              } finally {
+                isRefreshing = false;
+              }
+            }
+
+            if (!error.config) {
+              return Promise.reject(error);
+            }
+            return addRetryRequest(error.config);
           case 403:
             console.error("没有权限访问该资源");
             break;

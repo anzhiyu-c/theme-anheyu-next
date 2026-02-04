@@ -33,10 +33,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       <div className="flex">
-        {/* 侧边栏 */}
+        {/* 侧边栏 - 始终固定定位 */}
         <aside
           className={cn(
-            "fixed lg:static inset-y-0 left-0 z-50 w-64 h-screen bg-card border-r border-border transition-transform duration-300",
+            "fixed inset-y-0 left-0 z-50 w-64 h-screen bg-card border-r border-border transition-transform duration-300",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
             "lg:translate-x-0"
           )}
@@ -49,8 +49,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* 主内容区 */}
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        {/* 主内容区 - 添加左边距为侧边栏留出空间 */}
+        <main className="flex-1 p-4 lg:p-8 lg:ml-64">{children}</main>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
  * @Description:
  * @Author: 安知鱼
  * @Date: 2026-01-30 16:54:59
- * @LastEditTime: 2026-02-01 14:38:32
+ * @LastEditTime: 2026-02-04 10:51:16
  * @LastEditors: 安知鱼
  */
 "use client";
@@ -27,6 +27,8 @@ interface ProvidersProps {
  */
 function AuthTokenInitializer({ children }: { children: ReactNode }) {
   const accessToken = useAuthStore(state => state.accessToken);
+  const refreshToken = useAuthStore(state => state.refreshToken);
+  const updateAccessToken = useAuthStore(state => state.updateAccessToken);
   const logout = useAuthStore(state => state.logout);
   const hasHydrated = useAuthStore(state => state._hasHydrated);
 
@@ -36,10 +38,14 @@ function AuthTokenInitializer({ children }: { children: ReactNode }) {
 
     // 设置 token getter - 从 Zustand store 获取
     tokenManager.setTokenGetter(() => accessToken);
+    tokenManager.setRefreshTokenGetter(() => refreshToken);
 
     // 设置 token clearer - 调用 Zustand logout
     tokenManager.setTokenClearer(() => logout());
-  }, [hasHydrated, accessToken, logout]);
+
+    // 设置 token updater - 刷新 token 后更新 Zustand
+    tokenManager.setTokenUpdater((token, expires) => updateAccessToken(token, expires));
+  }, [hasHydrated, accessToken, refreshToken, updateAccessToken, logout]);
 
   // 监听 401 未授权事件
   useEffect(() => {

@@ -12,6 +12,7 @@ import "katex/dist/katex.min.css";
 import styles from "./PostContent.module.css";
 import "./code-highlight.css";
 import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { apiClient } from "@/lib/api/client";
 
 interface PostContentProps {
   content: string;
@@ -503,14 +504,9 @@ export function PostContent({ content }: PostContentProps) {
   const fetchAudioUrl = useCallback(
     async (neteaseId: string): Promise<string | null> => {
       try {
-        const response = await fetch("/api/public/music/song-resources", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ neteaseId }),
-        });
-        const data = await response.json();
-        if (data.code === 200 && data.data?.audioUrl) {
-          return ensureHttps(data.data.audioUrl);
+        const result = await apiClient.post<{ audioUrl?: string }>("/api/public/music/song-resources", { neteaseId });
+        if (result.code === 200 && result.data?.audioUrl) {
+          return ensureHttps(result.data.audioUrl);
         }
         return null;
       } catch (error) {

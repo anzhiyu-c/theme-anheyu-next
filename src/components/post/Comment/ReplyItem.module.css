@@ -1,0 +1,64 @@
+.replyItemContainer {
+  padding: 1.25rem 0;
+  border-top: var(--style-border);
+  border-top-style: dashed;
+}
+
+.replyFormWrapper {
+  margin-top: 1rem;
+  margin-left: calc(40px + 0.5rem);
+}
+
+.expandRepliesWrapper {
+  margin-top: 0.75rem;
+}
+
+.expandRepliesButton {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--anzhiyu-main);
+  background: transparent;
+  border: 1px solid var(--anzhiyu-main);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.expandRepliesButton:hover {
+  background: var(--anzhiyu-main);
+  color: var(--anzhiyu-white);
+}
+
+.replyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.loadMoreReplies {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.loadMoreRepliesButton {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  color: var(--anzhiyu-fontcolor);
+  background: var(--anzhiyu-card-bg);
+  border: 1px solid var(--anzhiyu-main);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.loadMoreRepliesButton:hover {
+  background: var(--anzhiyu-main);
+  color: var(--anzhiyu-white);
+}
+
+@media (width <= 768px) {
+  .replyFormWrapper {
+    margin-left: 0;
+  }
+}

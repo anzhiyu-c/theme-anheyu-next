@@ -41,7 +41,7 @@ class AuthService {
    */
   async refreshToken(refreshToken: string): Promise<ApiResponse<RefreshTokenResponseData>> {
     return apiClient.post<RefreshTokenResponseData>(
-      "/api/auth/refresh",
+      "/api/auth/refresh-token",
       { refreshToken },
       {
         headers: {

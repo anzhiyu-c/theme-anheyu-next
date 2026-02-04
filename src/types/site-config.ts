@@ -54,7 +54,6 @@ export interface SiteConfigData {
     };
   };
 
-
   // 页面配置
   page?: {
     one_image?: {
@@ -266,6 +265,21 @@ export interface SiteConfigData {
     page404?: {
       default_image?: string;
     };
+  };
+
+  // 评论配置
+  comment?: {
+    enable?: boolean | string;
+    page_size?: number | string;
+    placeholder?: string;
+    emoji_cdn?: string;
+    limit_length?: number | string;
+    login_required?: boolean | string;
+    anonymous_email?: string;
+    allow_image_upload?: boolean | string;
+    master_tag?: string;
+    show_ua?: boolean | string;
+    show_region?: boolean | string;
   };
 
   // 版权配置

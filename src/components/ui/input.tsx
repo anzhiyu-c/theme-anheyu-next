@@ -55,13 +55,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         <div className="relative flex items-center w-full group">
-          {/* 图标 - 聚焦时变色 */}
+          {/* 图标 - 垂直居中与输入框对齐 */}
           {startAdornment && (
             <div
               className={cn(
-                "absolute left-3 flex items-center pointer-events-none z-10",
+                "absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10",
                 "transition-colors duration-200 ease-out",
-                error ? "text-red" : isFocused ? "text-primary" : "text-muted-foreground"
+                error ? "text-red" : "text-muted-foreground"
               )}
             >
               {startAdornment}
@@ -116,9 +116,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </label>
           )}
 
-          {/* 结尾装饰 */}
+          {/* 结尾装饰 - 垂直居中与输入框对齐 */}
           {endAdornment && (
-            <div className="absolute right-1 flex items-center transition-opacity duration-200">{endAdornment}</div>
+            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center transition-opacity duration-200">
+              {endAdornment}
+            </div>
           )}
 
           {/* 帮助文本或错误信息 - 带淡入动画 */}
