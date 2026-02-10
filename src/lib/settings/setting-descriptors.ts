@@ -251,7 +251,7 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_WEATHER_QWEATHER_API_HOST, type: "string" },
     { backendKey: K.KEY_WEATHER_IP_API_KEY, type: "password" },
     { backendKey: K.KEY_WEATHER_LOADING, type: "string" },
-    { backendKey: K.KEY_WEATHER_DEFAULT_RECT, type: "string" },
+    { backendKey: K.KEY_WEATHER_DEFAULT_RECT, type: "boolean" },
     { backendKey: K.KEY_WEATHER_RECTANGLE, type: "string" },
   ],
   "appearance-page": [

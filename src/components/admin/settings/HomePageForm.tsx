@@ -132,16 +132,10 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
 
         <SettingsFieldGroup cols={2}>
           <FormSwitch
-            label="开屏旅行"
-            description="导航栏显示旅行入口"
+            label="开往"
+            description="导航栏显示开往入口"
             checked={values[KEY_HEADER_NAV_TRAVELLING] === "true"}
             onCheckedChange={v => onChange(KEY_HEADER_NAV_TRAVELLING, String(v))}
-          />
-          <FormSwitch
-            label="时钟组件"
-            description="导航栏显示时钟组件"
-            checked={values[KEY_HEADER_NAV_CLOCK] === "true"}
-            onCheckedChange={v => onChange(KEY_HEADER_NAV_CLOCK, String(v))}
           />
         </SettingsFieldGroup>
 

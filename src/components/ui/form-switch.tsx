@@ -8,7 +8,7 @@ export interface FormSwitchProps {
   /** 开关上方的标签 */
   label?: string;
   /** 开关下方描述文本 */
-  description?: string;
+  description?: React.ReactNode;
   /** 受控值 */
   checked?: boolean;
   /** 值变化回调 */

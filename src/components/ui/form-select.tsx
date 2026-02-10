@@ -16,7 +16,7 @@ export interface FormSelectProps {
   /** 是否必填 */
   isRequired?: boolean;
   /** 下方描述文本 */
-  description?: string;
+  description?: React.ReactNode;
   /** 错误提示 */
   error?: string;
   /** 尺寸 */

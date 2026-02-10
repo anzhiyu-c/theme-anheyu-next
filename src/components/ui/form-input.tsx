@@ -17,7 +17,7 @@ export interface FormInputProps {
   /** 是否必填（label 后显示红色星号） */
   isRequired?: boolean;
   /** 输入框下方描述文本 */
-  description?: string;
+  description?: React.ReactNode;
   /** 错误提示（非空时显示错误状态） */
   error?: string;
   /** 输入类型 */

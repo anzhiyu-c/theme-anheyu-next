@@ -146,8 +146,8 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
         />
 
         <FormInput
-          label="微信链接"
-          placeholder="微信跳转链接"
+          label="微信卡片链接"
+          placeholder="微信卡片点击后跳转链接"
           value={values[KEY_SIDEBAR_WECHAT_LINK]}
           onValueChange={v => onChange(KEY_SIDEBAR_WECHAT_LINK, v)}
         />
@@ -256,71 +256,78 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
         />
       </SettingsSection>
 
-      {/* 天气组件 */}
-      <SettingsSection title="天气组件">
+      {/* 天气时钟 */}
+      <SettingsSection title="天气时钟">
         <FormSwitch
-          label="启用天气组件"
-          description="在侧边栏显示天气信息"
+          label="启用天气时钟"
+          description="在侧边栏显示实时时钟和天气信息"
           checked={values[KEY_WEATHER_ENABLE] === "true"}
           onCheckedChange={v => onChange(KEY_WEATHER_ENABLE, String(v))}
         />
 
-        <FormSelect
-          label="显示页面"
-          value={values[KEY_WEATHER_ENABLE_PAGE]}
-          onValueChange={v => onChange(KEY_WEATHER_ENABLE_PAGE, v)}
-          placeholder="请选择显示范围"
-          description="天气组件在哪些页面显示"
-        >
-          <FormSelectItem key="all">所有页面</FormSelectItem>
-          <FormSelectItem key="post">仅文章页</FormSelectItem>
-        </FormSelect>
+        {values[KEY_WEATHER_ENABLE] === "true" && (
+          <>
+            <FormSelect
+              label="应用页面"
+              value={values[KEY_WEATHER_ENABLE_PAGE]}
+              onValueChange={v => onChange(KEY_WEATHER_ENABLE_PAGE, v)}
+              placeholder="请选择显示范围"
+              description="选择天气时钟显示的页面范围"
+            >
+              <FormSelectItem key="all">所有页面</FormSelectItem>
+              <FormSelectItem key="post">仅文章页</FormSelectItem>
+            </FormSelect>
 
-        <FormInput
-          label="和风天气 Key"
-          placeholder="请输入和风天气 API Key"
-          type="password"
-          value={values[KEY_WEATHER_QWEATHER_KEY]}
-          onValueChange={v => onChange(KEY_WEATHER_QWEATHER_KEY, v)}
-          description="和风天气 API 密钥"
-        />
+            <FormInput
+              label="和风天气 Key"
+              placeholder="请输入和风天气 API Key"
+              type="password"
+              value={values[KEY_WEATHER_QWEATHER_KEY]}
+              onValueChange={v => onChange(KEY_WEATHER_QWEATHER_KEY, v)}
+              description={<>从 <a href="https://dev.qweather.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">和风天气开发平台</a> 获取</>}
+            />
 
-        <FormInput
-          label="和风天气 API 地址"
-          placeholder="https://devapi.qweather.com"
-          value={values[KEY_WEATHER_QWEATHER_API_HOST]}
-          onValueChange={v => onChange(KEY_WEATHER_QWEATHER_API_HOST, v)}
-        />
+            <FormInput
+              label="和风天气 API 域名"
+              placeholder="例如: devapi.qweather.com"
+              value={values[KEY_WEATHER_QWEATHER_API_HOST]}
+              onValueChange={v => onChange(KEY_WEATHER_QWEATHER_API_HOST, v)}
+              description="和风天气API域名或自定义域名"
+            />
 
-        <FormInput
-          label="IP 定位 API Key"
-          placeholder="请输入 IP 定位服务的 API Key"
-          type="password"
-          value={values[KEY_WEATHER_IP_API_KEY]}
-          onValueChange={v => onChange(KEY_WEATHER_IP_API_KEY, v)}
-          description="用于获取用户位置的 IP 定位服务密钥"
-        />
+            <FormInput
+              label="IP 定位 API Key"
+              placeholder="请输入 IP 定位服务的 API Key"
+              type="password"
+              value={values[KEY_WEATHER_IP_API_KEY]}
+              onValueChange={v => onChange(KEY_WEATHER_IP_API_KEY, v)}
+              description={<>用于获取访问者地理位置，从 <a href="https://api.nsuuu.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">NSUUU API</a> 获取</>}
+            />
 
-        <FormInput
-          label="加载提示文本"
-          placeholder="天气加载中..."
-          value={values[KEY_WEATHER_LOADING]}
-          onValueChange={v => onChange(KEY_WEATHER_LOADING, v)}
-        />
+            <FormInput
+              label="加载动画 URL"
+              placeholder="加载动画图片地址"
+              value={values[KEY_WEATHER_LOADING]}
+              onValueChange={v => onChange(KEY_WEATHER_LOADING, v)}
+              description="自定义加载动画，建议使用GIF格式"
+            />
 
-        <FormInput
-          label="默认矩形区域"
-          placeholder="默认天气矩形显示区域"
-          value={values[KEY_WEATHER_DEFAULT_RECT]}
-          onValueChange={v => onChange(KEY_WEATHER_DEFAULT_RECT, v)}
-        />
+            <FormSwitch
+              label="默认显示固定位置"
+              description="开启后将一直显示下方设置的固定位置天气，否则将获取访问者的地理位置与天气"
+              checked={values[KEY_WEATHER_DEFAULT_RECT] === "true"}
+              onCheckedChange={v => onChange(KEY_WEATHER_DEFAULT_RECT, String(v))}
+            />
 
-        <FormInput
-          label="矩形区域"
-          placeholder="天气矩形区域"
-          value={values[KEY_WEATHER_RECTANGLE]}
-          onValueChange={v => onChange(KEY_WEATHER_RECTANGLE, v)}
-        />
+            <FormInput
+              label="默认/后备位置坐标"
+              placeholder="格式: 经度,纬度 (例: 112.6534116,27.96920845)"
+              value={values[KEY_WEATHER_RECTANGLE]}
+              onValueChange={v => onChange(KEY_WEATHER_RECTANGLE, v)}
+              description={'获取访问者位置失败时会显示该位置的天气；开启\u201c默认显示固定位置\u201d后，将始终显示此位置的天气'}
+            />
+          </>
+        )}
       </SettingsSection>
     </div>
   );
