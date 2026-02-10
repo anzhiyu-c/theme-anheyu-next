@@ -10,7 +10,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useLatestComments } from "@/hooks/queries";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { Spinner } from "@/components/ui";
 import {
   formatRelativeTime,

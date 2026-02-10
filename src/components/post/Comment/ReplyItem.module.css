@@ -1,12 +1,42 @@
 .replyItemContainer {
   padding: 1.25rem 0;
-  border-top: var(--style-border);
-  border-top-style: dashed;
+  padding-right: 0;
+  padding-left: 0;
+  border-top: var(--style-border-dashed);
+}
+
+/* 回复头像使用 32px（与 anheyu-pro 一致，区分于顶级评论的 40px） */
+.replyAvatar {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border, #eee);
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.replyAvatar:hover {
+  transform: scale(1.1) rotate(10deg);
+}
+
+/* 回复中的昵称可点击跳转 */
+.replyNickname {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--anzhiyu-fontcolor);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.replyNickname:hover {
+  color: var(--el-color-primary, var(--anzhiyu-main));
 }
 
 .replyFormWrapper {
   margin-top: 1rem;
-  margin-left: calc(40px + 0.5rem);
+  margin-left: 48px;
 }
 
 .expandRepliesWrapper {
@@ -32,8 +62,6 @@
 .replyList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
 }
 
 .loadMoreReplies {
@@ -60,5 +88,15 @@
 @media (width <= 768px) {
   .replyFormWrapper {
     margin-left: 0;
+  }
+
+  .expandRepliesButton {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .loadMoreRepliesButton {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
   }
 }

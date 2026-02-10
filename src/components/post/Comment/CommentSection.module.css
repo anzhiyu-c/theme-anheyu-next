@@ -22,7 +22,6 @@
   box-sizing: border-box;
   max-width: 100%;
   margin-bottom: 3rem;
-  overflow: hidden;
   border-radius: 8px;
   scroll-margin-top: 100px;
 }
@@ -36,7 +35,6 @@
   box-sizing: border-box;
   max-width: 100%;
   margin-bottom: 3rem;
-  overflow: hidden;
   border-radius: 8px;
   scroll-margin-top: 100px;
 }
@@ -166,7 +164,7 @@
 .commentThreadDivider {
   margin-bottom: 1.5rem;
   border: none;
-  border-top: 1px solid #eef2f8;
+  border-top: 1px solid var(--border, #eef2f8);
 }
 
 .scrollLoadingContainer {

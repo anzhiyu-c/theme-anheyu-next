@@ -14,7 +14,8 @@ import {
   Download,
   Sparkles,
 } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { formatDateCN } from "@/utils/date";
 
 // 模拟订单数据
 const mockOrders = [
@@ -167,7 +168,7 @@ export default function OrdersPage() {
       key: "createdAt",
       header: "下单时间",
       sortable: true,
-      render: order => <span className="text-sm text-muted-foreground">{formatDate(order.createdAt)}</span>,
+      render: order => <span className="text-sm text-muted-foreground">{formatDateCN(order.createdAt)}</span>,
     },
   ];
 

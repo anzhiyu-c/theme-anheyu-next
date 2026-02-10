@@ -32,7 +32,7 @@ export function RecentArticles({
           <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
         </div>
         <Link
-          href="/admin/posts"
+          href="/admin/post-management"
           className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
         >
           查看全部

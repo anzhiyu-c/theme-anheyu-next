@@ -9,9 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import type { Article } from "@/types/article";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { apiClient } from "@/lib/api/client";
-import { generatePoster, downloadPoster } from "@/utils/posterGenerator";
+import { generatePoster, downloadPoster } from "@/utils/poster-generator";
 import { formatDate } from "@/utils/date";
 import styles from "./PostCopyright.module.css";
 

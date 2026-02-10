@@ -8,7 +8,7 @@ import { Icon } from "@iconify/react";
 import { Tooltip } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { useTags, useArchives, useLatestComments } from "@/hooks/queries";
 import { sanitizeCommentHtml } from "@/components/post/Comment/comment-utils";
 import type { Comment } from "@/lib/api/comment";

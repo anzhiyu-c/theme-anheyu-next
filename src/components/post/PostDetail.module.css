@@ -60,9 +60,6 @@
 .commentSection {
   min-height: 200px;
   margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: var(--muted);
-  border-radius: 12px;
 }
 
 /* 底部栏 */

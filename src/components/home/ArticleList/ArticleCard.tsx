@@ -11,7 +11,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui";
 import { Eye, MessageSquare, Calendar, ArrowUpRight } from "lucide-react";
-import { formatDate, formatNumber } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
+import { formatDateCN } from "@/utils/date";
 import { PerspectiveCard } from "@/components/effects";
 import type { Article } from "@/types";
 
@@ -79,7 +80,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
             <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pt-4 border-t border-border/50">
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" />
-                <span>{formatDate(article.published_at)}</span>
+                <span>{formatDateCN(article.published_at)}</span>
               </div>
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">

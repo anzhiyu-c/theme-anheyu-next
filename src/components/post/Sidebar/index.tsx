@@ -10,7 +10,7 @@ import { CardWechat } from "@/components/home/Sidebar/CardWechat";
 import { CardToc } from "./CardToc";
 import { CardSeriesPost } from "./CardSeriesPost";
 import { CardRecentPost } from "./CardRecentPost";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import type { Article, RecentArticle } from "@/types/article";
 import styles from "./PostSidebar.module.css";
 

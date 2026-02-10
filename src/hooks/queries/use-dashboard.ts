@@ -207,7 +207,7 @@ export interface DashboardDataOptions {
  * 获取完整的仪表盘数据（组合 hook）
  */
 export function useDashboardData(options: DashboardDataOptions = {}) {
-  const { enabled = true, topArticlesLimit = 5, recentCommentsLimit = 5, trendDays = 30 } = options;
+  const { enabled = true, topArticlesLimit = 5, recentCommentsLimit = 5 } = options;
 
   const summaryQuery = useStatisticsSummary({ enabled });
   const contentQuery = useContentStats({ enabled });

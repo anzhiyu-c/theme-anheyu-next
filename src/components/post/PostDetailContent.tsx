@@ -19,9 +19,9 @@ import { PostCopyright } from "./PostCopyright";
 import { PostPagination } from "./PostPagination";
 import { CommentSection } from "./Comment";
 import { PostSidebar } from "./Sidebar";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
-import { usePageStore } from "@/store/pageStore";
-import { setArticleMetaThemeColor, restoreMetaThemeColor } from "@/utils/themeManager";
+import { useSiteConfigStore } from "@/store/site-config-store";
+import { usePageStore } from "@/store/page-store";
+import { setArticleMetaThemeColor, restoreMetaThemeColor } from "@/utils/theme-manager";
 import type { Article, RecentArticle } from "@/types/article";
 import styles from "./PostDetail.module.css";
 

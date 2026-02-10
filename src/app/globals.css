@@ -313,11 +313,6 @@
     display: list-item;
   }
 
-  /* label 样式 */
-  label {
-    font-weight: 700;
-  }
-
   /* 暗色模式 */
   .dark {
     color-scheme: dark;
@@ -870,6 +865,28 @@ pre {
   }
 }
 
+/* 隐藏滚动条但保留滚动功能 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Emoji 表情项入场动画 */
+@keyframes emojiItemIn {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* ===================== 初始加载动画 ===================== */
 /* 用于 JS 加载前显示的加载动画，避免白屏 */
 #initial-loader {
@@ -1008,6 +1025,8 @@ html.dark [data-slot="content"][role="tooltip"] {
   /* 边框样式 */
   --style-border: 1px solid var(--border);
   --style-border-hover: 1px solid var(--primary);
+  --style-border-dashed: 1px dashed var(--anzhiyu-theme-op, var(--border));
+  --style-border-none: 1px solid transparent;
   --style-border-always: 1px solid var(--border);
   --style-border-avatar: 4px solid var(--card);
 
@@ -1087,4 +1106,224 @@ html.dark [data-slot="content"][role="tooltip"] {
 
 .frontend-layout.one-image-active::before {
   opacity: 1;
+}
+
+/* ===================== HeroUI Toast - ElementUI Message 风格 ===================== */
+/* 紧凑居中、类型着色、无关闭按钮、自动消失 */
+
+/* Toast 基础样式 */
+[data-toast] {
+  width: auto !important;
+  max-width: min(90vw, 420px) !important;
+  min-width: auto !important;
+  padding: 0.5rem 1.25rem 0.5rem 1rem !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.06), 0 6px 18px 0 rgba(0, 0, 0, 0.04) !important;
+  gap: 0.5rem !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* 不覆盖 background — 让 HeroUI 的 bg-success-50 / bg-warning-50 等颜色变体生效 */
+}
+
+/* 关闭按钮 - 隐藏（ElementUI Message 风格：自动消失） */
+[data-toast] button[aria-label="closeIcon"] {
+  display: none !important;
+}
+
+/* 图标尺寸 */
+[data-toast] svg:not(button svg) {
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* 标题文字 */
+[data-toast] [data-slot="title"],
+[data-toast] .truncate {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  margin-inline-end: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* 描述文字 */
+[data-toast] [data-slot="description"] {
+  font-size: 0.8125rem !important;
+}
+
+/* 暗色主题阴影 */
+html.dark [data-toast] {
+  box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.2), 0 6px 18px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+/* HeroUI Dropdown / Listbox hover 颜色调浅 */
+[data-selectable="true"]:focus,
+[data-selectable="true"][data-hover="true"],
+[data-selectable="true"][data-focus="true"] {
+  background-color: hsl(var(--heroui-default-100) / 0.8);
+}
+
+/* ===================== HeroUI 表单控件全局样式优化 ===================== */
+/* 统一 Input、Textarea、Select、Autocomplete 等表单组件的视觉风格 */
+/* 不覆盖 background，保留各变体 (flat/bordered/faded) 和 classNames 自定义背景 */
+
+/* ---- 将 HeroUI border-medium (2px) 改为 1px（仅作用于表单控件） ---- */
+[data-slot="input-wrapper"],
+[data-slot="trigger"] {
+  --heroui-border-width-medium: 1px;
+}
+
+/* ---- 输入框外壳 ---- */
+[data-slot="input-wrapper"] {
+  border-radius: 0.625rem !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease !important;
+}
+
+/* Hover - 边框柔和过渡到主色 */
+[data-slot="input-wrapper"][data-hover="true"] {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border) 60%) !important;
+}
+
+/* Focus - 主色边框 + 柔和光晕 */
+[data-slot="input-wrapper"][data-focus="true"],
+[data-slot="input-wrapper"][data-focus-within="true"],
+[data-slot="input-wrapper"]:focus-within {
+  border-color: var(--primary) !important;
+}
+
+/* ---- 标签 ---- */
+[data-slot="label"] {
+  font-weight: 500 !important;
+}
+
+/* inside 模式标签 focus 时高亮 */
+[data-slot="input-wrapper"][data-focus="true"] [data-slot="label"],
+[data-slot="input-wrapper"]:focus-within [data-slot="label"] {
+  color: var(--primary) !important;
+}
+
+/* ---- 输入文本 & 光标 ---- */
+[data-slot="input"],
+[data-slot="input-wrapper"] textarea {
+  caret-color: var(--primary) !important;
+}
+
+/* 占位符 - 更柔和的透明度 */
+[data-slot="input"]::placeholder,
+[data-slot="input-wrapper"] textarea::placeholder {
+  opacity: 0.45 !important;
+}
+
+/* ---- 辅助描述 ---- */
+[data-slot="description"] {
+  color: var(--muted-foreground) !important;
+  font-size: 0.75rem !important;
+}
+
+/* ---- 错误状态 ---- */
+[data-slot="input-wrapper"][data-invalid="true"] {
+  border-color: var(--red) !important;
+}
+
+[data-slot="input-wrapper"][data-invalid="true"][data-focus="true"],
+[data-slot="input-wrapper"][data-invalid="true"]:focus-within {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 12%, transparent) !important;
+}
+
+[data-slot="error-message"] {
+  color: var(--red) !important;
+  font-size: 0.75rem !important;
+}
+
+/* ---- 禁用状态 ---- */
+[data-slot="input-wrapper"][data-disabled="true"] {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+/* ---- Select 触发器 (与 Input 保持一致) ---- */
+[data-slot="trigger"] {
+  border-radius: 0.625rem !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease !important;
+}
+
+[data-slot="trigger"][data-hover="true"] {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border) 60%) !important;
+}
+
+[data-slot="trigger"][data-focus="true"],
+[data-slot="trigger"][data-open="true"] {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-op) !important;
+}
+
+/* Select/Autocomplete 下拉弹出层 */
+[data-slot="listbox"] {
+  border-radius: 0.625rem !important;
+}
+
+/* ---- 清除按钮 ---- */
+[data-slot="clear-button"] {
+  color: var(--muted-foreground) !important;
+  opacity: 0.5 !important;
+  transition: opacity 0.15s ease, color 0.15s ease !important;
+}
+
+[data-slot="clear-button"]:hover {
+  opacity: 1 !important;
+  color: var(--foreground) !important;
+}
+
+/* ---- Fancybox 图片查看器覆盖 ---- */
+/* 打开图片查看器时不锁定页面滚动 */
+html.with-fancybox body.hide-scrollbar {
+  margin-right: auto;
+  overflow: auto !important;
+}
+
+/* 图片查看器上下留出间距，不顶满屏幕 */
+.fancybox__slide {
+  padding: 2rem !important;
+}
+
+@media (max-width: 768px) {
+  .fancybox__slide {
+    padding: 1rem !important;
+  }
+}
+
+/* 背景遮罩层动画 */
+.fancybox__backdrop {
+  transition: opacity 0.35s ease;
+}
+
+/* 容器显示/隐藏动画 */
+.fancybox__container {
+  --f-transition-duration: 0.3s;
+  --f-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --f-interface-enter-duration: 0.35s;
+  --f-interface-exit-duration: 0.25s;
+}
+
+/* 图片查看器中的图片圆角 */
+.fancybox__slide img.f-panzoom__content {
+  border-radius: 12px;
+}
+
+/* 图片打开动画：缩放 + 上移淡入 */
+.fancybox__container .f-zoomInUp {
+  --f-transition-duration: 0.35s;
+  --f-zoomInUp-scale: 0.92;
+  --f-zoomInUp-y: 24px;
+  --f-zoomInUp-opacity: 0;
+}
+
+/* 图片关闭动画：缩放 + 下移淡出 */
+.fancybox__container .f-zoomOutDown {
+  --f-transition-duration: 0.25s;
+  --f-zoomOutDown-scale: 0.92;
+  --f-zoomOutDown-y: 24px;
 }

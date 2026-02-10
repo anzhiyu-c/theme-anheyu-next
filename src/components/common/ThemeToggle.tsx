@@ -3,7 +3,7 @@
 import { Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconButton } from "@/components/ui";
-import { useTheme } from "@/hooks";
+import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 
 interface ThemeToggleProps {

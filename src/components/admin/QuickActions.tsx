@@ -15,13 +15,13 @@ const actions: QuickAction[] = [
   {
     icon: "ri:add-line",
     label: "写文章",
-    href: "/admin/posts/new",
+    href: "/admin/post-management",
     color: "bg-primary/10 text-primary hover:bg-primary/20",
   },
   {
     icon: "ri:image-line",
     label: "上传文件",
-    href: "/admin/files",
+    href: "/admin/file-management",
     color: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
   },
   {

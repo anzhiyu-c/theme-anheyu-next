@@ -5,7 +5,7 @@ import { useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FaClock, FaFileLines, FaHashtag, FaTriangleExclamation } from "react-icons/fa6";
 import { useArticleList } from "@/hooks/queries";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { Pagination } from "@/components/home";
 import type { Article } from "@/types/article";
 import styles from "./ArchiveList.module.css";

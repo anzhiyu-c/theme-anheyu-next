@@ -6,7 +6,7 @@ import { Moon, Sun, FileText, Clock, Type } from "lucide-react";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 
 import styles from "./styles.module.css";
 import type { NavConfig, MenuItem } from "../../types";

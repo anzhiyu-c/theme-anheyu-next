@@ -130,11 +130,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     [router, onClose]
   );
 
-  // 格式化日期
+  // 格式化日期（中文 locale）
   const formatDate = useCallback((dateString: string): string => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("zh-CN", {
+      return new Date(dateString).toLocaleDateString("zh-CN", {
         year: "numeric",
         month: "short",
         day: "numeric",

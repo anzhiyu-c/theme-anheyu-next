@@ -83,7 +83,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "disabled:cursor-not-allowed disabled:opacity-50",
               error
                 ? "border-red/40 bg-red/5 focus:border-red/60"
-                : "border-border bg-transparent focus:border-primary",
+                : "border-border bg-muted/50 focus:border-primary focus:bg-card",
               startAdornment && "pl-10",
               endAdornment && "pr-10",
               className
@@ -101,15 +101,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               htmlFor={id}
               className={cn(
                 "absolute left-3 pointer-events-none",
-                "bg-card px-1",
+                "px-1",
                 "transition-all duration-200 ease-out",
                 startAdornment && "left-10",
                 isFloating
                   ? cn(
-                      "-top-2 text-xs scale-100",
+                      "-top-2 text-xs scale-100 bg-card",
                       error ? "text-red" : isFocused ? "text-primary" : "text-muted-foreground"
                     )
-                  : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
+                  : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground bg-transparent"
               )}
             >
               {label}

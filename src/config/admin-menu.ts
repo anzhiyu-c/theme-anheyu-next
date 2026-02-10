@@ -39,7 +39,7 @@ export const adminMenuConfig: AdminMenuGroup[] = [
       {
         id: "files",
         label: "文件管理",
-        href: "/admin/files",
+        href: "/admin/file-management",
         icon: "ri:folder-open-line",
         roles: ["admin"],
       },
@@ -52,9 +52,9 @@ export const adminMenuConfig: AdminMenuGroup[] = [
     rank: 2,
     items: [
       {
-        id: "posts",
+        id: "post-management",
         label: "文章管理",
-        href: "/admin/posts",
+        href: "/admin/post-management",
         icon: "ri:file-text-line",
         roles: ["admin", "user"],
       },
@@ -71,6 +71,7 @@ export const adminMenuConfig: AdminMenuGroup[] = [
         href: "/admin/essays",
         icon: "ri:chat-smile-2-line",
         roles: ["admin"],
+        isProFeature: true,
       },
       {
         id: "comments",

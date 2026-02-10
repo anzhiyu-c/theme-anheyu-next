@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { Tooltip } from "@/components/ui";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { apiClient } from "@/lib/api/client";
 import styles from "./Footer.module.css";
 

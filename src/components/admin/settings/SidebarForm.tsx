@@ -1,0 +1,327 @@
+"use client";
+
+import { FormInput } from "@/components/ui/form-input";
+import { FormSwitch } from "@/components/ui/form-switch";
+import { FormImageUpload } from "@/components/ui/form-image-upload";
+import { FormStringList } from "@/components/ui/form-string-list";
+import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
+import { HighlightTagSelector } from "./editors/HighlightTagSelector";
+import { SocialLinksEditor } from "./editors/SocialLinksEditor";
+import { VisualArrayEditor } from "./editors/VisualArrayEditor";
+import type { FieldDef } from "./editors/VisualArrayEditor";
+import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  KEY_SIDEBAR_AUTHOR_ENABLE,
+  KEY_SIDEBAR_AUTHOR_DESCRIPTION,
+  KEY_SIDEBAR_AUTHOR_STATUS_IMG,
+  KEY_SIDEBAR_AUTHOR_SKILLS,
+  KEY_SIDEBAR_AUTHOR_SOCIAL,
+  KEY_SIDEBAR_WECHAT_ENABLE,
+  KEY_SIDEBAR_WECHAT_FACE,
+  KEY_SIDEBAR_WECHAT_BACK_FACE,
+  KEY_SIDEBAR_WECHAT_BLUR_BG,
+  KEY_SIDEBAR_WECHAT_LINK,
+  KEY_SIDEBAR_TAGS_ENABLE,
+  KEY_SIDEBAR_TAGS_HIGHLIGHT,
+  KEY_SIDEBAR_SITEINFO_POST_COUNT,
+  KEY_SIDEBAR_SITEINFO_RUNTIME,
+  KEY_SIDEBAR_SITEINFO_WORD_COUNT,
+  KEY_SIDEBAR_ARCHIVE_MONTHS,
+  KEY_SIDEBAR_CUSTOM_SHOW_IN_POST,
+  KEY_SIDEBAR_TOC_COLLAPSE_MODE,
+  KEY_SIDEBAR_SERIES_POST_COUNT,
+  KEY_SIDEBAR_DOC_LINKS,
+  KEY_CUSTOM_SIDEBAR,
+  KEY_WEATHER_ENABLE,
+  KEY_WEATHER_ENABLE_PAGE,
+  KEY_WEATHER_QWEATHER_KEY,
+  KEY_WEATHER_QWEATHER_API_HOST,
+  KEY_WEATHER_IP_API_KEY,
+  KEY_WEATHER_LOADING,
+  KEY_WEATHER_DEFAULT_RECT,
+  KEY_WEATHER_RECTANGLE,
+} from "@/lib/settings/setting-keys";
+
+// 自定义侧边栏块字段定义
+const customSidebarFields: FieldDef[] = [
+  { key: "title", label: "标题", type: "text", placeholder: "块标题（留空则不显示）" },
+  { key: "content", label: "HTML 内容", type: "textarea", placeholder: "<div>自定义内容</div>", colSpan: 2 },
+  { key: "showInPost", label: "在文章页显示", type: "switch" },
+];
+
+// 文档链接字段定义
+const docLinkFields: FieldDef[] = [
+  { key: "title", label: "标题", type: "text", placeholder: "链接标题" },
+  { key: "link", label: "链接", type: "url", placeholder: "https://..." },
+  { key: "icon", label: "图标", type: "icon", placeholder: "ri:external-link-line" },
+  { key: "external", label: "外部链接", type: "switch" },
+];
+
+interface SidebarFormProps {
+  values: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+  loading?: boolean;
+}
+
+export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* 作者卡片 */}
+      <SettingsSection title="作者卡片">
+        <FormSwitch
+          label="启用作者卡片"
+          description="在侧边栏显示作者信息卡片"
+          checked={values[KEY_SIDEBAR_AUTHOR_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_AUTHOR_ENABLE, String(v))}
+        />
+
+        <FormInput
+          label="作者描述"
+          placeholder="一句话介绍自己"
+          value={values[KEY_SIDEBAR_AUTHOR_DESCRIPTION]}
+          onValueChange={v => onChange(KEY_SIDEBAR_AUTHOR_DESCRIPTION, v)}
+        />
+
+        <FormImageUpload
+          label="状态图标"
+          value={values[KEY_SIDEBAR_AUTHOR_STATUS_IMG]}
+          onValueChange={v => onChange(KEY_SIDEBAR_AUTHOR_STATUS_IMG, v)}
+          previewSize="sm"
+          description="作者卡片上显示的状态表情/图标"
+        />
+
+        <FormStringList
+          label="技能标签"
+          value={values[KEY_SIDEBAR_AUTHOR_SKILLS]}
+          onValueChange={v => onChange(KEY_SIDEBAR_AUTHOR_SKILLS, v)}
+          placeholder="例如：🤖️ 数码科技爱好者"
+          addButtonText="添加技能标签"
+          description="作者卡片下方显示的技能标签列表"
+        />
+
+        <SocialLinksEditor
+          value={values[KEY_SIDEBAR_AUTHOR_SOCIAL]}
+          onValueChange={v => onChange(KEY_SIDEBAR_AUTHOR_SOCIAL, v)}
+        />
+      </SettingsSection>
+
+      {/* 微信二维码 */}
+      <SettingsSection title="微信二维码">
+        <FormSwitch
+          label="启用微信二维码"
+          description="在侧边栏显示微信二维码卡片"
+          checked={values[KEY_SIDEBAR_WECHAT_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_WECHAT_ENABLE, String(v))}
+        />
+
+        <SettingsFieldGroup cols={2}>
+          <FormImageUpload
+            label="正面图片"
+            value={values[KEY_SIDEBAR_WECHAT_FACE]}
+            onValueChange={v => onChange(KEY_SIDEBAR_WECHAT_FACE, v)}
+            description="二维码卡片正面图片"
+          />
+          <FormImageUpload
+            label="背面图片"
+            value={values[KEY_SIDEBAR_WECHAT_BACK_FACE]}
+            onValueChange={v => onChange(KEY_SIDEBAR_WECHAT_BACK_FACE, v)}
+            description="二维码卡片背面图片"
+          />
+        </SettingsFieldGroup>
+
+        <FormImageUpload
+          label="模糊背景"
+          value={values[KEY_SIDEBAR_WECHAT_BLUR_BG]}
+          onValueChange={v => onChange(KEY_SIDEBAR_WECHAT_BLUR_BG, v)}
+          description="二维码卡片的模糊背景图"
+        />
+
+        <FormInput
+          label="微信链接"
+          placeholder="微信跳转链接"
+          value={values[KEY_SIDEBAR_WECHAT_LINK]}
+          onValueChange={v => onChange(KEY_SIDEBAR_WECHAT_LINK, v)}
+        />
+      </SettingsSection>
+
+      {/* 标签云 */}
+      <SettingsSection title="标签云">
+        <FormSwitch
+          label="启用标签云"
+          description="在侧边栏显示标签云组件"
+          checked={values[KEY_SIDEBAR_TAGS_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_TAGS_ENABLE, String(v))}
+        />
+
+        <HighlightTagSelector
+          value={values[KEY_SIDEBAR_TAGS_HIGHLIGHT]}
+          onValueChange={v => onChange(KEY_SIDEBAR_TAGS_HIGHLIGHT, v)}
+        />
+      </SettingsSection>
+
+      {/* 站点信息 */}
+      <SettingsSection title="站点信息">
+        <FormSwitch
+          label="显示文章总数"
+          description="侧边栏显示站点文章总数"
+          checked={values[KEY_SIDEBAR_SITEINFO_POST_COUNT] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_POST_COUNT, String(v))}
+        />
+
+        <FormSwitch
+          label="显示运行时间"
+          description="侧边栏显示站点运行时间"
+          checked={values[KEY_SIDEBAR_SITEINFO_RUNTIME] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_RUNTIME, String(v))}
+        />
+
+        <FormSwitch
+          label="显示总字数"
+          description="侧边栏显示站点总字数统计"
+          checked={values[KEY_SIDEBAR_SITEINFO_WORD_COUNT] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_WORD_COUNT, String(v))}
+        />
+
+        <FormInput
+          label="归档显示月数"
+          placeholder="例如：12"
+          value={values[KEY_SIDEBAR_ARCHIVE_MONTHS]}
+          onValueChange={v => onChange(KEY_SIDEBAR_ARCHIVE_MONTHS, v)}
+          description="侧边栏归档模块显示的最近月数"
+        />
+      </SettingsSection>
+
+      {/* 目录与文档 */}
+      <SettingsSection title="目录与文档">
+        <FormSelect
+          label="目录折叠模式"
+          value={values[KEY_SIDEBAR_TOC_COLLAPSE_MODE]}
+          onValueChange={v => onChange(KEY_SIDEBAR_TOC_COLLAPSE_MODE, v)}
+          placeholder="请选择折叠模式"
+          description="文章目录的默认展开/折叠行为"
+        >
+          <FormSelectItem key="none">不折叠</FormSelectItem>
+          <FormSelectItem key="expanded">默认展开</FormSelectItem>
+          <FormSelectItem key="collapsed">默认折叠</FormSelectItem>
+        </FormSelect>
+
+        <FormInput
+          label="系列文章数量"
+          placeholder="系列文章显示数量"
+          value={values[KEY_SIDEBAR_SERIES_POST_COUNT]}
+          onValueChange={v => onChange(KEY_SIDEBAR_SERIES_POST_COUNT, v)}
+          description="侧边栏系列文章模块显示的文章数量"
+        />
+
+        <VisualArrayEditor
+          label="文档链接"
+          value={values[KEY_SIDEBAR_DOC_LINKS]}
+          onValueChange={v => onChange(KEY_SIDEBAR_DOC_LINKS, v)}
+          description="文档模式下侧边栏顶部显示的快捷链接列表"
+          fields={docLinkFields}
+          defaultItem={{ title: "", link: "/", icon: "", external: false }}
+          itemLabel={item => (item.title as string) || "未命名链接"}
+          addButtonText="添加文档链接"
+        />
+      </SettingsSection>
+
+      {/* 自定义侧边栏 */}
+      <SettingsSection title="自定义侧边栏">
+        <FormSwitch
+          label="文章页显示自定义侧边栏"
+          description="在文章页面也显示自定义侧边栏内容"
+          checked={values[KEY_SIDEBAR_CUSTOM_SHOW_IN_POST] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_CUSTOM_SHOW_IN_POST, String(v))}
+        />
+
+        <VisualArrayEditor
+          label="自定义侧边栏块"
+          value={values[KEY_CUSTOM_SIDEBAR]}
+          onValueChange={v => onChange(KEY_CUSTOM_SIDEBAR, v)}
+          description="可添加 0-3 个自定义侧边栏块，支持完整 HTML 代码，按顺序显示在侧边栏顶部"
+          fields={customSidebarFields}
+          defaultItem={{ title: "", content: "", showInPost: true }}
+          itemLabel={item => (item.title as string) || "未命名块"}
+          addButtonText="添加侧边栏块"
+          maxItems={3}
+        />
+      </SettingsSection>
+
+      {/* 天气组件 */}
+      <SettingsSection title="天气组件">
+        <FormSwitch
+          label="启用天气组件"
+          description="在侧边栏显示天气信息"
+          checked={values[KEY_WEATHER_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_WEATHER_ENABLE, String(v))}
+        />
+
+        <FormSelect
+          label="显示页面"
+          value={values[KEY_WEATHER_ENABLE_PAGE]}
+          onValueChange={v => onChange(KEY_WEATHER_ENABLE_PAGE, v)}
+          placeholder="请选择显示范围"
+          description="天气组件在哪些页面显示"
+        >
+          <FormSelectItem key="all">所有页面</FormSelectItem>
+          <FormSelectItem key="post">仅文章页</FormSelectItem>
+        </FormSelect>
+
+        <FormInput
+          label="和风天气 Key"
+          placeholder="请输入和风天气 API Key"
+          type="password"
+          value={values[KEY_WEATHER_QWEATHER_KEY]}
+          onValueChange={v => onChange(KEY_WEATHER_QWEATHER_KEY, v)}
+          description="和风天气 API 密钥"
+        />
+
+        <FormInput
+          label="和风天气 API 地址"
+          placeholder="https://devapi.qweather.com"
+          value={values[KEY_WEATHER_QWEATHER_API_HOST]}
+          onValueChange={v => onChange(KEY_WEATHER_QWEATHER_API_HOST, v)}
+        />
+
+        <FormInput
+          label="IP 定位 API Key"
+          placeholder="请输入 IP 定位服务的 API Key"
+          type="password"
+          value={values[KEY_WEATHER_IP_API_KEY]}
+          onValueChange={v => onChange(KEY_WEATHER_IP_API_KEY, v)}
+          description="用于获取用户位置的 IP 定位服务密钥"
+        />
+
+        <FormInput
+          label="加载提示文本"
+          placeholder="天气加载中..."
+          value={values[KEY_WEATHER_LOADING]}
+          onValueChange={v => onChange(KEY_WEATHER_LOADING, v)}
+        />
+
+        <FormInput
+          label="默认矩形区域"
+          placeholder="默认天气矩形显示区域"
+          value={values[KEY_WEATHER_DEFAULT_RECT]}
+          onValueChange={v => onChange(KEY_WEATHER_DEFAULT_RECT, v)}
+        />
+
+        <FormInput
+          label="矩形区域"
+          placeholder="天气矩形区域"
+          value={values[KEY_WEATHER_RECTANGLE]}
+          onValueChange={v => onChange(KEY_WEATHER_RECTANGLE, v)}
+        />
+      </SettingsSection>
+    </div>
+  );
+}

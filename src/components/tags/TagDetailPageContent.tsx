@@ -3,8 +3,8 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { Sidebar, TagBar } from "@/components/home";
 import { FilteredArticleList } from "@/components/articles";
-import { TagFilterContext } from "@/contexts/TagFilterContext";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { TagFilterContext } from "@/hooks/use-tag-filter";
+import { useSiteConfigStore } from "@/store/site-config-store";
 
 interface TagDetailPageContentProps {
   tagName: string;

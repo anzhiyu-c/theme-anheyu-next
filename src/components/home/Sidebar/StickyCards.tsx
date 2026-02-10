@@ -3,9 +3,9 @@
 import { useMemo, useRef, useState, useEffect, useCallback, memo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { useTags, useArchives } from "@/hooks/queries";
-import { useTagFilter } from "@/contexts/TagFilterContext";
+import { useTagFilter } from "@/hooks/use-tag-filter";
 import styles from "./StickyCards.module.css";
 
 interface TagsCardProps {

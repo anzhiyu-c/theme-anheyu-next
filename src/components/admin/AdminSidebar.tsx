@@ -5,15 +5,15 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui";
-import { useAuthStore } from "@/store/authStore";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useAuthStore } from "@/store/auth-store";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { useShallow } from "zustand/shallow";
-import { useTheme } from "@/hooks";
+import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import { adminMenuConfig, type AdminMenuGroup, type AdminMenuItem } from "@/config/admin-menu";
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getUserAvatarUrl } from "@/lib/avatar";
+import { getUserAvatarUrl } from "@/utils/avatar";
 
 interface AdminSidebarProps {
   onClose?: () => void;
@@ -90,7 +90,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
       {/* Logo */}
       <div className="hidden lg:flex items-center shrink-0 h-16 px-6 border-b border-border/50">
         <Link href="/admin" className="flex items-center gap-2">
-          <Image src={logoUrl} alt={siteTitle} width={32} height={32} className="rounded-lg" />
+          <Image src={logoUrl} alt={siteTitle} width={32} height={32} className="rounded-lg" priority />
           <span className="font-bold text-lg">{siteTitle}</span>
         </Link>
         <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">Admin</span>
@@ -108,6 +108,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
                 height={40}
                 className="w-10 h-10 rounded-full object-cover shadow-sm"
                 unoptimized
+                priority
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-semibold">
@@ -209,7 +210,7 @@ function MenuGroup({ group, isExpanded, onToggle, isItemActive, onItemClick }: M
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pl-3 space-y-0.5 pt-1">
+            <div className="pl-3 space-y-1 pt-1">
               {group.items.map(item => (
                 <MenuItem key={item.id} item={item} isActive={isItemActive(item.href)} onClick={onItemClick} />
               ))}

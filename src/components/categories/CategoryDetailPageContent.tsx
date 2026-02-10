@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CategoryBar, Sidebar } from "@/components/home";
 import { FilteredArticleList } from "@/components/articles";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 
 interface CategoryDetailPageContentProps {
   categoryName: string;

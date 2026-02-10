@@ -10,9 +10,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Home } from "lucide-react";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { articleApi } from "@/lib/api/article";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime } from "@/utils/date";
 import type { FeedItem } from "@/types/article";
 import styles from "./not-found.module.css";
 

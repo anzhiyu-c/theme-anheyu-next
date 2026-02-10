@@ -1,0 +1,45 @@
+.context-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2050;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 2060;
+  width: 220px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--anzhiyu-card-bg);
+  border: var(--style-border);
+  box-shadow: var(--anzhiyu-shadow-border);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--anzhiyu-fontcolor);
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background: var(--anzhiyu-theme-op);
+}
+
+.divider {
+  height: 1px;
+  margin: 6px 0;
+  background: var(--anzhiyu-card-border);
+}
+
+.danger {
+  color: var(--anzhiyu-red);
+}
+
+.menu-icon {
+  font-size: 16px;
+}

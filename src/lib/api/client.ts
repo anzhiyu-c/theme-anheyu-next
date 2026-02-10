@@ -245,10 +245,18 @@ function processQueue(token?: string, error?: Error): void {
   retryQueue = [];
 }
 
+/** 认证过期错误标记，用于区分预期的登录过期和意外错误 */
+class AuthExpiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthExpiredError";
+  }
+}
+
 async function handleRefreshToken(): Promise<string> {
   const refreshToken = tokenManager.getRefreshToken();
   if (!refreshToken) {
-    throw new Error("缺少 refresh token，无法刷新登录状态");
+    throw new AuthExpiredError("登录已过期，请重新登录");
   }
 
   const response = await axios.post<ApiResponse<RefreshTokenResponseData>>(
@@ -453,7 +461,7 @@ export const apiClient = new ApiClient(axiosInstance);
 /**
  * 导出 axios 实例（用于特殊场景）
  */
-export { axiosInstance };
+export { axiosInstance, AuthExpiredError };
 
 /**
  * API 错误类型

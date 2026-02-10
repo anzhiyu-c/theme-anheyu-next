@@ -1,220 +1,694 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard } from "@/components/admin";
-import { Button, Input } from "@/components/ui";
 import {
-  Settings,
-  Save,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  Suspense,
+  lazy,
+  Component,
+  type ReactNode,
+  type ErrorInfo,
+} from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, Input, Button } from "@heroui/react";
+import {
   Globe,
-  User,
-  Mail,
   Image as ImageIcon,
+  Home,
+  PanelLeft,
+  Paintbrush,
   FileText,
-  Bell,
-  Shield,
-  Palette,
-  Code,
+  FolderOpen,
   MessageSquare,
+  Mail,
+  KeyRound,
+  Search,
+  Link2,
+  UserCircle,
+  Monitor,
+  MessageCircle,
+  Newspaper,
+  Users,
+  Images,
+  Music,
+  ShieldCheck,
+  Share2,
+  Bot,
+  Wallet,
+  DatabaseBackup,
   ChevronRight,
+  RotateCcw,
+  AlertCircle,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMultiSettings } from "@/hooks/use-settings";
+import { FloatingSaveButton } from "@/components/admin/settings/FloatingSaveButton";
+import type { SettingCategoryId } from "@/lib/settings/setting-descriptors";
 
-interface SettingSection {
+// ==================== 懒加载表单组件 ====================
+
+const SiteBasicForm = lazy(() =>
+  import("@/components/admin/settings/SiteBasicForm").then(m => ({ default: m.SiteBasicForm }))
+);
+const SiteIconForm = lazy(() =>
+  import("@/components/admin/settings/SiteIconForm").then(m => ({ default: m.SiteIconForm }))
+);
+const HomePageForm = lazy(() =>
+  import("@/components/admin/settings/HomePageForm").then(m => ({ default: m.HomePageForm }))
+);
+const SidebarForm = lazy(() =>
+  import("@/components/admin/settings/SidebarForm").then(m => ({ default: m.SidebarForm }))
+);
+const PageStyleForm = lazy(() =>
+  import("@/components/admin/settings/PageStyleForm").then(m => ({ default: m.PageStyleForm }))
+);
+const PostSettingsForm = lazy(() =>
+  import("@/components/admin/settings/PostSettingsForm").then(m => ({ default: m.PostSettingsForm }))
+);
+const FileSettingsForm = lazy(() =>
+  import("@/components/admin/settings/FileSettingsForm").then(m => ({ default: m.FileSettingsForm }))
+);
+const CommentSettingsForm = lazy(() =>
+  import("@/components/admin/settings/CommentSettingsForm").then(m => ({ default: m.CommentSettingsForm }))
+);
+const EmailSettingsForm = lazy(() =>
+  import("@/components/admin/settings/EmailSettingsForm").then(m => ({ default: m.EmailSettingsForm }))
+);
+const OAuthForm = lazy(() => import("@/components/admin/settings/OAuthForm").then(m => ({ default: m.OAuthForm })));
+const SeoSettingsForm = lazy(() =>
+  import("@/components/admin/settings/SeoSettingsForm").then(m => ({ default: m.SeoSettingsForm }))
+);
+const FriendLinkSettingsForm = lazy(() =>
+  import("@/components/admin/settings/FriendLinkSettingsForm").then(m => ({ default: m.FriendLinkSettingsForm }))
+);
+const AboutPageForm = lazy(() =>
+  import("@/components/admin/settings/AboutPageForm").then(m => ({ default: m.AboutPageForm }))
+);
+const EquipmentPageForm = lazy(() =>
+  import("@/components/admin/settings/EquipmentPageForm").then(m => ({ default: m.EquipmentPageForm }))
+);
+const RecentCommentsPageForm = lazy(() =>
+  import("@/components/admin/settings/RecentCommentsPageForm").then(m => ({ default: m.RecentCommentsPageForm }))
+);
+const EssayPageForm = lazy(() =>
+  import("@/components/admin/settings/EssayPageForm").then(m => ({ default: m.EssayPageForm }))
+);
+const MomentsPageForm = lazy(() =>
+  import("@/components/admin/settings/MomentsPageForm").then(m => ({ default: m.MomentsPageForm }))
+);
+const AlbumPageForm = lazy(() =>
+  import("@/components/admin/settings/AlbumPageForm").then(m => ({ default: m.AlbumPageForm }))
+);
+const MusicPageForm = lazy(() =>
+  import("@/components/admin/settings/MusicPageForm").then(m => ({ default: m.MusicPageForm }))
+);
+const CaptchaSettingsForm = lazy(() =>
+  import("@/components/admin/settings/CaptchaSettingsForm").then(m => ({ default: m.CaptchaSettingsForm }))
+);
+const WechatShareForm = lazy(() =>
+  import("@/components/admin/settings/WechatShareForm").then(m => ({ default: m.WechatShareForm }))
+);
+const AISettingsForm = lazy(() =>
+  import("@/components/admin/settings/AISettingsForm").then(m => ({ default: m.AISettingsForm }))
+);
+const PaymentSettingsForm = lazy(() =>
+  import("@/components/admin/settings/PaymentSettingsForm").then(m => ({ default: m.PaymentSettingsForm }))
+);
+const BackupImportForm = lazy(() =>
+  import("@/components/admin/settings/BackupImportForm").then(m => ({ default: m.BackupImportForm }))
+);
+
+// ==================== ErrorBoundary 组件 ====================
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class SettingsErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Settings form load error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        this.props.fallback ?? (
+          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+            <AlertCircle className="w-10 h-10 text-danger" />
+            <div>
+              <p className="text-sm font-medium text-foreground">加载失败</p>
+              <p className="text-xs text-default-400 mt-1">表单组件加载出错，请刷新页面重试</p>
+            </div>
+            <button
+              onClick={() => this.setState({ hasError: false })}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:opacity-90 transition-opacity"
+            >
+              重试
+            </button>
+          </div>
+        )
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ==================== 导航结构定义 ====================
+
+interface SubSection {
+  id: SettingCategoryId;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  keywords?: string[];
+}
+
+interface CategorySection {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  description: string;
+  children: SubSection[];
 }
 
-const settingSections: SettingSection[] = [
-  { id: "basic", label: "基本设置", icon: Globe, description: "网站名称、描述、Logo 等基本信息" },
-  { id: "author", label: "作者信息", icon: User, description: "博主个人资料和社交链接" },
-  { id: "seo", label: "SEO 设置", icon: FileText, description: "搜索引擎优化相关配置" },
-  { id: "email", label: "邮件服务", icon: Mail, description: "SMTP 邮件发送配置" },
-  { id: "comment", label: "评论设置", icon: MessageSquare, description: "评论系统配置和审核规则" },
-  { id: "notification", label: "通知设置", icon: Bell, description: "系统通知和提醒配置" },
-  { id: "security", label: "安全设置", icon: Shield, description: "登录安全和访问控制" },
-  { id: "appearance", label: "外观定制", icon: Palette, description: "主题颜色和样式设置" },
-  { id: "advanced", label: "高级设置", icon: Code, description: "自定义代码和高级选项" },
+const categories: CategorySection[] = [
+  {
+    id: "site",
+    label: "站点信息",
+    icon: Globe,
+    children: [
+      { id: "site-basic", label: "基本信息", icon: Globe, keywords: ["站点名称", "描述", "URL", "备案", "公告"] },
+      { id: "site-icon", label: "Logo 与图标", icon: ImageIcon, keywords: ["favicon", "logo", "图标", "PWA"] },
+    ],
+  },
+  {
+    id: "appearance",
+    label: "外观配置",
+    icon: Paintbrush,
+    children: [
+      {
+        id: "appearance-home",
+        label: "首页设置",
+        icon: Home,
+        keywords: ["首页", "顶部", "banner", "分类", "页脚", "导航"],
+      },
+      { id: "appearance-sidebar", label: "侧边栏", icon: PanelLeft, keywords: ["侧边栏", "作者", "标签", "天气"] },
+      { id: "appearance-page", label: "页面样式", icon: Paintbrush, keywords: ["外链", "图片", "一图流", "CSS", "JS"] },
+    ],
+  },
+  {
+    id: "content",
+    label: "内容管理",
+    icon: FileText,
+    children: [
+      { id: "content-post", label: "文章配置", icon: FileText, keywords: ["文章", "封面", "打赏", "代码块", "复制"] },
+      { id: "content-file", label: "文件处理", icon: FolderOpen, keywords: ["上传", "缩略图", "EXIF", "视频"] },
+    ],
+  },
+  {
+    id: "user",
+    label: "用户通知",
+    icon: MessageSquare,
+    children: [
+      { id: "user-comment", label: "评论系统", icon: MessageSquare, keywords: ["评论", "敏感词", "通知", "审核"] },
+      { id: "user-email", label: "邮件服务", icon: Mail, keywords: ["SMTP", "邮件", "模板", "激活"] },
+    ],
+  },
+  {
+    id: "integration",
+    label: "三方服务",
+    icon: KeyRound,
+    children: [
+      {
+        id: "integration-oauth",
+        label: "第三方登录",
+        icon: KeyRound,
+        keywords: ["QQ", "微信", "Logto", "OIDC", "彩虹"],
+      },
+      { id: "integration-seo", label: "SEO 推送", icon: Search, keywords: ["百度", "Bing", "Google", "收录"] },
+    ],
+  },
+  {
+    id: "pages",
+    label: "页面显示",
+    icon: Monitor,
+    children: [
+      { id: "pages-flink", label: "友链管理", icon: Link2, keywords: ["友链", "申请", "审核"] },
+      { id: "pages-about", label: "关于页面", icon: UserCircle, keywords: ["关于", "技能", "生涯"] },
+      { id: "pages-equipment", label: "装备页面", icon: Monitor, keywords: ["装备", "好物"] },
+      { id: "pages-comments", label: "评论页面", icon: MessageCircle, keywords: ["最近评论"] },
+      { id: "pages-essay", label: "即刻页面", icon: Newspaper, keywords: ["即刻", "说说"] },
+      { id: "pages-moments", label: "朋友圈页", icon: Users, keywords: ["朋友圈", "RSS"] },
+      { id: "pages-album", label: "相册页面", icon: Images, keywords: ["相册", "图片", "瀑布流", "画廊"] },
+      { id: "pages-music", label: "音乐页面", icon: Music, keywords: ["音乐", "播放器", "歌单", "胶囊", "唱片"] },
+    ],
+  },
+  {
+    id: "advanced",
+    label: "高级功能",
+    icon: ShieldCheck,
+    children: [
+      {
+        id: "advanced-captcha",
+        label: "人机验证",
+        icon: ShieldCheck,
+        keywords: ["Turnstile", "Cloudflare", "极验", "图片验证码", "captcha"],
+      },
+      { id: "advanced-wechat-share", label: "微信分享", icon: Share2, keywords: ["微信", "分享", "JS-SDK", "公众号"] },
+      { id: "advanced-ai", label: "AI 功能", icon: Bot, keywords: ["AI", "摘要", "写作", "播客", "助手"] },
+      {
+        id: "advanced-payment",
+        label: "支付配置",
+        icon: Wallet,
+        keywords: ["支付", "支付宝", "微信", "易支付", "虎皮椒", "付费", "PRO"],
+      },
+      {
+        id: "advanced-backup",
+        label: "备份导入",
+        icon: DatabaseBackup,
+        keywords: ["备份", "导入", "导出", "恢复", "配置"],
+      },
+    ],
+  },
 ];
 
-export default function SettingsPage() {
-  const [activeSection, setActiveSection] = useState("basic");
-  const [saving, setSaving] = useState(false);
+// 获取所有需要加载的分类 ID（排除使用独立 API 的模块）
+const independentApiSections: SettingCategoryId[] = ["advanced-backup", "advanced-payment"];
+const allCategoryIds: SettingCategoryId[] = categories.flatMap(c =>
+  c.children.map(s => s.id).filter(id => !independentApiSections.includes(id))
+);
 
-  // 模拟保存
-  const handleSave = async () => {
-    setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSaving(false);
+// ==================== 搜索结果类型 ====================
+
+interface SearchResult {
+  sectionId: SettingCategoryId;
+  sectionLabel: string;
+  categoryId: string;
+  categoryLabel: string;
+}
+
+// ==================== 表单加载占位 ====================
+
+function FormFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Spinner size="lg" />
+    </div>
+  );
+}
+
+// ==================== 主页面 ====================
+
+export default function SettingsPage() {
+  const [activeSection, setActiveSection] = useState<string>("site-basic");
+
+  // 搜索相关状态
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // 移动端侧边栏
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+
+  // 内容区 ref，用于切换时滚动到顶部
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const { values, loading, saving, isDirty, setValue, save, reset, resetCategory, isCategoryDirty } =
+    useMultiSettings(allCategoryIds);
+
+  // 获取当前激活的子区域信息
+  const currentSection = useMemo(() => {
+    for (const cat of categories) {
+      const found = cat.children.find(s => s.id === activeSection);
+      if (found) return found;
+    }
+    return null;
+  }, [activeSection]);
+
+  // 获取当前 section 所属的 category
+  const parentCategory = useMemo(() => {
+    for (const cat of categories) {
+      if (cat.children.some(s => s.id === activeSection)) {
+        return cat;
+      }
+    }
+    return null;
+  }, [activeSection]);
+
+  // 获取当前 section 所属的 category 中所有 section ids
+  const currentCategorySectionIds = useMemo(() => parentCategory?.children.map(s => s.id) ?? [], [parentCategory]);
+
+  // ==================== 搜索功能 ====================
+
+  const searchIndex = useMemo<SearchResult[]>(() => {
+    const results: SearchResult[] = [];
+    for (const category of categories) {
+      for (const child of category.children) {
+        results.push({
+          sectionId: child.id,
+          sectionLabel: child.label,
+          categoryId: category.id,
+          categoryLabel: category.label,
+        });
+      }
+    }
+    return results;
+  }, []);
+
+  const searchResults = useMemo<SearchResult[]>(() => {
+    if (!searchKeyword.trim()) return [];
+    const keyword = searchKeyword.toLowerCase();
+
+    return searchIndex.filter(item => {
+      if (item.sectionLabel.toLowerCase().includes(keyword)) return true;
+      if (item.categoryLabel.toLowerCase().includes(keyword)) return true;
+      const section = categories.find(c => c.id === item.categoryId)?.children.find(s => s.id === item.sectionId);
+      if (section?.keywords?.some(k => k.toLowerCase().includes(keyword))) return true;
+      return false;
+    });
+  }, [searchKeyword, searchIndex]);
+
+  const showSearchResults = isSearchFocused && searchKeyword.trim().length > 0;
+
+  const handleSearchNavigate = useCallback((result: SearchResult) => {
+    setActiveSection(result.sectionId);
+    setSearchKeyword("");
+    setIsSearchFocused(false);
+    setShowMobileSidebar(false);
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // ==================== 导航功能 ====================
+
+  const selectSection = useCallback((_categoryId: string, sectionId: string) => {
+    setActiveSection(sectionId);
+    setShowMobileSidebar(false);
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // ==================== 重置功能 ====================
+
+  const handleResetCurrent = useCallback(() => {
+    if (currentCategorySectionIds.length > 0) {
+      resetCategory(currentCategorySectionIds);
+    }
+  }, [currentCategorySectionIds, resetCategory]);
+
+  const handleResetAll = useCallback(() => {
+    reset();
+  }, [reset]);
+
+  const isCurrentDirty = useMemo(() => {
+    if (currentCategorySectionIds.length === 0) return false;
+    return isCategoryDirty(currentCategorySectionIds);
+  }, [currentCategorySectionIds, isCategoryDirty]);
+
+  // 表单 props
+  const formProps = useMemo(() => ({ values, onChange: setValue, loading }), [values, setValue, loading]);
+
+  // 渲染对应的表单组件
+  const renderForm = () => {
+    return (
+      <SettingsErrorBoundary>
+        <Suspense key={activeSection} fallback={<FormFallback />}>
+          {activeSection === "site-basic" && <SiteBasicForm {...formProps} />}
+          {activeSection === "site-icon" && <SiteIconForm {...formProps} />}
+          {activeSection === "appearance-home" && <HomePageForm {...formProps} />}
+          {activeSection === "appearance-sidebar" && <SidebarForm {...formProps} />}
+          {activeSection === "appearance-page" && <PageStyleForm {...formProps} />}
+          {activeSection === "content-post" && <PostSettingsForm {...formProps} />}
+          {activeSection === "content-file" && <FileSettingsForm {...formProps} />}
+          {activeSection === "user-comment" && <CommentSettingsForm {...formProps} />}
+          {activeSection === "user-email" && <EmailSettingsForm {...formProps} />}
+          {activeSection === "integration-oauth" && <OAuthForm {...formProps} />}
+          {activeSection === "integration-seo" && <SeoSettingsForm {...formProps} />}
+          {activeSection === "pages-flink" && <FriendLinkSettingsForm {...formProps} />}
+          {activeSection === "pages-about" && <AboutPageForm {...formProps} />}
+          {activeSection === "pages-equipment" && <EquipmentPageForm {...formProps} />}
+          {activeSection === "pages-comments" && <RecentCommentsPageForm {...formProps} />}
+          {activeSection === "pages-essay" && <EssayPageForm {...formProps} />}
+          {activeSection === "pages-moments" && <MomentsPageForm {...formProps} />}
+          {activeSection === "pages-album" && <AlbumPageForm {...formProps} />}
+          {activeSection === "pages-music" && <MusicPageForm {...formProps} />}
+          {activeSection === "advanced-captcha" && <CaptchaSettingsForm {...formProps} />}
+          {activeSection === "advanced-wechat-share" && <WechatShareForm {...formProps} />}
+          {activeSection === "advanced-ai" && <AISettingsForm {...formProps} />}
+          {activeSection === "advanced-payment" && <PaymentSettingsForm {...formProps} />}
+          {activeSection === "advanced-backup" && <BackupImportForm {...formProps} />}
+        </Suspense>
+      </SettingsErrorBoundary>
+    );
   };
 
-  const renderBasicSettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">网站名称</label>
-          <Input defaultValue="AnHeYu" placeholder="请输入网站名称" />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">网站副标题</label>
-          <Input defaultValue="记录生活，分享技术" placeholder="请输入网站副标题" />
-        </div>
-      </div>
+  // ==================== 扁平分组式导航 ====================
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">网站描述</label>
-        <textarea
-          className="w-full h-24 px-3 py-2 rounded-lg border border-border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          defaultValue="一个专注于技术分享和生活记录的个人博客"
-          placeholder="请输入网站描述"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">网站地址</label>
-          <Input defaultValue="https://anheyu.com" placeholder="https://example.com" />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">备案号</label>
-          <Input defaultValue="京ICP备xxxxxxxx号" placeholder="请输入备案号" />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">网站 Logo</label>
-        <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center">
-            <ImageIcon className="w-8 h-8 text-muted-foreground" />
+  const renderNavigation = () => (
+    <nav className="space-y-6" aria-label="设置导航">
+      {categories.map(category => (
+        <div key={category.id}>
+          {/* 分类标签 */}
+          <div className="px-3 mb-1">
+            <span className="text-[11px] font-semibold text-default-400 uppercase tracking-wider">
+              {category.label}
+            </span>
           </div>
-          <Button variant="outline">上传 Logo</Button>
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">网站 Favicon</label>
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-            <ImageIcon className="w-5 h-5 text-muted-foreground" />
+          {/* 子项列表 */}
+          <div className="space-y-0.5">
+            {category.children.map(sub => {
+              const SubIcon = sub.icon;
+              const isActive = activeSection === sub.id;
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => selectSection(category.id, sub.id)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "group w-full flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-all duration-150",
+                    isActive
+                      ? "bg-default-100 text-foreground font-medium"
+                      : "text-default-500 hover:text-foreground hover:bg-default-50"
+                  )}
+                >
+                  {/* 激活指示条 */}
+                  <div
+                    className={cn(
+                      "w-[3px] h-4 rounded-full shrink-0 transition-all duration-200",
+                      isActive ? "bg-primary" : "bg-transparent group-hover:bg-default-300"
+                    )}
+                  />
+                  <SubIcon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-default-400")} />
+                  <span className="truncate">{sub.label}</span>
+                </button>
+              );
+            })}
           </div>
-          <Button variant="outline">上传 Favicon</Button>
         </div>
-      </div>
-    </div>
+      ))}
+    </nav>
   );
 
-  const renderAuthorSettings = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">昵称</label>
-          <Input defaultValue="安知鱼" placeholder="请输入昵称" />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">邮箱</label>
-          <Input defaultValue="contact@anheyu.com" placeholder="请输入邮箱" />
-        </div>
-      </div>
+  // ==================== 搜索组件 ====================
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">个人简介</label>
-        <textarea
-          className="w-full h-24 px-3 py-2 rounded-lg border border-border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          defaultValue="一个热爱技术的全栈开发者"
-          placeholder="请输入个人简介"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">头像</label>
-        <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-linear-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary text-2xl font-bold">
-            安
-          </div>
-          <Button variant="outline">上传头像</Button>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <label className="text-sm font-medium">社交链接</label>
-        <div className="space-y-3">
-          {["GitHub", "Twitter", "微博", "Bilibili"].map(platform => (
-            <div key={platform} className="flex items-center gap-3">
-              <span className="w-20 text-sm text-muted-foreground">{platform}</span>
-              <Input placeholder={`请输入 ${platform} 链接`} className="flex-1" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderPlaceholder = (section: SettingSection) => (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="p-4 rounded-full bg-muted/50 mb-4">
-        <section.icon className="w-12 h-12 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold mb-2">{section.label}</h3>
-      <p className="text-muted-foreground max-w-sm">{section.description}</p>
-      <p className="text-sm text-muted-foreground/60 mt-4">功能开发中...</p>
-    </div>
-  );
-
-  const activeConfig = settingSections.find(s => s.id === activeSection);
-
-  return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="系统设置"
-        description="配置您的网站各项参数"
-        icon={Settings}
-        primaryAction={{
-          label: saving ? "保存中..." : "保存设置",
-          icon: Save,
-          onClick: handleSave,
+  const renderSearch = () => (
+    <div className="relative">
+      <Input
+        ref={searchInputRef}
+        size="sm"
+        value={searchKeyword}
+        onValueChange={setSearchKeyword}
+        onFocus={() => setIsSearchFocused(true)}
+        onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+        placeholder="搜索设置..."
+        startContent={<Search className="w-3.5 h-3.5 text-default-400" />}
+        classNames={{
+          inputWrapper: cn(
+            "bg-default-50 border border-default-200/70 rounded-lg !shadow-none h-9 min-h-9",
+            "data-[hover=true]:bg-default-100 data-[hover=true]:border-default-300",
+            "group-data-[focus=true]:border-primary/50 group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
+            "transition-all duration-200"
+          ),
+          input: "text-[13px] placeholder:text-default-400",
         }}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* 左侧菜单 */}
-        <AdminCard noPadding className="lg:col-span-1 h-fit">
-          <nav className="p-2">
-            {settingSections.map((section, index) => {
-              const Icon = section.icon;
-              const isActive = activeSection === section.id;
-              return (
-                <motion.button
-                  key={section.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  onClick={() => setActiveSection(section.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="flex-1 text-left">{section.label}</span>
-                  <ChevronRight className={cn("w-4 h-4 transition-transform", isActive && "rotate-90")} />
-                </motion.button>
-              );
-            })}
-          </nav>
-        </AdminCard>
+      {/* 搜索结果下拉 */}
+      <AnimatePresence>
+        {showSearchResults && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            className="absolute top-full mt-1.5 left-0 right-0 bg-background border border-default-200 rounded-lg shadow-lg z-50 overflow-hidden"
+          >
+            {searchResults.length > 0 ? (
+              <div className="max-h-[320px] overflow-y-auto p-1">
+                {searchResults.map(result => (
+                  <button
+                    key={result.sectionId}
+                    className="w-full text-left px-3 py-2 rounded-md hover:bg-default-100 transition-colors"
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      handleSearchNavigate(result);
+                    }}
+                  >
+                    <div className="text-[11px] text-default-400">{result.categoryLabel}</div>
+                    <div className="text-[13px] font-medium text-foreground">{result.sectionLabel}</div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-6 text-[13px] text-default-400">
+                <Search className="w-5 h-5 mb-1.5 text-default-300" />
+                未找到相关设置
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
-        {/* 右侧内容 */}
-        <AdminCard className="lg:col-span-3" title={activeConfig?.label} description={activeConfig?.description}>
-          {activeSection === "basic" && renderBasicSettings()}
-          {activeSection === "author" && renderAuthorSettings()}
-          {activeSection !== "basic" && activeSection !== "author" && activeConfig && renderPlaceholder(activeConfig)}
-        </AdminCard>
+  return (
+    <div className="flex h-full bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
+      {/* ==================== 左侧导航面板 - 桌面端 ==================== */}
+      <aside className="w-[260px] shrink-0 border-r border-default-100 bg-default-50/50 flex flex-col max-lg:hidden">
+        {/* 搜索框 */}
+        <div className="p-3 pb-2">{renderSearch()}</div>
+
+        {/* 导航列表 */}
+        <div className="flex-1 overflow-y-auto px-2 pb-4 pt-2">{renderNavigation()}</div>
+      </aside>
+
+      {/* ==================== 右侧内容区 ==================== */}
+      <div ref={contentRef} className="flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+        <div className="max-w-3xl mx-auto px-8 py-6 max-md:px-4 max-md:py-4">
+          {/* 内容区头部 */}
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-start justify-between mb-8 max-md:mb-6"
+          >
+            <div>
+              {/* 面包屑 */}
+              <div className="flex items-center gap-1.5 mb-1.5">
+                {/* 移动端菜单触发 */}
+                <button
+                  className="hidden max-lg:flex items-center justify-center w-6 h-6 -ml-1 mr-0.5 rounded-md hover:bg-default-100 transition-colors"
+                  onClick={() => setShowMobileSidebar(true)}
+                  aria-label="打开导航菜单"
+                >
+                  <Menu className="w-4 h-4 text-default-400" />
+                </button>
+                <span className="text-xs text-default-400">{parentCategory?.label}</span>
+                <ChevronRight className="w-3 h-3 text-default-300" />
+                <span className="text-xs text-default-600 font-medium">{currentSection?.label}</span>
+              </div>
+
+              {/* 页面标题 */}
+              <h1 className="text-xl font-semibold tracking-tight text-foreground">{currentSection?.label}</h1>
+            </div>
+
+            {/* 重置按钮 */}
+            <div className="flex items-center gap-1 mt-1">
+              <Tooltip content="重置当前分类" placement="bottom">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  isDisabled={!isCurrentDirty}
+                  onPress={handleResetCurrent}
+                  className="text-default-400 data-[hover=true]:text-default-600 data-[hover=true]:bg-default-100 w-8 h-8 min-w-8"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </Button>
+              </Tooltip>
+
+              <Tooltip content="重置全部更改" placement="bottom">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  isDisabled={!isDirty}
+                  onPress={handleResetAll}
+                  className="text-default-400 data-[hover=true]:text-danger data-[hover=true]:bg-danger/10 w-8 h-8 min-w-8"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </Button>
+              </Tooltip>
+            </div>
+          </motion.div>
+
+          {/* 表单内容 */}
+          {renderForm()}
+        </div>
       </div>
+
+      {/* ==================== 移动端侧边栏抽屉 ==================== */}
+      <AnimatePresence>
+        {showMobileSidebar && (
+          <>
+            {/* 遮罩层 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+              onClick={() => setShowMobileSidebar(false)}
+            />
+            {/* 抽屉 */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              className="fixed inset-y-0 left-0 z-50 w-[280px] bg-background border-r border-default-100 shadow-2xl flex flex-col"
+            >
+              {/* 抽屉头部 */}
+              <div className="flex items-center justify-between px-4 h-14 border-b border-default-100">
+                <span className="text-sm font-semibold text-foreground">设置导航</span>
+                <button
+                  className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-default-100 transition-colors"
+                  onClick={() => setShowMobileSidebar(false)}
+                  aria-label="关闭导航菜单"
+                >
+                  <X className="w-4 h-4 text-default-500" />
+                </button>
+              </div>
+
+              {/* 搜索 */}
+              <div className="px-3 py-3">{renderSearch()}</div>
+
+              {/* 导航列表 */}
+              <div className="flex-1 overflow-y-auto px-2 pb-4">{renderNavigation()}</div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* 悬浮保存按钮 */}
+      <FloatingSaveButton hasChanges={isDirty} loading={saving} onSave={save} />
     </div>
   );
 }

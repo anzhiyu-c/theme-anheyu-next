@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { FaFileLines, FaTriangleExclamation } from "react-icons/fa6";
 import { useFeedList } from "@/hooks/queries";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { FeedArticleCard } from "@/components/home/FeedArticleList";
 import { Pagination } from "@/components/home";
 import { cn } from "@/lib/utils";

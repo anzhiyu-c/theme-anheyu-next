@@ -13,7 +13,7 @@ import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Button } from "@/components/ui";
 import { GlowingOrb, ParticleField } from "@/components/effects";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);

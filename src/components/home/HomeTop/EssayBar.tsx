@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { usePublicEssays } from "@/hooks/queries";
 import type { Essay } from "@/lib/api/essay";
 

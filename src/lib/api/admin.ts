@@ -115,14 +115,27 @@ export const contentStatsApi = {
 
   /**
    * 获取评论统计
-   * GET /api/admin/comments/stats
+   * 通过 /api/comments 获取评论列表并统计
    */
   async getCommentStats(): Promise<CommentStatsResponse> {
-    const response = await apiClient.get<CommentStatsResponse>("/api/admin/comments/stats");
-    if (response.code === 200 && response.data) {
-      return response.data;
+    try {
+      // 后端没有专门的统计接口，通过获取评论列表来计算
+      // 获取所有状态的评论总数
+      const response = await apiClient.get<{ total: number }>("/api/comments", {
+        params: { page: 1, pageSize: 1 },
+      });
+
+      if (response.code === 200 && response.data) {
+        return {
+          total: response.data.total || 0,
+          approved: 0, // 后端没有按状态统计的接口
+          pending: 0,
+          spam: 0,
+        };
+      }
+    } catch {
+      // 忽略错误，返回默认值
     }
-    // 如果接口不存在，返回默认值
     return { total: 0, approved: 0, pending: 0, spam: 0 };
   },
 
@@ -224,19 +237,20 @@ export const topArticlesApi = {
 export const recentCommentsApi = {
   /**
    * 获取最近评论列表
-   * GET /api/admin/comments
+   * GET /api/comments (管理员接口)
    */
   async getRecentComments(limit: number = 5): Promise<RecentComment[]> {
     interface AdminComment {
       id: string;
       nickname: string;
       avatar_url?: string;
+      email_md5?: string;
       content_html: string;
       content?: string;
       target_title?: string;
       target_path: string;
       created_at: string;
-      status: number;
+      status?: number;
     }
 
     interface CommentsResponse {
@@ -245,8 +259,10 @@ export const recentCommentsApi = {
     }
 
     try {
-      const response = await apiClient.get<CommentsResponse>("/api/admin/comments", {
-        params: { page: 1, pageSize: limit, sort: "created_at", order: "desc" },
+      // 后端路径是 /api/comments，不是 /api/admin/comments
+      // 后端不支持 sort/order 参数，默认按创建时间降序
+      const response = await apiClient.get<CommentsResponse>("/api/comments", {
+        params: { page: 1, pageSize: limit },
       });
 
       if (response.code === 200 && response.data?.list) {
@@ -258,7 +274,7 @@ export const recentCommentsApi = {
           article_title: comment.target_title || comment.target_path,
           article_id: comment.target_path.replace(/^\/(posts|article)\//, ""),
           created_at: comment.created_at,
-          status: comment.status === 1 ? "approved" : comment.status === 0 ? "pending" : "spam",
+          status: comment.status === 1 ? "approved" : comment.status === 2 ? "pending" : "approved",
         }));
       }
 
@@ -270,22 +286,22 @@ export const recentCommentsApi = {
   },
 
   /**
-   * 审核评论
-   * POST /api/admin/comments/:id/approve
+   * 审核评论（通过）
+   * PUT /api/comments/:id/status
    */
   async approveComment(id: string): Promise<void> {
-    const response = await apiClient.post(`/api/admin/comments/${id}/approve`);
+    const response = await apiClient.put(`/api/comments/${id}/status`, { status: 1 });
     if (response.code !== 200) {
       throw new Error(response.message || "审核评论失败");
     }
   },
 
   /**
-   * 拒绝评论
-   * POST /api/admin/comments/:id/reject
+   * 拒绝评论（待审核）
+   * PUT /api/comments/:id/status
    */
   async rejectComment(id: string): Promise<void> {
-    const response = await apiClient.post(`/api/admin/comments/${id}/reject`);
+    const response = await apiClient.put(`/api/comments/${id}/status`, { status: 2 });
     if (response.code !== 200) {
       throw new Error(response.message || "拒绝评论失败");
     }

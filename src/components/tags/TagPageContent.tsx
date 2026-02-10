@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useTags } from "@/hooks/queries";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { FaHashtag } from "react-icons/fa6";
 import styles from "./TagPage.module.css";
 

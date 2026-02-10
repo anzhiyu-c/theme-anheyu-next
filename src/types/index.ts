@@ -114,3 +114,9 @@ export * from "./site-config";
 
 // 导出文章相关类型
 export * from "./article";
+
+// 导出文件管理相关类型
+export * from "./file-manager";
+
+// 导出用户管理相关类型
+export * from "./user-management";

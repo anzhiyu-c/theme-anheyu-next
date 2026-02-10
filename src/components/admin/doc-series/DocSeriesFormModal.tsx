@@ -1,0 +1,126 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { FormInput } from "@/components/ui/form-input";
+import { FormTextarea } from "@/components/ui/form-textarea";
+import { useCreateDocSeries, useUpdateDocSeries } from "@/hooks/queries/use-doc-series";
+import type { DocSeries } from "@/types/doc-series";
+
+interface DocSeriesFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editItem?: DocSeries | null;
+}
+
+/**
+ * 文档系列创建/编辑弹窗
+ * 使用 wrapper + inner content 模式，避免 useEffect setState
+ * 内部组件在 Modal 打开时挂载，初始值直接从 props 传入 useState
+ */
+export default function DocSeriesFormModal({ isOpen, onClose, editItem }: DocSeriesFormModalProps) {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
+      <ModalContent>{isOpen && <DocSeriesFormContent editItem={editItem} onClose={onClose} />}</ModalContent>
+    </Modal>
+  );
+}
+
+function DocSeriesFormContent({ editItem, onClose }: { editItem?: DocSeries | null; onClose: () => void }) {
+  const isEdit = !!editItem;
+
+  // 表单状态 - 初始值直接来自 editItem
+  const [name, setName] = useState(editItem?.name ?? "");
+  const [description, setDescription] = useState(editItem?.description ?? "");
+  const [coverUrl, setCoverUrl] = useState(editItem?.cover_url ?? "");
+  const [sort, setSort] = useState(String(editItem?.sort ?? 0));
+
+  // Mutations
+  const createDocSeries = useCreateDocSeries();
+  const updateDocSeries = useUpdateDocSeries();
+
+  const handleSubmit = useCallback(async () => {
+    // 验证
+    if (!name.trim()) {
+      addToast({ title: "请输入系列名称", color: "warning", timeout: 3000 });
+      return;
+    }
+
+    const formData = {
+      name: name.trim(),
+      description: description.trim(),
+      cover_url: coverUrl.trim(),
+      sort: Number(sort) || 0,
+    };
+
+    try {
+      if (isEdit && editItem) {
+        await updateDocSeries.mutateAsync({ id: editItem.id, data: formData });
+        addToast({ title: "更新成功", color: "success", timeout: 2000 });
+      } else {
+        await createDocSeries.mutateAsync(formData);
+        addToast({ title: "创建成功", color: "success", timeout: 2000 });
+      }
+      onClose();
+    } catch (error) {
+      addToast({
+        title: error instanceof Error ? error.message : "操作失败",
+        color: "danger",
+        timeout: 3000,
+      });
+    }
+  }, [name, description, coverUrl, sort, isEdit, editItem, createDocSeries, updateDocSeries, onClose]);
+
+  const isSubmitting = createDocSeries.isPending || updateDocSeries.isPending;
+
+  return (
+    <>
+      <ModalHeader className="flex flex-col gap-1">{isEdit ? "编辑文档系列" : "新增文档系列"}</ModalHeader>
+      <ModalBody className="gap-4">
+        <FormInput
+          label="系列名称"
+          placeholder="请输入系列名称"
+          value={name}
+          onValueChange={setName}
+          isRequired
+          maxLength={50}
+        />
+
+        <FormTextarea
+          label="描述"
+          placeholder="请输入系列描述（可选）"
+          value={description}
+          onValueChange={setDescription}
+          minRows={2}
+          maxRows={4}
+          maxLength={200}
+        />
+
+        <FormInput
+          label="封面图 URL"
+          placeholder="请输入封面图片地址（可选）"
+          value={coverUrl}
+          onValueChange={setCoverUrl}
+        />
+
+        <FormInput
+          label="排序"
+          placeholder="数值越小越靠前"
+          type="number"
+          value={sort}
+          onValueChange={setSort}
+          description="数值越小越靠前，默认为 0"
+        />
+      </ModalBody>
+
+      <ModalFooter>
+        <Button variant="flat" onPress={onClose}>
+          取消
+        </Button>
+        <Button color="primary" onPress={handleSubmit} isLoading={isSubmitting}>
+          {isEdit ? "保存修改" : "创建系列"}
+        </Button>
+      </ModalFooter>
+    </>
+  );
+}

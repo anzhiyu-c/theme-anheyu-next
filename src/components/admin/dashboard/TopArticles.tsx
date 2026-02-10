@@ -91,7 +91,7 @@ export function TopArticles({ articles, className, isLoading }: TopArticlesProps
           <p className="text-sm text-muted-foreground mt-0.5">浏览量最高的文章</p>
         </div>
         <Link
-          href="/admin/posts"
+          href="/admin/post-management"
           className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
         >
           查看全部

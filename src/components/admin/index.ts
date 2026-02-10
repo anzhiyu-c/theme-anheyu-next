@@ -8,6 +8,8 @@ export { AdminDataTable, type Column } from "./AdminDataTable";
 export { EmptyState } from "./EmptyState";
 export { QuickActions } from "./QuickActions";
 export { OverviewCards } from "./OverviewCards";
+export { ConfirmDialog, type ConfirmDialogProps } from "./ConfirmDialog";
+export { FloatingSelectionBar, type FloatingSelectionBarAction } from "./FloatingSelectionBar";
 
 // Dashboard 组件
 export * from "./dashboard";

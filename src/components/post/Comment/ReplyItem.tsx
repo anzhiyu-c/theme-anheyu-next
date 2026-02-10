@@ -117,23 +117,24 @@ export function ReplyItem({
     }
   };
 
-  return (
+  // 主评论内容
+  const mainContent = (
     <div id={`comment-${comment.id}`} className={styles.replyItemContainer}>
       <div className={commentStyles.commentItem}>
         {websiteUrl ? (
           <a href={websiteUrl} target="_blank" rel="noopener noreferrer nofollow">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatarUrl} alt="avatar" className={commentStyles.commentAvatar} onError={handleAvatarError} />
+            <img src={avatarUrl} alt="avatar" className={styles.replyAvatar} onError={handleAvatarError} />
           </a>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarUrl} alt="avatar" className={commentStyles.commentAvatar} onError={handleAvatarError} />
+          <img src={avatarUrl} alt="avatar" className={styles.replyAvatar} onError={handleAvatarError} />
         )}
 
         <div className={commentStyles.commentMain}>
           <div className={commentStyles.commentHeader}>
             <div className={commentStyles.userInfo}>
-              <button className={commentStyles.nickname} onClick={scrollToParent} type="button">
+              <button className={styles.replyNickname} onClick={scrollToParent} type="button">
                 {comment.nickname}
               </button>
               {comment.is_admin_comment && <span className={commentStyles.masterTag}>{config.masterTag}</span>}
@@ -147,9 +148,7 @@ export function ReplyItem({
                 title={liked ? "取消点赞" : "点赞"}
               >
                 <ThumbsUp size={14} />
-                {comment.like_count && comment.like_count > 0 && (
-                  <span className={commentStyles.likeCount}>{comment.like_count}</span>
-                )}
+                {comment.like_count > 0 && <span className={commentStyles.likeCount}>{comment.like_count}</span>}
               </button>
               <button
                 className={cn(commentStyles.actionButton, !canReply && commentStyles.actionButtonDisabled)}
@@ -229,41 +228,50 @@ export function ReplyItem({
           />
         </div>
       )}
-
-      {hasReplies && isRepliesExpanded && (
-        <div className={styles.replyList}>
-          {displayedReplies.map(reply => (
-            <ReplyItem
-              key={reply.id}
-              comment={reply as CommentWithReplies}
-              config={config}
-              formConfig={formConfig}
-              targetPath={targetPath}
-              targetTitle={targetTitle}
-              pageSize={pageSize}
-              rootId={rootId}
-              activeReplyId={activeReplyId}
-              replyTarget={replyTarget}
-              likedIds={likedIds}
-              onReply={onReply}
-              onCancelReply={onCancelReply}
-              onSubmitted={onSubmitted}
-              onToggleLike={onToggleLike}
-            />
-          ))}
-
-          {hasMoreReplies && (
-            <div className={styles.loadMoreReplies}>
-              <button
-                className={styles.loadMoreRepliesButton}
-                onClick={() => setDisplayedRepliesCount(prev => prev + 10)}
-              >
-                加载更多回复 (还有 {repliesCount - displayedRepliesCount} 条)
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
+  );
+
+  // 展开的回复列表（平级显示，不缩进，与 anheyu-pro 保持一致）
+  const expandedReplies =
+    hasReplies && isRepliesExpanded ? (
+      <>
+        {displayedReplies.map(reply => (
+          <ReplyItem
+            key={reply.id}
+            comment={reply as CommentWithReplies}
+            config={config}
+            formConfig={formConfig}
+            targetPath={targetPath}
+            targetTitle={targetTitle}
+            pageSize={pageSize}
+            rootId={rootId}
+            activeReplyId={activeReplyId}
+            replyTarget={replyTarget}
+            likedIds={likedIds}
+            onReply={onReply}
+            onCancelReply={onCancelReply}
+            onSubmitted={onSubmitted}
+            onToggleLike={onToggleLike}
+          />
+        ))}
+
+        {hasMoreReplies && (
+          <div className={styles.loadMoreReplies}>
+            <button
+              className={styles.loadMoreRepliesButton}
+              onClick={() => setDisplayedRepliesCount(prev => prev + 10)}
+            >
+              加载更多回复 (还有 {repliesCount - displayedRepliesCount} 条)
+            </button>
+          </div>
+        )}
+      </>
+    ) : null;
+
+  return (
+    <>
+      {mainContent}
+      {expandedReplies}
+    </>
   );
 }

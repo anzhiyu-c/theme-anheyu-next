@@ -131,6 +131,86 @@
   margin-bottom: 0;
 }
 
+/* ================================
+   编辑器输出的图片样式
+   article-image / image-align-* / image-style-* / image-figure
+   ================================ */
+
+/* 文章图片基础 - 覆盖默认 img 的 box-shadow */
+.postContent :global(.article-image) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+/* 懒加载占位（兼容旧 data-src 文章）- 仅 data-src 存在时显示背景 */
+.postContent :global(img[data-src]) {
+  background: var(--muted, #f0f2f5);
+  border-radius: 8px;
+}
+
+/* 图片对齐 */
+.postContent :global(.image-align-left) {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.postContent :global(.image-align-center) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.postContent :global(.image-align-right) {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* 图片样式 - 描边（覆盖默认 box-shadow） */
+.postContent :global(img.image-style-border) {
+  border: 2px solid var(--border, #e3e8f7);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+/* 图片样式 - 阴影（覆盖默认 box-shadow） */
+.postContent :global(img.image-style-shadow) {
+  box-shadow: 0 4px 20px -3px rgb(0 0 0 / 15%);
+  border-radius: 8px;
+}
+
+/* Figure 容器（编辑器输出的 image-figure） */
+.postContent :global(figure.image-figure) {
+  margin: 1.5em 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.postContent :global(figure.image-figure.image-align-left) {
+  align-items: flex-start;
+}
+
+.postContent :global(figure.image-figure.image-align-center) {
+  align-items: center;
+}
+
+.postContent :global(figure.image-figure.image-align-right) {
+  align-items: flex-end;
+}
+
+.postContent :global(figure.image-figure img) {
+  box-shadow: none;
+}
+
+.postContent :global(figure.image-figure figcaption) {
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
 .postContent :global(pre) {
   padding: 1rem;
   margin: 1em 0;
@@ -635,10 +715,10 @@
 
 /* 分割线 */
 .postContent :global(hr) {
-  height: 1px;
-  margin: 2rem 0;
-  background-color: var(--border);
-  border: none;
+  border: 1px dashed var(--anzhiyu-theme-op, #4259ef23);
+  display: flex;
+  margin: 1rem 0;
+  position: relative;
 }
 
 /* 选中样式 */
@@ -2125,125 +2205,428 @@
 }
 
 /* ================================
-   Paid Content 付费内容样式
+   PRO 保护内容通用样式
    ================================ */
-.postContent :global(.paid-content-block) {
-  margin: 1rem 0;
-  padding: 2rem;
-  text-align: center;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
-  border: 2px dashed var(--primary);
+
+/* 付费内容 - 后端输出的占位符结构 */
+.postContent :global(.paid-content-editor-preview) {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-left: 4px solid #f59e0b;
   border-radius: 12px;
+  overflow: hidden;
 }
 
-.postContent :global(.paid-content-block .paid-icon) {
-  font-size: 3rem;
-  color: var(--primary);
-  margin-bottom: 1rem;
+.postContent :global(.paid-content-header) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(245, 158, 11, 0.06);
+  border-bottom: 1px solid var(--border);
 }
 
-.postContent :global(.paid-content-block .paid-title) {
-  font-size: 1.25rem;
+.postContent :global(.paid-content-header .paid-icon) {
+  font-size: 1.2rem;
+}
+
+.postContent :global(.paid-content-header .paid-icon svg),
+.postContent :global(.paid-content-header .paid-icon .md-editor-icon) {
+  width: 20px;
+  height: 20px;
+  color: #f59e0b;
+}
+
+.postContent :global(.paid-content-header .paid-title) {
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  color: var(--foreground);
 }
 
-.postContent :global(.paid-content-block .paid-desc) {
-  color: var(--muted-foreground);
+.postContent :global(.paid-content-header .paid-pro-badge) {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.12);
+  border-radius: 9999px;
+}
+
+.postContent :global(.paid-content-header .paid-price),
+.postContent :global(.paid-content-header .paid-price-group) {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.postContent :global(.paid-price-group) {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.postContent :global(.paid-current-price) {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.postContent :global(.paid-current-price-currency) {
+  font-size: 0.8rem;
+  margin-right: 1px;
+}
+
+.postContent :global(.paid-original-price) {
+  font-size: 0.8rem;
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.postContent :global(.paid-content-body) {
+  padding: 0;
+}
+
+.postContent :global(.paid-content-preview) {
+  padding: 0;
+}
+
+/* 付费内容占位符（未购买状态） */
+.postContent :global(.paid-content-placeholder) {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.postContent :global(.paid-content-placeholder .placeholder-icon) {
+  color: #d1d5db;
   margin-bottom: 1rem;
 }
 
-.postContent :global(.paid-content-block .paid-button) {
-  display: inline-block;
+.postContent :global(.paid-content-placeholder .placeholder-icon svg) {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+}
+
+.postContent :global(.paid-content-placeholder .placeholder-description) {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.postContent :global(.paid-content-placeholder .placeholder-purchase-area) {
+  margin-bottom: 0.75rem;
+}
+
+.postContent :global(.paid-content-placeholder .purchase-btn) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #fff;
-  background: var(--primary);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.postContent :global(.paid-content-block .paid-button:hover) {
-  opacity: 0.9;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.postContent :global(.paid-content-placeholder .purchase-btn:hover) {
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
 }
 
-/* ================================
-   Login Required 登录查看样式
-   ================================ */
-.postContent :global(.login-required-block) {
-  margin: 1rem 0;
-  padding: 2rem;
-  text-align: center;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+.postContent :global(.paid-content-placeholder .placeholder-query-area) {
+  font-size: 0.8rem;
 }
 
-.postContent :global(.login-required-block .login-icon) {
-  font-size: 3rem;
+.postContent :global(.paid-content-placeholder .query-order-link) {
   color: var(--muted-foreground);
-  margin-bottom: 1rem;
-}
-
-.postContent :global(.login-required-block .login-title) {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.postContent :global(.login-required-block .login-button) {
-  display: inline-block;
-  padding: 10px 24px;
-  color: #fff;
-  background: var(--primary);
-  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.postContent :global(.paid-content-placeholder .query-order-link:hover) {
+  color: var(--foreground);
+}
+
+/* 付费内容底部 meta */
+.postContent :global(.paid-content-meta) {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
+  background: rgba(245, 158, 11, 0.03);
+}
+
+/* 已购买标识 */
+.postContent :global(.purchased-badge) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.08);
+  border-radius: 8px;
+}
+
+.postContent :global(.purchased-badge .purchased-badge-icon),
+.postContent :global(.purchased-badge svg) {
+  width: 18px;
+  height: 18px;
+}
+
+.postContent :global(.paid-content-unlocked) {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.postContent :global(.unlocked-description) {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  margin-top: 8px;
 }
 
 /* ================================
-   Password Protected 密码保护样式
+   密码保护内容 - 后端输出的结构
    ================================ */
-.postContent :global(.password-protected-block) {
-  margin: 1rem 0;
-  padding: 2rem;
-  text-align: center;
-  background: var(--muted);
+.postContent :global(.password-content-editor-preview) {
+  margin: 1.5rem 0;
   border: 1px solid var(--border);
+  border-left: 4px solid #60a5fa;
   border-radius: 12px;
+  overflow: hidden;
 }
 
-.postContent :global(.password-protected-block .password-icon) {
-  font-size: 3rem;
-  color: var(--muted-foreground);
-  margin-bottom: 1rem;
+.postContent :global(.password-content-header) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(96, 165, 250, 0.06);
+  border-bottom: 1px solid var(--border);
 }
 
-.postContent :global(.password-protected-block .password-form) {
+.postContent :global(.password-content-header .password-icon) {
+  font-size: 1.2rem;
+}
+
+.postContent :global(.password-content-header .password-icon svg),
+.postContent :global(.password-content-header .password-icon .md-editor-icon) {
+  width: 20px;
+  height: 20px;
+  color: #60a5fa;
+}
+
+.postContent :global(.password-content-header .password-title) {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.postContent :global(.password-content-header .password-badge),
+.postContent :global(.password-content-header .password-pro-badge) {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(96, 165, 250, 0.12);
+  border-radius: 9999px;
+}
+
+.postContent :global(.password-content-body) {
+  padding: 0;
+}
+
+.postContent :global(.password-content-locked) {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.postContent :global(.password-input-container) {
   display: flex;
   gap: 8px;
   justify-content: center;
-  max-width: 300px;
-  margin: 1rem auto 0;
+  max-width: 320px;
+  margin: 0 auto;
 }
 
-.postContent :global(.password-protected-block .password-input) {
+.postContent :global(.password-input-container .password-input) {
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--background);
   color: var(--foreground);
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-.postContent :global(.password-protected-block .password-submit) {
-  padding: 8px 16px;
+.postContent :global(.password-input-container .password-input:focus) {
+  border-color: #60a5fa;
+}
+
+.postContent :global(.password-input-container .password-verify-btn) {
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #fff;
-  background: var(--primary);
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.postContent :global(.password-input-container .password-verify-btn:hover) {
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.postContent :global(.password-hint) {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.postContent :global(.password-content-meta) {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
+  background: rgba(96, 165, 250, 0.03);
+}
+
+/* ================================
+   登录可见内容 - 后端输出的结构
+   ================================ */
+.postContent :global(.login-required-content-editor-preview) {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-left: 4px solid #c084fc;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.postContent :global(.login-required-content-header) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(192, 132, 252, 0.06);
+  border-bottom: 1px solid var(--border);
+}
+
+.postContent :global(.login-required-content-header .login-required-icon) {
+  font-size: 1.2rem;
+}
+
+.postContent :global(.login-required-content-header .login-required-icon svg) {
+  width: 20px;
+  height: 20px;
+  color: #c084fc;
+}
+
+.postContent :global(.login-required-content-header .login-required-title) {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.postContent :global(.login-required-content-header .login-required-badge) {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7c3aed;
+  background: rgba(192, 132, 252, 0.12);
+  border-radius: 9999px;
+}
+
+.postContent :global(.login-required-content-body) {
+  padding: 0;
+}
+
+.postContent :global(.login-required-content-preview) {
+  padding: 0;
+}
+
+.postContent :global(.login-required-content-placeholder) {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.postContent :global(.login-required-content-placeholder .placeholder-icon) {
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.postContent :global(.login-required-content-placeholder .placeholder-icon svg) {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+}
+
+.postContent :global(.login-required-content-placeholder .placeholder-description) {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.postContent :global(.login-required-content-placeholder .placeholder-action-area) {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.postContent :global(.login-required-content-placeholder .login-btn) {
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #c084fc, #a855f7);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.postContent :global(.login-required-content-placeholder .login-btn:hover) {
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.3);
+  transform: translateY(-1px);
+}
+
+.postContent :global(.login-required-content-placeholder .register-btn) {
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #7c3aed;
+  background: rgba(192, 132, 252, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.postContent :global(.login-required-content-placeholder .register-btn:hover) {
+  background: rgba(192, 132, 252, 0.2);
+}
+
+.postContent :global(.login-required-content-meta) {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
+  background: rgba(192, 132, 252, 0.03);
 }
 
 /* ================================

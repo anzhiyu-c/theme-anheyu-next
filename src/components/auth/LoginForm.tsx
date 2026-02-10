@@ -2,7 +2,7 @@
  * @Description:
  * @Author: 安知鱼
  * @Date: 2026-01-31 14:55:41
- * @LastEditTime: 2026-02-04 11:39:31
+ * @LastEditTime: 2026-02-07 20:31:24
  * @LastEditors: 安知鱼
  */
 "use client";
@@ -16,10 +16,10 @@ import { useTheme } from "next-themes";
 import { ArrowLeft, Eye, EyeOff, Lock, User } from "lucide-react";
 import { addToast } from "@heroui/react";
 import { Input } from "@/components/ui";
-import { authService } from "@/services";
+import { authApi as authService } from "@/lib/api/auth";
 import { getErrorMessage } from "@/lib/api/client";
-import { useAuthStore } from "@/store/authStore";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useAuthStore } from "@/store/auth-store";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { ThemeToggle } from "@/components/common";
 import { cn } from "@/lib/utils";
 
@@ -335,7 +335,7 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
               >
                 <Input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="电子邮箱"
                   value={email}
                   onChange={e => {
                     setEmail(e.target.value);
@@ -457,7 +457,7 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
               >
                 <Input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="电子邮箱"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   autoFocus

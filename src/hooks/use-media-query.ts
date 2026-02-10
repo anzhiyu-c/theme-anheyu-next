@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore, useCallback } from "react";
-import { BREAKPOINTS } from "@/lib/constants";
+import { BREAKPOINTS } from "@/lib/constants/app";
 
 /**
  * 通用媒体查询 Hook

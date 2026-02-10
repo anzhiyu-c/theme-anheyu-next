@@ -4,8 +4,9 @@
 import { useState, useMemo, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import { FaBagShopping, FaBook, FaFire, FaHashtag, FaThumbtack } from "react-icons/fa6";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { useSiteConfigStore } from "@/store/site-config-store";
+import { cn } from "@/lib/utils";
+import { formatRelativeTime } from "@/utils/date";
 import type { FeedItem } from "@/types/article";
 import styles from "./FeedArticleCard.module.css";
 

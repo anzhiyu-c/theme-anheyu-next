@@ -10,8 +10,8 @@
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
-import { useAuthStore } from "@/store/authStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
+import { useAuthStore } from "@/store/auth-store";
 import { tokenManager } from "@/lib/api/client";
 import { HeroUIProviderWrapper } from "./heroui-provider";
 import { QueryProvider } from "./query-provider";

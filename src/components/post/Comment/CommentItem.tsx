@@ -142,9 +142,7 @@ export function CommentItem({
                 title={liked ? "取消点赞" : "点赞"}
               >
                 <ThumbsUp size={14} />
-                {comment.like_count && comment.like_count > 0 && (
-                  <span className={styles.likeCount}>{comment.like_count}</span>
-                )}
+                {comment.like_count > 0 && <span className={styles.likeCount}>{comment.like_count}</span>}
               </button>
               <button
                 className={cn(styles.actionButton, !canReply && styles.actionButtonDisabled)}

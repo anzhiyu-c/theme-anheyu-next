@@ -1,0 +1,358 @@
+"use client";
+
+import { FormInput } from "@/components/ui/form-input";
+import { FormSwitch } from "@/components/ui/form-switch";
+import { FormImageUpload } from "@/components/ui/form-image-upload";
+import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  HomeTopEditor,
+  CreativityEditor,
+  HeaderMenuEditor,
+  NavMenuEditor,
+  VisualArrayEditor,
+  ProjectListEditor,
+} from "./editors";
+import type { FieldDef } from "./editors";
+import {
+  KEY_HOME_TOP,
+  KEY_CREATIVITY,
+  KEY_HEADER_MENU,
+  KEY_HEADER_NAV_TRAVELLING,
+  KEY_HEADER_NAV_CLOCK,
+  KEY_HEADER_NAV_MENU,
+  KEY_FRONT_DESK_SITE_OWNER_NAME,
+  KEY_FRONT_DESK_SITE_OWNER_EMAIL,
+  KEY_FOOTER_OWNER_NAME,
+  KEY_FOOTER_OWNER_SINCE,
+  KEY_FOOTER_CUSTOM_TEXT,
+  KEY_FOOTER_RUNTIME_ENABLE,
+  KEY_FOOTER_RUNTIME_LAUNCH_TIME,
+  KEY_FOOTER_RUNTIME_WORK_IMG,
+  KEY_FOOTER_RUNTIME_WORK_DESC,
+  KEY_FOOTER_RUNTIME_OFFDUTY_IMG,
+  KEY_FOOTER_RUNTIME_OFFDUTY_DESC,
+  KEY_FOOTER_SOCIALBAR_CENTER_IMG,
+  KEY_FOOTER_LIST_RANDOM_FRIENDS,
+  KEY_FOOTER_BAR_AUTHOR_LINK,
+  KEY_FOOTER_BAR_CC_LINK,
+  KEY_FOOTER_BADGE_ENABLE,
+  KEY_FOOTER_BADGE_LIST,
+  KEY_FOOTER_SOCIALBAR_LEFT,
+  KEY_FOOTER_SOCIALBAR_RIGHT,
+  KEY_FOOTER_PROJECT_LIST,
+  KEY_FOOTER_BAR_LINK_LIST,
+  KEY_FOOTER_UPTIME_KUMA_ENABLE,
+  KEY_FOOTER_UPTIME_KUMA_PAGE_URL,
+} from "@/lib/settings/setting-keys";
+
+// ─── 社交栏图标字段定义 ─────────────────────────────────────────
+
+const socialIconFields: FieldDef[] = [
+  { key: "title", label: "标题", type: "text", placeholder: "例如：GitHub" },
+  { key: "icon", label: "图标", type: "icon", placeholder: "选择图标或输入 URL" },
+  { key: "link", label: "链接", type: "url", placeholder: "https://..." },
+];
+
+const defaultSocialIcon: Record<string, unknown> = {
+  title: "",
+  icon: "",
+  link: "",
+};
+
+// ─── 徽章字段定义 ────────────────────────────────────────────────
+
+const badgeFields: FieldDef[] = [
+  { key: "title", label: "标题", type: "text", placeholder: "例如：Deployed on Vercel" },
+  { key: "img", label: "图片地址", type: "url", placeholder: "徽章图片 URL" },
+  { key: "link", label: "链接", type: "url", placeholder: "https://..." },
+];
+
+const defaultBadge: Record<string, unknown> = {
+  title: "",
+  img: "",
+  link: "",
+};
+
+// ─── 底部链接字段定义 ──────────────────────────────────────────
+
+const linkFields: FieldDef[] = [
+  { key: "text", label: "文本", type: "text", placeholder: "链接文本" },
+  { key: "link", label: "链接", type: "url", placeholder: "https://..." },
+];
+
+const defaultLink: Record<string, unknown> = {
+  text: "",
+  link: "",
+};
+
+// ─── 主组件 ────────────────────────────────────────────────────
+
+interface HomePageFormProps {
+  values: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+  loading?: boolean;
+}
+
+export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* 首页顶部 */}
+      <SettingsSection title="首页顶部">
+        <HomeTopEditor
+          label="首页顶部配置"
+          value={values[KEY_HOME_TOP]}
+          onValueChange={v => onChange(KEY_HOME_TOP, v)}
+          description="配置首页顶部区域的标题、分类和 Banner"
+        />
+        <CreativityEditor
+          label="创意模块配置"
+          value={values[KEY_CREATIVITY]}
+          onValueChange={v => onChange(KEY_CREATIVITY, v)}
+          description="首页创意图标展示区域"
+        />
+      </SettingsSection>
+
+      {/* 导航菜单 */}
+      <SettingsSection title="导航菜单">
+        <HeaderMenuEditor
+          label="顶部菜单"
+          value={values[KEY_HEADER_MENU]}
+          onValueChange={v => onChange(KEY_HEADER_MENU, v)}
+          description="顶部导航菜单配置，支持直链和下拉菜单两种类型"
+        />
+
+        <SettingsFieldGroup cols={2}>
+          <FormSwitch
+            label="开屏旅行"
+            description="导航栏显示旅行入口"
+            checked={values[KEY_HEADER_NAV_TRAVELLING] === "true"}
+            onCheckedChange={v => onChange(KEY_HEADER_NAV_TRAVELLING, String(v))}
+          />
+          <FormSwitch
+            label="时钟组件"
+            description="导航栏显示时钟组件"
+            checked={values[KEY_HEADER_NAV_CLOCK] === "true"}
+            onCheckedChange={v => onChange(KEY_HEADER_NAV_CLOCK, String(v))}
+          />
+        </SettingsFieldGroup>
+
+        <NavMenuEditor
+          label="导航菜单扩展"
+          value={values[KEY_HEADER_NAV_MENU]}
+          onValueChange={v => onChange(KEY_HEADER_NAV_MENU, v)}
+          description="导航栏右侧扩展菜单，支持分组管理"
+        />
+      </SettingsSection>
+
+      {/* 站点信息 */}
+      <SettingsSection title="站点信息">
+        <SettingsFieldGroup cols={2}>
+          <FormInput
+            label="站长名称"
+            placeholder="请输入站长名称"
+            value={values[KEY_FRONT_DESK_SITE_OWNER_NAME]}
+            onValueChange={v => onChange(KEY_FRONT_DESK_SITE_OWNER_NAME, v)}
+          />
+          <FormInput
+            label="站长邮箱"
+            placeholder="请输入站长邮箱"
+            value={values[KEY_FRONT_DESK_SITE_OWNER_EMAIL]}
+            onValueChange={v => onChange(KEY_FRONT_DESK_SITE_OWNER_EMAIL, v)}
+          />
+        </SettingsFieldGroup>
+
+        <SettingsFieldGroup cols={2}>
+          <FormInput
+            label="页脚版权名称"
+            placeholder="请输入页脚显示的名称"
+            value={values[KEY_FOOTER_OWNER_NAME]}
+            onValueChange={v => onChange(KEY_FOOTER_OWNER_NAME, v)}
+          />
+          <FormInput
+            label="建站年份"
+            placeholder="例如：2020"
+            value={values[KEY_FOOTER_OWNER_SINCE]}
+            onValueChange={v => onChange(KEY_FOOTER_OWNER_SINCE, v)}
+          />
+        </SettingsFieldGroup>
+
+        <FormInput
+          label="页脚自定义文本"
+          placeholder="页脚自定义显示的文本"
+          value={values[KEY_FOOTER_CUSTOM_TEXT]}
+          onValueChange={v => onChange(KEY_FOOTER_CUSTOM_TEXT, v)}
+        />
+      </SettingsSection>
+
+      {/* 运行时间 */}
+      <SettingsSection title="运行时间">
+        <FormSwitch
+          label="启用运行时间"
+          description="在页脚显示站点运行时间"
+          checked={values[KEY_FOOTER_RUNTIME_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_FOOTER_RUNTIME_ENABLE, String(v))}
+        />
+
+        <FormInput
+          label="上线时间"
+          placeholder="例如：2020-01-01 00:00:00"
+          value={values[KEY_FOOTER_RUNTIME_LAUNCH_TIME]}
+          onValueChange={v => onChange(KEY_FOOTER_RUNTIME_LAUNCH_TIME, v)}
+          description="站点上线时间，用于计算运行时长"
+        />
+
+        <SettingsFieldGroup cols={2}>
+          <FormInput
+            label="工作状态图片"
+            placeholder="工作状态图标 URL"
+            value={values[KEY_FOOTER_RUNTIME_WORK_IMG]}
+            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_IMG, v)}
+          />
+          <FormInput
+            label="工作状态描述"
+            placeholder="例如：努力工作中..."
+            value={values[KEY_FOOTER_RUNTIME_WORK_DESC]}
+            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_DESC, v)}
+          />
+        </SettingsFieldGroup>
+
+        <SettingsFieldGroup cols={2}>
+          <FormInput
+            label="休息状态图片"
+            placeholder="休息状态图标 URL"
+            value={values[KEY_FOOTER_RUNTIME_OFFDUTY_IMG]}
+            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_IMG, v)}
+          />
+          <FormInput
+            label="休息状态描述"
+            placeholder="例如：已下班..."
+            value={values[KEY_FOOTER_RUNTIME_OFFDUTY_DESC]}
+            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_DESC, v)}
+          />
+        </SettingsFieldGroup>
+      </SettingsSection>
+
+      {/* 社交与链接 */}
+      <SettingsSection title="社交与链接">
+        <FormImageUpload
+          label="社交栏中心图片"
+          value={values[KEY_FOOTER_SOCIALBAR_CENTER_IMG]}
+          onValueChange={v => onChange(KEY_FOOTER_SOCIALBAR_CENTER_IMG, v)}
+          description="页脚社交栏中间显示的图片"
+        />
+
+        <SettingsFieldGroup cols={2}>
+          <VisualArrayEditor
+            label="社交栏左侧"
+            value={values[KEY_FOOTER_SOCIALBAR_LEFT]}
+            onValueChange={v => onChange(KEY_FOOTER_SOCIALBAR_LEFT, v)}
+            fields={socialIconFields}
+            defaultItem={defaultSocialIcon}
+            itemLabel={item => (item.title as string) || "未命名图标"}
+            addButtonText="添加图标"
+            description="页脚社交栏左侧图标列表"
+          />
+          <VisualArrayEditor
+            label="社交栏右侧"
+            value={values[KEY_FOOTER_SOCIALBAR_RIGHT]}
+            onValueChange={v => onChange(KEY_FOOTER_SOCIALBAR_RIGHT, v)}
+            fields={socialIconFields}
+            defaultItem={defaultSocialIcon}
+            itemLabel={item => (item.title as string) || "未命名图标"}
+            addButtonText="添加图标"
+            description="页脚社交栏右侧图标列表"
+          />
+        </SettingsFieldGroup>
+
+        <ProjectListEditor
+          label="项目列表"
+          value={values[KEY_FOOTER_PROJECT_LIST]}
+          onValueChange={v => onChange(KEY_FOOTER_PROJECT_LIST, v)}
+          description="页脚展示的项目列表，支持分组管理"
+        />
+
+        <VisualArrayEditor
+          label="底部链接列表"
+          value={values[KEY_FOOTER_BAR_LINK_LIST]}
+          onValueChange={v => onChange(KEY_FOOTER_BAR_LINK_LIST, v)}
+          fields={linkFields}
+          defaultItem={defaultLink}
+          itemLabel={item => (item.text as string) || "未命名链接"}
+          addButtonText="添加链接"
+          description="页脚底栏链接列表"
+        />
+
+        <SettingsFieldGroup cols={2}>
+          <FormInput
+            label="作者链接"
+            placeholder="作者主页链接"
+            value={values[KEY_FOOTER_BAR_AUTHOR_LINK]}
+            onValueChange={v => onChange(KEY_FOOTER_BAR_AUTHOR_LINK, v)}
+          />
+          <FormInput
+            label="CC 许可链接"
+            placeholder="Creative Commons 许可链接"
+            value={values[KEY_FOOTER_BAR_CC_LINK]}
+            onValueChange={v => onChange(KEY_FOOTER_BAR_CC_LINK, v)}
+          />
+        </SettingsFieldGroup>
+
+        <FormInput
+          label="随机友链数量"
+          placeholder="每次随机显示的友链数量"
+          value={values[KEY_FOOTER_LIST_RANDOM_FRIENDS]}
+          onValueChange={v => onChange(KEY_FOOTER_LIST_RANDOM_FRIENDS, v)}
+          description="页脚随机展示的友链数量"
+        />
+      </SettingsSection>
+
+      {/* 底部徽章 */}
+      <SettingsSection title="底部徽章">
+        <FormSwitch
+          label="启用底部徽章"
+          description="在页脚显示自定义徽章"
+          checked={values[KEY_FOOTER_BADGE_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_FOOTER_BADGE_ENABLE, String(v))}
+        />
+
+        <VisualArrayEditor
+          label="徽章列表"
+          value={values[KEY_FOOTER_BADGE_LIST]}
+          onValueChange={v => onChange(KEY_FOOTER_BADGE_LIST, v)}
+          fields={badgeFields}
+          defaultItem={defaultBadge}
+          itemLabel={item => (item.title as string) || "未命名徽章"}
+          addButtonText="添加徽章"
+          description="页脚徽章配置列表"
+        />
+      </SettingsSection>
+
+      {/* Uptime Kuma */}
+      <SettingsSection title="Uptime Kuma">
+        <FormSwitch
+          label="启用 Uptime Kuma"
+          description="在页脚显示 Uptime Kuma 状态监控"
+          checked={values[KEY_FOOTER_UPTIME_KUMA_ENABLE] === "true"}
+          onCheckedChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_ENABLE, String(v))}
+        />
+
+        <FormInput
+          label="Uptime Kuma 页面地址"
+          placeholder="https://status.example.com"
+          value={values[KEY_FOOTER_UPTIME_KUMA_PAGE_URL]}
+          onValueChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_PAGE_URL, v)}
+          description="Uptime Kuma 状态页面的 URL"
+        />
+      </SettingsSection>
+    </div>
+  );
+}

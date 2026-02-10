@@ -114,7 +114,10 @@ export const commentApi = {
   /**
    * 获取子评论列表
    */
-  async getCommentChildren(parentId: string, params: { page?: number; pageSize?: number } = {}): Promise<CommentListResponse> {
+  async getCommentChildren(
+    parentId: string,
+    params: { page?: number; pageSize?: number } = {}
+  ): Promise<CommentListResponse> {
     const { page = 1, pageSize = 10 } = params;
     const response = await apiClient.get<CommentListResponse>(`/api/public/comments/${parentId}/children`, {
       params: { page, pageSize },

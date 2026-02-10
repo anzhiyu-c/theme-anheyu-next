@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { AdminPageHeader, AdminCard } from "@/components/admin";
 import { Button } from "@/components/ui";
 import { Gift, Heart, Coffee, MessageSquare, Sparkles, TrendingUp, Download } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatDateCN } from "@/utils/date";
 
 // 模拟打赏数据
 const mockDonations = [
@@ -69,7 +69,7 @@ export default function DonationsPage() {
           </div>
           <div>
             <p className="font-semibold">{donation.donor}</p>
-            <p className="text-xs text-muted-foreground">{formatDate(donation.createdAt)}</p>
+            <p className="text-xs text-muted-foreground">{formatDateCN(donation.createdAt)}</p>
           </div>
         </div>
         <div className="text-right">

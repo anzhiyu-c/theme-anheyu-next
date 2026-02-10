@@ -1,235 +1,306 @@
 "use client";
 
-import { useState } from "react";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
-import { Button } from "@/components/ui";
-import { Users, Plus, Edit, Trash2, Shield, ShieldCheck, Mail, Ban, CheckCircle } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import {
+  Button,
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
+  Spinner,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Pagination,
+} from "@heroui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Trash2, ShieldAlert, Ban, CheckCircle, ChevronDown } from "lucide-react";
+import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
+import { PAGE_SIZES } from "@/lib/constants/admin";
+import { USER_STATUS } from "@/types/user-management";
+import { useUsersManagementPage } from "./_hooks/use-users-page";
+import { USER_TABLE_COLUMNS, useUserRenderCell } from "@/components/admin/users/UserTableColumns";
+import { UserFilterBar } from "@/components/admin/users/UserFilterBar";
+import { UserEmptyState } from "@/components/admin/users/UserEmptyState";
+import { UserManagementSkeleton } from "@/components/admin/users/UserManagementSkeleton";
+import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
+import { EditUserModal } from "@/components/admin/users/EditUserModal";
+import { ResetPasswordModal } from "@/components/admin/users/ResetPasswordModal";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
 
-// 模拟用户数据
-const mockUsers = [
-  {
-    id: 1,
-    username: "admin",
-    email: "admin@example.com",
-    nickname: "管理员",
-    role: "admin",
-    status: "active",
-    createdAt: "2025-01-01",
-    lastLogin: "2026-01-30",
-  },
-  {
-    id: 2,
-    username: "zhangsan",
-    email: "zhangsan@example.com",
-    nickname: "张三",
-    role: "user",
-    status: "active",
-    createdAt: "2025-06-15",
-    lastLogin: "2026-01-29",
-  },
-  {
-    id: 3,
-    username: "lisi",
-    email: "lisi@example.com",
-    nickname: "李四",
-    role: "user",
-    status: "active",
-    createdAt: "2025-08-20",
-    lastLogin: "2026-01-28",
-  },
-  {
-    id: 4,
-    username: "wangwu",
-    email: "wangwu@example.com",
-    nickname: "王五",
-    role: "editor",
-    status: "active",
-    createdAt: "2025-09-10",
-    lastLogin: "2026-01-25",
-  },
-  {
-    id: 5,
-    username: "zhaoliu",
-    email: "zhaoliu@example.com",
-    nickname: "赵六",
-    role: "user",
-    status: "banned",
-    createdAt: "2025-10-05",
-    lastLogin: "2026-01-15",
-  },
-  {
-    id: 6,
-    username: "sunqi",
-    email: "sunqi@example.com",
-    nickname: "孙七",
-    role: "user",
-    status: "active",
-    createdAt: "2025-11-20",
-    lastLogin: "2026-01-20",
-  },
-];
+export default function UsersManagementPage() {
+  const um = useUsersManagementPage();
 
-type UserItem = (typeof mockUsers)[number];
+  const renderCell = useUserRenderCell({
+    onAction: um.handleUserAction,
+  });
 
-const roleConfig: Record<
-  string,
-  { label: string; icon: React.ComponentType<{ className?: string }>; className: string }
-> = {
-  admin: { label: "管理员", icon: ShieldCheck, className: "text-primary bg-primary/10" },
-  editor: { label: "编辑", icon: Shield, className: "text-blue bg-blue/10" },
-  user: { label: "用户", icon: Shield, className: "text-muted-foreground bg-muted" },
-};
-
-const statusConfig: Record<string, { label: string; className: string }> = {
-  active: { label: "正常", className: "text-green bg-green/10" },
-  banned: { label: "已封禁", className: "text-red bg-red/10" },
-};
-
-export default function UsersPage() {
-  const [users] = useState(mockUsers);
-
-  const columns: Column<UserItem>[] = [
-    {
-      key: "username",
-      header: "用户",
-      render: user => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary font-medium">
-            {user.nickname[0]}
-          </div>
-          <div>
-            <p className="font-medium">{user.nickname}</p>
-            <p className="text-xs text-muted-foreground">@{user.username}</p>
-          </div>
+  // ---- bottomContent ----
+  const bottomContent = (
+    <div className="py-2 px-2 flex flex-wrap justify-between items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-small text-default-400 whitespace-nowrap">共 {um.totalItems} 人</span>
+        <span className="text-small text-default-300">|</span>
+        <Dropdown>
+          <DropdownTrigger>
+            <Button variant="light" size="sm" className="text-default-400 text-small h-7 min-w-0 gap-1 px-2">
+              {um.pageSize}条/页
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            aria-label="每页显示条数"
+            selectedKeys={new Set([String(um.pageSize)])}
+            selectionMode="single"
+            onSelectionChange={keys => {
+              const v = Array.from(keys)[0];
+              if (v) {
+                um.setPageSize(Number(v));
+                um.setPage(1);
+              }
+            }}
+          >
+            {PAGE_SIZES.map(n => (
+              <DropdownItem key={String(n)}>{n}条/页</DropdownItem>
+            ))}
+          </DropdownMenu>
+        </Dropdown>
+        {um.selectedIds.size > 0 && (
+          <>
+            <span className="text-small text-default-300">|</span>
+            <span className="text-small text-primary font-medium whitespace-nowrap">已选 {um.selectedIds.size} 项</span>
+          </>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <Pagination
+          isCompact
+          showControls
+          showShadow
+          color="primary"
+          page={um.page}
+          total={um.totalPages}
+          onChange={um.setPage}
+        />
+        <div className="hidden sm:flex gap-1.5">
+          <Button
+            isDisabled={um.page <= 1}
+            size="sm"
+            variant="flat"
+            onPress={() => um.setPage(Math.max(1, um.page - 1))}
+          >
+            上一页
+          </Button>
+          <Button
+            isDisabled={um.page >= um.totalPages}
+            size="sm"
+            variant="flat"
+            onPress={() => um.setPage(Math.min(um.totalPages, um.page + 1))}
+          >
+            下一页
+          </Button>
         </div>
-      ),
-    },
-    {
-      key: "email",
-      header: "邮箱",
-      render: user => (
-        <span className="flex items-center gap-1.5 text-muted-foreground">
-          <Mail className="w-3.5 h-3.5" />
-          {user.email}
-        </span>
-      ),
-    },
-    {
-      key: "role",
-      header: "角色",
-      render: user => {
-        const config = roleConfig[user.role];
-        const Icon = config.icon;
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              config.className
-            )}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "status",
-      header: "状态",
-      render: user => {
-        const config = statusConfig[user.status];
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
-              config.className
-            )}
-          >
-            {user.status === "active" ? <CheckCircle className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "lastLogin",
-      header: "最后登录",
-      sortable: true,
-      render: user => <span className="text-sm text-muted-foreground">{formatDate(user.lastLogin)}</span>,
-    },
-    {
-      key: "createdAt",
-      header: "注册时间",
-      sortable: true,
-      render: user => <span className="text-sm text-muted-foreground">{formatDate(user.createdAt)}</span>,
-    },
-  ];
+      </div>
+    </div>
+  );
+
+  if (um.isLoading) {
+    return <UserManagementSkeleton />;
+  }
 
   return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="用户管理"
-        description="管理您网站的注册用户"
-        icon={Users}
-        primaryAction={{
-          label: "添加用户",
-          icon: Plus,
-          onClick: () => console.log("Add user"),
-        }}
+    <motion.div
+      className="relative h-full flex flex-col overflow-hidden -m-4 lg:-m-8"
+      variants={adminContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        variants={adminItemVariants}
+        className="flex-1 min-h-0 flex flex-col mx-6 mt-5 mb-2 bg-card border border-border/60 rounded-xl overflow-hidden"
+      >
+        {/* 标题区 + 操作按钮 */}
+        <div className="shrink-0 px-5 pt-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">用户管理</h1>
+              <p className="text-xs text-muted-foreground mt-1">管理系统用户、用户组和权限</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                color="primary"
+                startContent={<Plus className="w-3.5 h-3.5" />}
+                onPress={um.handleCreateOpen}
+                className="font-medium shadow-sm"
+              >
+                新增用户
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* 筛选栏 */}
+        <UserFilterBar
+          searchInput={um.searchInput}
+          onSearchInputChange={um.handleSearchChange}
+          statusFilter={um.statusFilter}
+          onStatusFilterChange={um.setStatusFilter}
+          groupFilter={um.groupFilter}
+          onGroupFilterChange={um.setGroupFilter}
+          userGroups={um.userGroups}
+          onReset={um.handleReset}
+          onPageReset={() => um.setPage(1)}
+        />
+
+        {/* 表格 */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <Table
+            isHeaderSticky
+            aria-label="用户管理表格"
+            selectionMode="multiple"
+            color="default"
+            checkboxesProps={{ color: "primary" }}
+            selectedKeys={um.selectedIds}
+            onSelectionChange={um.handleSelectionChange}
+            bottomContent={bottomContent}
+            bottomContentPlacement="outside"
+            classNames={{
+              base: "flex-1 min-h-0 flex flex-col",
+              wrapper: "flex-1 min-h-0 !px-3 !py-0 !shadow-none !rounded-none !border-none",
+              table: "border-separate border-spacing-y-1.5 -mt-1.5",
+              thead: "[&>tr]:first:!shadow-none after:!hidden",
+              th: "bg-[#F6F7FA] dark:bg-default-50 first:!rounded-tl-lg last:!rounded-tr-lg",
+              tr: "!rounded-xl",
+              td: "first:before:!rounded-s-xl last:before:!rounded-e-xl",
+            }}
+          >
+            <TableHeader columns={USER_TABLE_COLUMNS}>
+              {column => (
+                <TableColumn key={column.key} align={column.key === "actions" ? "center" : "start"}>
+                  {column.label}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              items={um.users}
+              emptyContent={<UserEmptyState hasFilter={!!(um.debouncedSearch || um.statusFilter || um.groupFilter)} />}
+              isLoading={um.isFetching && !um.isLoading}
+              loadingContent={<Spinner size="sm" label="加载中..." />}
+            >
+              {user => (
+                <TableRow key={user.id} className={user.status === USER_STATUS.BANNED ? "opacity-50" : ""}>
+                  {columnKey => <TableCell>{renderCell(user, columnKey)}</TableCell>}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </motion.div>
+
+      {/* 浮动选择操作栏 */}
+      <AnimatePresence>
+        {um.isSomeSelected && (
+          <FloatingSelectionBar
+            count={um.selectedIds.size}
+            actions={[
+              {
+                key: "delete",
+                label: "删除",
+                icon: <Trash2 className="w-3.5 h-3.5" />,
+                onClick: um.batchDeleteModal.onOpen,
+                variant: "danger",
+              },
+            ]}
+            onClear={() => um.setSelectedIds(new Set())}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 弹窗 */}
+      <CreateUserModal
+        isOpen={um.createModal.isOpen}
+        onOpenChange={um.createModal.onOpenChange}
+        form={um.createForm}
+        onFormChange={um.setCreateForm}
+        userGroups={um.userGroups}
+        onConfirm={um.handleCreateConfirm}
+        isLoading={um.createUser.isPending}
       />
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <AdminCard>
-          <p className="text-3xl font-bold">{users.length}</p>
-          <p className="text-sm text-muted-foreground mt-1">用户总数</p>
-        </AdminCard>
-        <AdminCard delay={0.05}>
-          <p className="text-3xl font-bold text-primary">{users.filter(u => u.role === "admin").length}</p>
-          <p className="text-sm text-muted-foreground mt-1">管理员</p>
-        </AdminCard>
-        <AdminCard delay={0.1}>
-          <p className="text-3xl font-bold text-green">{users.filter(u => u.status === "active").length}</p>
-          <p className="text-sm text-muted-foreground mt-1">活跃用户</p>
-        </AdminCard>
-        <AdminCard delay={0.15}>
-          <p className="text-3xl font-bold text-red">{users.filter(u => u.status === "banned").length}</p>
-          <p className="text-sm text-muted-foreground mt-1">已封禁</p>
-        </AdminCard>
-      </div>
+      <EditUserModal
+        isOpen={um.editModal.isOpen}
+        onOpenChange={um.editModal.onOpenChange}
+        form={um.editForm}
+        onFormChange={um.setEditForm}
+        userGroups={um.userGroups}
+        onConfirm={um.handleEditConfirm}
+        isLoading={um.updateUser.isPending}
+      />
 
-      {/* 用户列表 */}
-      <AdminCard title="用户列表" noPadding>
-        <AdminDataTable
-          data={users}
-          columns={columns}
-          searchable
-          searchPlaceholder="搜索用户名或邮箱..."
-          searchKeys={["username", "nickname", "email"]}
-          rowActions={user => (
-            <div className="flex items-center gap-1 justify-end">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Edit className="w-4 h-4" />
-              </Button>
-              {user.status === "active" ? (
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red hover:text-red hover:bg-red/10">
-                  <Ban className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-green hover:text-green hover:bg-green/10">
-                  <CheckCircle className="w-4 h-4" />
-                </Button>
-              )}
-              {user.role !== "admin" && (
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red hover:text-red hover:bg-red/10">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          )}
-        />
-      </AdminCard>
-    </div>
+      <ConfirmDialog
+        isOpen={um.deleteModal.isOpen}
+        onOpenChange={um.deleteModal.onOpenChange}
+        title="删除用户"
+        description={`确定要删除用户「${
+          um.actionTarget?.nickname || um.actionTarget?.username
+        }」吗？该用户的所有数据将被清除，此操作不可撤销。`}
+        confirmText="删除"
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={um.deleteUser.isPending}
+        onConfirm={um.handleDeleteConfirm}
+      />
+
+      <ConfirmDialog
+        isOpen={um.batchDeleteModal.isOpen}
+        onOpenChange={um.batchDeleteModal.onOpenChange}
+        title="批量删除"
+        description={`确定要删除选中的 ${um.selectedIds.size} 个用户吗？此操作不可撤销。`}
+        confirmText={`删除 ${um.selectedIds.size} 个用户`}
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={um.batchDeleteUsers.isPending}
+        onConfirm={um.handleBatchDeleteConfirm}
+      />
+
+      <ResetPasswordModal
+        isOpen={um.resetPwdModal.isOpen}
+        onOpenChange={um.resetPwdModal.onOpenChange}
+        target={um.actionTarget}
+        newPassword={um.newPassword}
+        onPasswordChange={um.setNewPassword}
+        onConfirm={um.handleResetPwdConfirm}
+        isLoading={um.resetPassword.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={um.statusModal.isOpen}
+        onOpenChange={um.statusModal.onOpenChange}
+        title={um.actionTarget?.status === USER_STATUS.BANNED ? "解封用户" : "封禁用户"}
+        description={
+          um.actionTarget?.status === USER_STATUS.BANNED
+            ? `确定要解封用户「${um.actionTarget?.nickname || um.actionTarget?.username}」吗？`
+            : `确定要封禁用户「${um.actionTarget?.nickname || um.actionTarget?.username}」吗？封禁后该用户将无法登录。`
+        }
+        confirmText={um.actionTarget?.status === USER_STATUS.BANNED ? "解封" : "封禁"}
+        confirmColor={um.actionTarget?.status === USER_STATUS.BANNED ? "success" : "danger"}
+        icon={
+          um.actionTarget?.status === USER_STATUS.BANNED ? (
+            <CheckCircle className="w-5 h-5 text-success" />
+          ) : (
+            <Ban className="w-5 h-5 text-danger" />
+          )
+        }
+        iconBg={um.actionTarget?.status === USER_STATUS.BANNED ? "bg-success-50" : "bg-danger-50"}
+        loading={um.updateUserStatus.isPending}
+        onConfirm={um.handleStatusConfirm}
+      />
+    </motion.div>
   );
 }

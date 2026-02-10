@@ -20,7 +20,7 @@ import DOMPurify from "dompurify";
 import { marked } from "marked";
 import hljs from "highlight.js";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/auth-store";
 import { useCreateComment } from "@/hooks/queries";
 import { commentApi, type CreateCommentPayload } from "@/lib/api/comment";
 import { extractQQFromEmail, generateAnonymousNickname, isValidEmail } from "./comment-utils";
@@ -111,6 +111,7 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
   const [previewEmojiUrl, setPreviewEmojiUrl] = useState("");
   const [isEmojiPreviewVisible, setIsEmojiPreviewVisible] = useState(false);
   const [emojiPreviewPosition, setEmojiPreviewPosition] = useState({ x: 0, y: 0 });
+  const uploadedFileUrlsRef = useRef<Map<string, string>>(new Map());
 
   const accessToken = useAuthStore(state => state.accessToken);
   const user = useAuthStore(state => state.user);
@@ -140,6 +141,11 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
     if (!isPreview) return "";
     const rawHtml = marked.parse(content || "");
     let html = typeof rawHtml === "string" ? rawHtml : "";
+    // 将 anzhiyu://file/{id} 替换为本地预览 blob URL
+    html = html.replace(/anzhiyu:\/\/file\/([a-zA-Z0-9_-]+)/g, (_match, fileId: string) => {
+      const blobUrl = uploadedFileUrlsRef.current.get(fileId);
+      return blobUrl || _match;
+    });
     if (emojiMap.size > 0) {
       const escaped = Array.from(emojiMap.keys()).map(text => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
       if (escaped.length > 0) {
@@ -151,7 +157,11 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
         });
       }
     }
-    return DOMPurify.sanitize(html);
+    // 允许 blob: 协议，用于预览上传的图片
+    return DOMPurify.sanitize(html, {
+      ALLOWED_URI_REGEXP:
+        /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sip|cid|xmpp|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    });
   }, [content, isPreview, emojiMap]);
 
   useEffect(() => {
@@ -163,6 +173,15 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
       (block as HTMLElement).dataset.highlighted = "yes";
     });
   }, [previewHtml, isPreview]);
+
+  // 组件卸载时释放 blob URL，防止内存泄漏
+  useEffect(() => {
+    const urlsRef = uploadedFileUrlsRef;
+    return () => {
+      urlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      urlsRef.current.clear();
+    };
+  }, []);
 
   const loadUserInfo = useCallback(() => {
     if (isLoggedIn && user) {
@@ -333,9 +352,12 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
       if (!fileId) {
         throw new Error("服务器未返回有效的文件 ID");
       }
+      // 创建本地预览 URL，用于预览时替换 anzhiyu:// 协议
+      const blobUrl = URL.createObjectURL(file);
+      uploadedFileUrlsRef.current.set(fileId, blobUrl);
       const markdownImage = `![${file.name}](anzhiyu://file/${fileId})`;
       insertAtCursor(markdownImage);
-      addToast({ title: "图片已插入，提交后即可显示", color: "success", timeout: 2000 });
+      addToast({ title: "图片已插入，可预览查看效果", color: "success", timeout: 2000 });
     } catch {
       addToast({ title: "图片上传失败，请稍后再试", color: "danger", timeout: 2000 });
     } finally {
@@ -549,8 +571,9 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
                             key={pkg.name}
                             className={cn(index === activeEmojiPackageIndex && styles.owoPackageActive)}
                             onClick={() => setActiveEmojiPackageIndex(index)}
-                            dangerouslySetInnerHTML={{ __html: pkg.iconHtml }}
-                          />
+                          >
+                            <div dangerouslySetInnerHTML={{ __html: pkg.iconHtml }} />
+                          </li>
                         ))}
                       </ul>
                     </div>

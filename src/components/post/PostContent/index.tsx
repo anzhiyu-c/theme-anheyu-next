@@ -11,7 +11,7 @@ import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import "katex/dist/katex.min.css";
 import styles from "./PostContent.module.css";
 import "./code-highlight.css";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { apiClient } from "@/lib/api/client";
 
 interface PostContentProps {
@@ -230,6 +230,135 @@ export function PostContent({ content }: PostContentProps) {
     passwords.forEach(pw => {
       pw.addEventListener("click", () => {
         pw.classList.toggle("revealed");
+      });
+    });
+  }, []);
+
+  // 初始化付费内容购买按钮事件
+  const initPaidContentEvents = useCallback(() => {
+    if (!contentRef.current) return;
+
+    // 购买按钮
+    const purchaseBtns = contentRef.current.querySelectorAll(".purchase-btn");
+    purchaseBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const title = btn.getAttribute("data-title") || "付费内容";
+        addToast({
+          title: "付费内容",
+          description: `「${title}」的购买功能即将上线，敬请期待`,
+          color: "warning",
+        });
+      });
+    });
+
+    // 查询订单链接
+    const queryLinks = contentRef.current.querySelectorAll(".query-order-link");
+    queryLinks.forEach(link => {
+      link.addEventListener("click", () => {
+        addToast({
+          title: "查询订单",
+          description: "订单查询功能即将上线，敬请期待",
+          color: "primary",
+        });
+      });
+    });
+  }, []);
+
+  // 初始化密码保护内容事件
+  const initPasswordContentEvents = useCallback(() => {
+    if (!contentRef.current) return;
+
+    const verifyBtns = contentRef.current.querySelectorAll(".password-verify-btn");
+    verifyBtns.forEach(btn => {
+      const handleVerify = async () => {
+        const contentId = btn.getAttribute("data-content-id");
+        if (!contentId) return;
+
+        const container = btn.closest(".password-content-editor-preview");
+        if (!container) return;
+
+        const input = container.querySelector(`.password-input[data-content-id="${contentId}"]`) as HTMLInputElement;
+        if (!input || !input.value.trim()) {
+          addToast({ title: "提示", description: "请输入密码", color: "warning" });
+          return;
+        }
+
+        try {
+          // 获取当前文章的 slug（从 URL 中提取）
+          const pathParts = window.location.pathname.split("/").filter(Boolean);
+          const slug = pathParts[pathParts.length - 1] || "";
+
+          const res = await apiClient.post<{ content: string }>(`/api/v1/password-content/verify`, {
+            slug,
+            content_id: contentId,
+            password: input.value.trim(),
+          });
+
+          if (res.data?.content) {
+            // 验证成功，替换锁定区域为实际内容
+            const lockedArea = container.querySelector(".password-content-locked");
+            if (lockedArea) {
+              const previewArea =
+                container.querySelector(".password-content-preview") ||
+                container.querySelector(".password-content-body");
+              if (previewArea) {
+                previewArea.innerHTML = res.data.content;
+              }
+            }
+            // 更新标题区域的徽章
+            const badge = container.querySelector(".password-badge, .password-pro-badge");
+            if (badge) {
+              badge.textContent = "已解锁";
+              (badge as HTMLElement).style.color = "#16a34a";
+              (badge as HTMLElement).style.background = "rgba(22, 163, 74, 0.08)";
+            }
+          } else {
+            addToast({ title: "密码错误", description: "请检查密码后重试", color: "danger" });
+          }
+        } catch {
+          addToast({ title: "密码错误", description: "请检查密码后重试", color: "danger" });
+        }
+      };
+
+      btn.addEventListener("click", handleVerify);
+
+      // 支持回车提交
+      const contentId = btn.getAttribute("data-content-id");
+      if (contentId) {
+        const container = btn.closest(".password-content-editor-preview");
+        const input = container?.querySelector(`.password-input[data-content-id="${contentId}"]`) as HTMLInputElement;
+        if (input) {
+          input.addEventListener("keydown", (e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleVerify();
+            }
+          });
+        }
+      }
+    });
+  }, []);
+
+  // 初始化登录可见内容事件
+  const initLoginRequiredContentEvents = useCallback(() => {
+    if (!contentRef.current) return;
+
+    // 登录按钮
+    const loginBtns = contentRef.current.querySelectorAll("[data-login-action='check-email']");
+    loginBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        // 跳转到登录页面，带上当前 URL 作为回调
+        const currentUrl = encodeURIComponent(window.location.href);
+        window.location.href = `/login?redirect=${currentUrl}`;
+      });
+    });
+
+    // 注册按钮
+    const registerBtns = contentRef.current.querySelectorAll("[data-login-action='register-form']");
+    registerBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const currentUrl = encodeURIComponent(window.location.href);
+        window.location.href = `/register?redirect=${currentUrl}`;
       });
     });
   }, []);
@@ -1033,6 +1162,9 @@ export function PostContent({ content }: PostContentProps) {
     initHiddenEvents();
     initTabsEvents();
     initInlinePasswordEvents();
+    initPaidContentEvents();
+    initPasswordContentEvents();
+    initLoginRequiredContentEvents();
     initCodeBlockIcons(); // 先添加图标
     initCodeExpandEvents(); // 绑定展开/收起事件
     initCodeCopyEvents(); // 再绑定复制事件
@@ -1075,6 +1207,9 @@ export function PostContent({ content }: PostContentProps) {
     initHiddenEvents,
     initTabsEvents,
     initInlinePasswordEvents,
+    initPaidContentEvents,
+    initPasswordContentEvents,
+    initLoginRequiredContentEvents,
     initCodeBlockIcons,
     initCodeExpandEvents,
     initCodeCopyEvents,

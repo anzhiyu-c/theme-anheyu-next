@@ -1,176 +1,243 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
-import { Button } from "@/components/ui";
-import { BookOpen, Plus, Edit, Trash2, Eye, FileText, Calendar, ArrowRight } from "lucide-react";
-import { formatDate } from "@/lib/utils";
-
-// 模拟文档系列数据
-const mockDocSeries = [
-  {
-    id: 1,
-    title: "Next.js 完全指南",
-    description: "从入门到精通的 Next.js 开发教程",
-    cover: "/doc1.jpg",
-    articleCount: 12,
-    views: 8456,
-    status: "published",
-    createdAt: "2026-01-20",
-  },
-  {
-    id: 2,
-    title: "React 设计模式",
-    description: "React 应用开发中的最佳实践和设计模式",
-    cover: "/doc2.jpg",
-    articleCount: 8,
-    views: 5234,
-    status: "published",
-    createdAt: "2026-01-15",
-  },
-  {
-    id: 3,
-    title: "TypeScript 高级技巧",
-    description: "深入理解 TypeScript 类型系统",
-    cover: "/doc3.jpg",
-    articleCount: 6,
-    views: 3456,
-    status: "draft",
-    createdAt: "2026-01-10",
-  },
-  {
-    id: 4,
-    title: "Go 语言实战",
-    description: "Go 语言后端开发实践指南",
-    cover: "/doc4.jpg",
-    articleCount: 15,
-    views: 7890,
-    status: "published",
-    createdAt: "2026-01-05",
-  },
-];
-
-type DocSeriesItem = (typeof mockDocSeries)[number];
+import {
+  Button,
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
+  Spinner,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Pagination,
+} from "@heroui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Trash2, ShieldAlert, ChevronDown } from "lucide-react";
+import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
+import { PAGE_SIZES } from "@/lib/constants/admin";
+import { useDocSeriesPage } from "./_hooks/use-doc-series-page";
+import { TABLE_COLUMNS, useDocSeriesRenderCell } from "@/components/admin/doc-series/DocSeriesTableColumns";
+import { DocSeriesSkeleton } from "@/components/admin/doc-series/DocSeriesSkeleton";
+import { DocSeriesEmptyState } from "@/components/admin/doc-series/DocSeriesEmptyState";
+import { DocSeriesFilterBar } from "@/components/admin/doc-series/DocSeriesFilterBar";
+import DocSeriesFormModal from "@/components/admin/doc-series/DocSeriesFormModal";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
 
 export default function DocSeriesPage() {
-  const [series] = useState(mockDocSeries);
+  const ds = useDocSeriesPage();
 
-  const SeriesCard = ({ item, index }: { item: DocSeriesItem; index: number }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="group bg-card border border-border/50 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all"
-    >
-      {/* 封面 */}
-      <div className="relative aspect-[21/9] bg-linear-to-br from-primary/5 to-primary/20">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <BookOpen className="w-12 h-12 text-primary/30" />
-        </div>
-        {item.status === "draft" && (
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-yellow/80 text-white text-xs font-medium">
-            草稿
-          </div>
+  const renderCell = useDocSeriesRenderCell({
+    onAction: ds.handleAction,
+  });
+
+  // ---- bottomContent ----
+  const bottomContent = (
+    <div className="py-2 px-2 flex flex-wrap justify-between items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-small text-default-400 whitespace-nowrap">共 {ds.totalItems} 个系列</span>
+        <span className="text-small text-default-300">|</span>
+        <Dropdown>
+          <DropdownTrigger>
+            <Button variant="light" size="sm" className="text-default-400 text-small h-7 min-w-0 gap-1 px-2">
+              {ds.pageSize}条/页
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            aria-label="每页显示条数"
+            selectedKeys={new Set([String(ds.pageSize)])}
+            selectionMode="single"
+            onSelectionChange={keys => {
+              const v = Array.from(keys)[0];
+              if (v) {
+                ds.setPageSize(Number(v));
+                ds.setPage(1);
+              }
+            }}
+          >
+            {PAGE_SIZES.map(n => (
+              <DropdownItem key={String(n)}>{n}条/页</DropdownItem>
+            ))}
+          </DropdownMenu>
+        </Dropdown>
+        {ds.selectedIds.size > 0 && (
+          <>
+            <span className="text-small text-default-300">|</span>
+            <span className="text-small text-primary font-medium whitespace-nowrap">已选 {ds.selectedIds.size} 项</span>
+          </>
         )}
       </div>
-
-      {/* 内容 */}
-      <div className="p-5">
-        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{item.title}</h3>
-        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
-
-        {/* 统计 */}
-        <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <FileText className="w-4 h-4" />
-            {item.articleCount} 篇文章
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            {item.views.toLocaleString()} 阅读
-          </span>
-        </div>
-
-        {/* 操作 */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            {formatDate(item.createdAt)}
-          </span>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-8 gap-1 text-primary hover:text-primary">
-              查看
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red hover:text-red hover:bg-red/10">
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+      <div className="flex items-center gap-2">
+        <Pagination
+          isCompact
+          showControls
+          showShadow
+          color="primary"
+          page={ds.page}
+          total={ds.totalPages}
+          onChange={ds.setPage}
+        />
+        <div className="hidden sm:flex gap-1.5">
+          <Button
+            isDisabled={ds.page <= 1}
+            size="sm"
+            variant="flat"
+            onPress={() => ds.setPage(p => Math.max(1, p - 1))}
+          >
+            上一页
+          </Button>
+          <Button
+            isDisabled={ds.page >= ds.totalPages}
+            size="sm"
+            variant="flat"
+            onPress={() => ds.setPage(p => Math.min(ds.totalPages, p + 1))}
+          >
+            下一页
+          </Button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
+  if (ds.isLoading) {
+    return <DocSeriesSkeleton />;
+  }
+
   return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="文档系列"
-        description="创建系统化的文档和教程系列"
-        icon={BookOpen}
-        primaryAction={{
-          label: "新建系列",
-          icon: Plus,
-          onClick: () => console.log("Create series"),
-        }}
+    <motion.div
+      className="relative h-full flex flex-col overflow-hidden -m-4 lg:-m-8"
+      variants={adminContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        variants={adminItemVariants}
+        className="flex-1 min-h-0 flex flex-col mx-6 mt-5 mb-2 bg-card border border-border/60 rounded-xl overflow-hidden"
+      >
+        {/* 标题区 + 操作按钮 */}
+        <div className="shrink-0 px-5 pt-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">文档系列管理</h1>
+              <p className="text-xs text-muted-foreground mt-1">管理文档系列，组织系列化文档内容</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                color="primary"
+                startContent={<Plus className="w-3.5 h-3.5" />}
+                onPress={ds.handleNew}
+                className="font-medium shadow-sm"
+              >
+                新增系列
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* 筛选栏 */}
+        <DocSeriesFilterBar
+          searchInput={ds.searchInput}
+          onSearchInputChange={ds.setSearchInput}
+          onReset={ds.handleReset}
+          onPageReset={() => ds.setPage(1)}
+        />
+
+        {/* 表格 */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <Table
+            isHeaderSticky
+            aria-label="文档系列管理表格"
+            selectionMode="multiple"
+            color="default"
+            checkboxesProps={{ color: "primary" }}
+            selectedKeys={ds.selectedIds}
+            onSelectionChange={ds.handleSelectionChange}
+            bottomContent={bottomContent}
+            bottomContentPlacement="outside"
+            classNames={{
+              base: "flex-1 min-h-0 flex flex-col",
+              wrapper: "flex-1 min-h-0 !px-3 !py-0 !shadow-none !rounded-none !border-none",
+              table: "border-separate border-spacing-y-1.5 -mt-1.5",
+              thead: "[&>tr]:first:!shadow-none after:!hidden",
+              th: "bg-[#F6F7FA] dark:bg-default-50 first:!rounded-tl-lg last:!rounded-tr-lg",
+              tr: "!rounded-xl",
+              td: "first:before:!rounded-s-xl last:before:!rounded-e-xl",
+            }}
+          >
+            <TableHeader columns={TABLE_COLUMNS}>
+              {column => (
+                <TableColumn key={column.key} align={column.key === "actions" ? "center" : "start"}>
+                  {column.label}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              items={ds.seriesList}
+              emptyContent={<DocSeriesEmptyState hasFilter={!!ds.debouncedSearch} onNew={ds.handleNew} />}
+              isLoading={ds.isFetching && !ds.isLoading}
+              loadingContent={<Spinner size="sm" label="加载中..." />}
+            >
+              {item => (
+                <TableRow key={item.id}>{columnKey => <TableCell>{renderCell(item, columnKey)}</TableCell>}</TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </motion.div>
+
+      {/* 浮动选择操作栏 */}
+      <AnimatePresence>
+        {ds.isSomeSelected && (
+          <FloatingSelectionBar
+            count={ds.selectedIds.size}
+            actions={[
+              {
+                key: "delete",
+                label: "删除",
+                icon: <Trash2 className="w-3.5 h-3.5" />,
+                onClick: ds.batchDeleteModal.onOpen,
+                variant: "danger",
+              },
+            ]}
+            onClear={() => ds.setSelectedIds(new Set())}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 弹窗 */}
+      <ConfirmDialog
+        isOpen={ds.deleteModal.isOpen}
+        onOpenChange={ds.deleteModal.onOpenChange}
+        title="删除文档系列"
+        description={`确定要删除「${ds.deleteTarget?.name}」吗？此操作不可撤销。`}
+        confirmText="删除"
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={ds.deleteDocSeries.isPending}
+        onConfirm={ds.handleDeleteConfirm}
       />
 
-      {/* 统计 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <AdminCard>
-          <p className="text-3xl font-bold">{series.length}</p>
-          <p className="text-sm text-muted-foreground mt-1">系列总数</p>
-        </AdminCard>
-        <AdminCard delay={0.05}>
-          <p className="text-3xl font-bold text-primary">{series.reduce((acc, s) => acc + s.articleCount, 0)}</p>
-          <p className="text-sm text-muted-foreground mt-1">文章总数</p>
-        </AdminCard>
-        <AdminCard delay={0.1}>
-          <p className="text-3xl font-bold text-green">{series.filter(s => s.status === "published").length}</p>
-          <p className="text-sm text-muted-foreground mt-1">已发布</p>
-        </AdminCard>
-        <AdminCard delay={0.15}>
-          <p className="text-3xl font-bold text-orange">
-            {series.reduce((acc, s) => acc + s.views, 0).toLocaleString()}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">总阅读量</p>
-        </AdminCard>
-      </div>
+      <ConfirmDialog
+        isOpen={ds.batchDeleteModal.isOpen}
+        onOpenChange={ds.batchDeleteModal.onOpenChange}
+        title="批量删除"
+        description={`确定要删除选中的 ${ds.selectedIds.size} 个文档系列吗？此操作不可撤销。`}
+        confirmText={`删除 ${ds.selectedIds.size} 个`}
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={ds.deleteDocSeries.isPending}
+        onConfirm={ds.handleBatchDeleteConfirm}
+      />
 
-      {/* 系列列表 */}
-      {series.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {series.map((item, index) => (
-            <SeriesCard key={item.id} item={item} index={index} />
-          ))}
-        </div>
-      ) : (
-        <AdminCard>
-          <EmptyState
-            icon={BookOpen}
-            title="暂无文档系列"
-            description="创建您的第一个文档系列，系统化组织您的内容"
-            action={{
-              label: "新建系列",
-              icon: Plus,
-              onClick: () => console.log("Create series"),
-            }}
-          />
-        </AdminCard>
-      )}
-    </div>
+      <DocSeriesFormModal isOpen={ds.formModal.isOpen} onClose={ds.handleFormClose} editItem={ds.editItem} />
+    </motion.div>
   );
 }

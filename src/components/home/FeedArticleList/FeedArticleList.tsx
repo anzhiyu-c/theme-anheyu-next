@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { FaFileLines, FaTriangleExclamation } from "react-icons/fa6";
 import { useFeedList } from "@/hooks/queries";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { cn } from "@/lib/utils";
 import { FeedArticleCard } from "./FeedArticleCard";
 import { Pagination } from "../Pagination";

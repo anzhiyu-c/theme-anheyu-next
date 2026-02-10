@@ -13,7 +13,8 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { formatDateCN } from "@/utils/date";
 
 // 模拟工单数据
 const mockTickets = [
@@ -159,7 +160,7 @@ export default function SupportsPage() {
       key: "updatedAt",
       header: "更新时间",
       sortable: true,
-      render: ticket => <span className="text-sm text-muted-foreground">{formatDate(ticket.updatedAt)}</span>,
+      render: ticket => <span className="text-sm text-muted-foreground">{formatDateCN(ticket.updatedAt)}</span>,
     },
   ];
 

@@ -10,7 +10,7 @@
 .commentAvatar {
   width: 40px;
   height: 40px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border, #eee);
   border-radius: 50%;
   transition: transform 0.3s;
 }
@@ -20,7 +20,9 @@
 }
 
 .commentMain {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
 }
 
@@ -271,7 +273,7 @@
 .loadMoreChildrenButton:hover:not(:disabled) {
   color: var(--anzhiyu-white);
   background-color: var(--anzhiyu-main);
-  border: none;
+  border: var(--style-border-none);
 }
 
 .loadMoreChildrenButton:disabled {

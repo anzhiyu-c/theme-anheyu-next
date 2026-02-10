@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { Home } from "lucide-react";
 import { Tooltip, MenuIcon } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
-import { usePageStore } from "@/store/pageStore";
-import { useHeader, useIsMobile } from "@/hooks";
-import { updateMetaThemeColorDynamic } from "@/utils/themeManager";
+import { useSiteConfigStore } from "@/store/site-config-store";
+import { usePageStore } from "@/store/page-store";
+import { useHeader } from "@/hooks/use-header";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { updateMetaThemeColorDynamic } from "@/utils/theme-manager";
 
 // 子组件
 import { HeaderRight } from "./components/HeaderRight";

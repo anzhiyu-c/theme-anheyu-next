@@ -25,6 +25,42 @@
   }
 }
 
+@keyframes owoPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes owoItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes emojiPreviewIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(-10px) scale(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) translateY(-10px) scale(1);
+  }
+}
+
 @keyframes commonTipsIn {
   0% {
     top: -40px;
@@ -180,8 +216,9 @@
   backdrop-filter: saturate(180%) blur(10px);
   border: var(--style-border-always);
   border-radius: 8px;
-  opacity: 1;
+  box-shadow: 0 8px 24px -4px rgb(0 0 0 / 12%);
   transform: translateZ(0);
+  animation: owoPanelIn 0.2s ease-out;
 }
 
 .owoItems {
@@ -201,11 +238,34 @@
   list-style-type: none;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.15s ease;
+  animation: owoItemIn 0.3s ease-out both;
+}
+
+/* 按行交错出现（每行约7个，与 anheyu-pro GSAP stagger: 0.02 对应） */
+.owoItem:nth-child(-n + 7) {
+  animation-delay: 0.05s;
+}
+.owoItem:nth-child(n + 8):nth-child(-n + 14) {
+  animation-delay: 0.1s;
+}
+.owoItem:nth-child(n + 15):nth-child(-n + 21) {
+  animation-delay: 0.15s;
+}
+.owoItem:nth-child(n + 22):nth-child(-n + 28) {
+  animation-delay: 0.2s;
+}
+.owoItem:nth-child(n + 29) {
+  animation-delay: 0.22s;
 }
 
 .owoItem:hover {
   background-color: rgb(144 147 153 / 13%);
+  transform: scale(1.1);
+}
+
+.owoItem:active {
+  transform: scale(0.95);
 }
 
 .owoItem img {
@@ -225,19 +285,32 @@
   height: 48px;
   padding: 0;
   margin: 0;
+  overflow-x: auto;
   font-size: 0;
+  white-space: nowrap;
+  text-align: left;
   background: var(--anzhiyu-background, var(--background));
 }
 
 .owoPackages li {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 50px;
+  height: 48px;
   padding: 0 10px;
+  overflow: hidden;
   font-size: 28px;
   line-height: 48px;
   list-style-type: none;
   cursor: pointer;
   transition: 0.3s;
+}
+
+.owoPackages li img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .owoPackages li:first-child {
@@ -261,7 +334,7 @@
   position: absolute;
   right: 16px;
   bottom: 16px;
-  z-index: 3;
+  z-index: 11;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -269,10 +342,13 @@
 
 .loggedInSubmitButton {
   min-width: 80px;
+  padding: 0.4rem 1.25rem;
   font-weight: 600;
   color: var(--anzhiyu-background, var(--background));
+  cursor: pointer;
   background-color: var(--anzhiyu-fontcolor);
   border: 0 solid var(--anzhiyu-main);
+  border-radius: 12px;
   transition: all 0.3s;
 }
 
@@ -495,13 +571,18 @@
 
 .submitButton {
   min-width: 112px;
-  padding: 0 2rem;
+  padding: 0.5rem 2rem;
   font-weight: 600;
   color: var(--anzhiyu-background, var(--background));
   background-color: var(--anzhiyu-fontcolor);
   border: 0 solid var(--anzhiyu-main);
   border-radius: 12px;
   cursor: pointer;
+  transition: all 0.3s;
+}
+
+.submitButton:hover {
+  opacity: 0.85;
 }
 
 .isDisabled {
@@ -639,12 +720,12 @@
   justify-content: center;
   padding: 8px;
   pointer-events: none;
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
+  background-color: var(--anzhiyu-card-bg, #fff);
+  border: 1px solid var(--border, #e0e0e0);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
-  transform: translate(-50%, -100%) translateY(-10px);
-  animation: owoIn 0.2s cubic-bezier(0.42, 0, 0.3, 1.11);
+  transform: translate(-50%, -100%) translateY(-10px) scale(1);
+  animation: emojiPreviewIn 0.2s cubic-bezier(0.42, 0, 0.3, 1.11);
 }
 
 .emojiPreview img {
@@ -850,6 +931,18 @@
 }
 
 @media (width <= 768px) {
+  .owoBody {
+    right: 0;
+    left: auto;
+    width: calc(100% + 32px);
+    min-width: auto !important;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .owoItem {
+    width: 25% !important;
+  }
+
   .loginRequiredWrapper {
     padding: 2.5rem 1.5rem;
     border-radius: 1rem;

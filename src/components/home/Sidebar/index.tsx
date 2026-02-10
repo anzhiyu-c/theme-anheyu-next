@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import { AuthorInfoCard } from "./AuthorInfoCard";
 import { CardWechat } from "./CardWechat";
 import { StickyCards } from "./StickyCards";

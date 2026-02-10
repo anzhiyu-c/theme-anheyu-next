@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { Tooltip, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/store/authStore";
-import { useIsMobile } from "@/hooks";
+import { useAuthStore } from "@/store/auth-store";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 import styles from "./styles.module.css";
 import type { NavConfig } from "../../types";

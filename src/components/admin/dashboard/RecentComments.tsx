@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
+import { formatRelativeTime } from "@/utils/date";
 
 type CommentStatus = "pending" | "approved" | "spam";
 
@@ -30,24 +31,6 @@ const statusConfig: Record<CommentStatus, { label: string; className: string }> 
   approved: { label: "已通过", className: "bg-green-500/10 text-green-600" },
   spam: { label: "垃圾", className: "bg-red-500/10 text-red-500" },
 };
-
-// 格式化相对时间
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return "刚刚";
-  if (minutes < 60) return `${minutes}分钟前`;
-  if (hours < 24) return `${hours}小时前`;
-  if (days < 7) return `${days}天前`;
-
-  return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
-}
 
 export function RecentComments({ comments, onApprove, onReject, className, isLoading }: RecentCommentsProps) {
   if (isLoading) {
@@ -131,7 +114,7 @@ export function RecentComments({ comments, onApprove, onReject, className, isLoa
                     {/* 来源文章 */}
                     <div className="flex items-center justify-between">
                       <Link
-                        href={`/admin/posts/${comment.article_id}`}
+                        href={`/admin/post-management/${comment.article_id}`}
                         className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 truncate max-w-[200px]"
                       >
                         <Icon icon="ri:article-line" className="w-3 h-3 shrink-0" />

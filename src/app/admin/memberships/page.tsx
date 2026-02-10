@@ -4,7 +4,8 @@ import { useState } from "react";
 import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
 import { Button } from "@/components/ui";
 import { Crown, Edit, CheckCircle, Clock, Star, Gift, Calendar, TrendingUp, Sparkles } from "lucide-react";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { formatDateCN } from "@/utils/date";
 
 // 模拟会员数据
 const mockMembers = [
@@ -158,7 +159,7 @@ export default function MembershipsPage() {
       render: member => (
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Calendar className="w-3.5 h-3.5" />
-          {formatDate(member.endDate)}
+          {formatDateCN(member.endDate)}
         </div>
       ),
     },

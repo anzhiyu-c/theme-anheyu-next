@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Volume2, VolumeX, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSiteConfigStore } from "@/store/siteConfigStore";
+import { useSiteConfigStore } from "@/store/site-config-store";
 import type { PageOneImageItem } from "@/types/site-config";
 import styles from "./OneImageBanner.module.css";
 
