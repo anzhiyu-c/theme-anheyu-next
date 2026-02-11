@@ -2,8 +2,8 @@
 
 import { FormInput } from "@/components/ui/form-input";
 import { FormSwitch } from "@/components/ui/form-switch";
-import { FormJsonEditor } from "@/components/ui/form-json-editor";
 import { FormCodeEditor } from "@/components/ui/form-code-editor";
+import { OneImageConfigEditor } from "./editors/OneImageConfigEditor";
 import { SettingsSection } from "./SettingsSection";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -42,24 +42,24 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
           label="外部链接跳转提醒"
           description="点击外部链接时弹出安全提醒"
           checked={values[KEY_ENABLE_EXTERNAL_LINK_WARNING] === "true"}
-          onCheckedChange={(v) => onChange(KEY_ENABLE_EXTERNAL_LINK_WARNING, String(v))}
+          onCheckedChange={v => onChange(KEY_ENABLE_EXTERNAL_LINK_WARNING, String(v))}
         />
       </SettingsSection>
 
       {/* 一图流配置 */}
       <SettingsSection title="一图流配置">
-        <FormJsonEditor
+        <OneImageConfigEditor
           label="一图流配置"
           value={values[KEY_PAGE_ONE_IMAGE_CONFIG]}
-          onValueChange={(v) => onChange(KEY_PAGE_ONE_IMAGE_CONFIG, v)}
-          description="页面一图流展示配置（JSON 格式）"
+          onValueChange={v => onChange(KEY_PAGE_ONE_IMAGE_CONFIG, v)}
+          description="按页面（首页/分类/标签/归档）配置一图流启用、背景、媒体类型与视频选项"
         />
 
         <FormInput
           label="一言 API"
           placeholder="https://v1.hitokoto.cn"
           value={values[KEY_HITOKOTO_API]}
-          onValueChange={(v) => onChange(KEY_HITOKOTO_API, v)}
+          onValueChange={v => onChange(KEY_HITOKOTO_API, v)}
           description="一言（Hitokoto）API 地址"
         />
 
@@ -67,7 +67,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
           label="打字速度"
           placeholder="例如：100"
           value={values[KEY_TYPING_SPEED]}
-          onValueChange={(v) => onChange(KEY_TYPING_SPEED, v)}
+          onValueChange={v => onChange(KEY_TYPING_SPEED, v)}
           description="一言打字机效果的速度（毫秒）"
         />
       </SettingsSection>
@@ -77,7 +77,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
         <FormCodeEditor
           label="头部 HTML"
           value={values[KEY_CUSTOM_HEADER_HTML]}
-          onValueChange={(v) => onChange(KEY_CUSTOM_HEADER_HTML, v)}
+          onValueChange={v => onChange(KEY_CUSTOM_HEADER_HTML, v)}
           language="html"
           description="注入到 <head> 标签内的自定义 HTML 代码"
         />
@@ -85,7 +85,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
         <FormCodeEditor
           label="底部 HTML"
           value={values[KEY_CUSTOM_FOOTER_HTML]}
-          onValueChange={(v) => onChange(KEY_CUSTOM_FOOTER_HTML, v)}
+          onValueChange={v => onChange(KEY_CUSTOM_FOOTER_HTML, v)}
           language="html"
           description="注入到 <body> 底部的自定义 HTML 代码"
         />
@@ -93,7 +93,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
         <FormCodeEditor
           label="自定义 CSS"
           value={values[KEY_CUSTOM_CSS]}
-          onValueChange={(v) => onChange(KEY_CUSTOM_CSS, v)}
+          onValueChange={v => onChange(KEY_CUSTOM_CSS, v)}
           language="css"
           description="全站生效的自定义 CSS 样式"
         />
@@ -101,7 +101,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
         <FormCodeEditor
           label="自定义 JavaScript"
           value={values[KEY_CUSTOM_JS]}
-          onValueChange={(v) => onChange(KEY_CUSTOM_JS, v)}
+          onValueChange={v => onChange(KEY_CUSTOM_JS, v)}
           language="javascript"
           description="全站生效的自定义 JavaScript 代码"
         />
@@ -109,7 +109,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
         <FormCodeEditor
           label="文章顶部 HTML"
           value={values[KEY_CUSTOM_POST_TOP_HTML]}
-          onValueChange={(v) => onChange(KEY_CUSTOM_POST_TOP_HTML, v)}
+          onValueChange={v => onChange(KEY_CUSTOM_POST_TOP_HTML, v)}
           language="html"
           description="注入到每篇文章顶部的自定义 HTML 代码"
         />
@@ -117,7 +117,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
         <FormCodeEditor
           label="文章底部 HTML"
           value={values[KEY_CUSTOM_POST_BOTTOM_HTML]}
-          onValueChange={(v) => onChange(KEY_CUSTOM_POST_BOTTOM_HTML, v)}
+          onValueChange={v => onChange(KEY_CUSTOM_POST_BOTTOM_HTML, v)}
           language="html"
           description="注入到每篇文章底部的自定义 HTML 代码"
         />

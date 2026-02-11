@@ -5,6 +5,7 @@ import { FormSwitch } from "@/components/ui/form-switch";
 import { FormImageUpload } from "@/components/ui/form-image-upload";
 import { FormCodeEditor } from "@/components/ui/form-code-editor";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
+import { PlaceholderHelpPanel } from "@/components/ui/placeholder-help-panel";
 import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -211,6 +212,7 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           placeholder="请选择模式"
           description="点击目录时 URL 哈希的更新方式"
         >
+          <FormSelectItem key="replace">replace（替换哈希）</FormSelectItem>
           <FormSelectItem key="scroll">scroll（滚动更新）</FormSelectItem>
           <FormSelectItem key="click">click（点击更新）</FormSelectItem>
           <FormSelectItem key="none">none（不更新）</FormSelectItem>
@@ -333,6 +335,17 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           onValueChange={v => onChange(KEY_POST_COPYRIGHT_ORIGINAL, v)}
           minRows={6}
         />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="点击可复制"
+          items={[
+            { variable: "{license}", description: "许可协议文案" },
+            { variable: "{licenseUrl}", description: "协议链接" },
+            { variable: "{author}", description: "作者" },
+            { variable: "{siteUrl}", description: "站点链接" },
+          ]}
+          className="mt-2"
+        />
 
         <FormCodeEditor
           label="转载版权模板（有来源链接）"
@@ -341,6 +354,15 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           onValueChange={v => onChange(KEY_POST_COPYRIGHT_REPRINT_WITH_URL, v)}
           minRows={6}
         />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="点击可复制"
+          items={[
+            { variable: "{originalAuthor}", description: "原作者" },
+            { variable: "{originalUrl}", description: "原文链接" },
+          ]}
+          className="mt-2"
+        />
 
         <FormCodeEditor
           label="转载版权模板（无来源链接）"
@@ -348,6 +370,12 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           value={values[KEY_POST_COPYRIGHT_REPRINT_NO_URL]}
           onValueChange={v => onChange(KEY_POST_COPYRIGHT_REPRINT_NO_URL, v)}
           minRows={6}
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="点击可复制"
+          items={[{ variable: "{originalAuthor}", description: "原作者" }]}
+          className="mt-2"
         />
       </SettingsSection>
 
@@ -395,6 +423,18 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           value={values[KEY_POST_SUBSCRIBE_MAIL_TEMPLATE]}
           onValueChange={v => onChange(KEY_POST_SUBSCRIBE_MAIL_TEMPLATE, v)}
           minRows={8}
+          description="具体可用变量以后端邮件渲染为准。"
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="点击可复制"
+          items={[
+            { variable: "{{post_title}}", description: "文章标题" },
+            { variable: "{{post_link}}", description: "文章链接" },
+            { variable: "{{unsubscribe_link}}", description: "退订链接" },
+            { variable: "{{site_name}}", description: "站点名称" },
+          ]}
+          className="mt-2"
         />
       </SettingsSection>
 
@@ -407,63 +447,67 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           onCheckedChange={v => onChange(KEY_CDN_ENABLE, String(v))}
         />
 
-        <FormSelect
-          label="CDN 服务商"
-          value={values[KEY_CDN_PROVIDER]}
-          onValueChange={v => onChange(KEY_CDN_PROVIDER, v)}
-          placeholder="请选择 CDN 服务商"
-        >
-          <FormSelectItem key="tencent">腾讯云 CDN</FormSelectItem>
-          <FormSelectItem key="cloudflare">Cloudflare</FormSelectItem>
-        </FormSelect>
+        {values[KEY_CDN_ENABLE] === "true" && (
+          <>
+            <FormSelect
+              label="CDN 服务商"
+              value={values[KEY_CDN_PROVIDER]}
+              onValueChange={v => onChange(KEY_CDN_PROVIDER, v)}
+              placeholder="请选择 CDN 服务商"
+            >
+              <FormSelectItem key="tencent">腾讯云 CDN</FormSelectItem>
+              <FormSelectItem key="cloudflare">Cloudflare</FormSelectItem>
+            </FormSelect>
 
-        <SettingsFieldGroup cols={2}>
-          <FormInput
-            label="Secret ID"
-            type="password"
-            placeholder="请输入 Secret ID"
-            value={values[KEY_CDN_SECRET_ID]}
-            onValueChange={v => onChange(KEY_CDN_SECRET_ID, v)}
-          />
-          <FormInput
-            label="Secret Key"
-            type="password"
-            placeholder="请输入 Secret Key"
-            value={values[KEY_CDN_SECRET_KEY]}
-            onValueChange={v => onChange(KEY_CDN_SECRET_KEY, v)}
-          />
-        </SettingsFieldGroup>
+            <SettingsFieldGroup cols={2}>
+              <FormInput
+                label="Secret ID"
+                type="password"
+                placeholder="请输入 Secret ID"
+                value={values[KEY_CDN_SECRET_ID]}
+                onValueChange={v => onChange(KEY_CDN_SECRET_ID, v)}
+              />
+              <FormInput
+                label="Secret Key"
+                type="password"
+                placeholder="请输入 Secret Key"
+                value={values[KEY_CDN_SECRET_KEY]}
+                onValueChange={v => onChange(KEY_CDN_SECRET_KEY, v)}
+              />
+            </SettingsFieldGroup>
 
-        <SettingsFieldGroup cols={2}>
-          <FormInput
-            label="区域"
-            placeholder="ap-guangzhou"
-            value={values[KEY_CDN_REGION]}
-            onValueChange={v => onChange(KEY_CDN_REGION, v)}
-          />
-          <FormInput
-            label="域名"
-            placeholder="example.com"
-            value={values[KEY_CDN_DOMAIN]}
-            onValueChange={v => onChange(KEY_CDN_DOMAIN, v)}
-          />
-        </SettingsFieldGroup>
+            <SettingsFieldGroup cols={2}>
+              <FormInput
+                label="区域"
+                placeholder="ap-guangzhou"
+                value={values[KEY_CDN_REGION]}
+                onValueChange={v => onChange(KEY_CDN_REGION, v)}
+              />
+              <FormInput
+                label="域名"
+                placeholder="example.com"
+                value={values[KEY_CDN_DOMAIN]}
+                onValueChange={v => onChange(KEY_CDN_DOMAIN, v)}
+              />
+            </SettingsFieldGroup>
 
-        <FormInput
-          label="Base URL"
-          placeholder="https://api.example.com"
-          value={values[KEY_CDN_BASE_URL]}
-          onValueChange={v => onChange(KEY_CDN_BASE_URL, v)}
-          description="可选，CDN API 自定义地址"
-        />
+            <FormInput
+              label="Base URL"
+              placeholder="https://api.example.com"
+              value={values[KEY_CDN_BASE_URL]}
+              onValueChange={v => onChange(KEY_CDN_BASE_URL, v)}
+              description="可选，CDN API 自定义地址"
+            />
 
-        <FormInput
-          label="Zone ID"
-          placeholder="Cloudflare Zone ID"
-          value={values[KEY_CDN_ZONE_ID]}
-          onValueChange={v => onChange(KEY_CDN_ZONE_ID, v)}
-          description="仅 Cloudflare 需要填写"
-        />
+            <FormInput
+              label="Zone ID"
+              placeholder="Cloudflare Zone ID"
+              value={values[KEY_CDN_ZONE_ID]}
+              onValueChange={v => onChange(KEY_CDN_ZONE_ID, v)}
+              description="仅 Cloudflare 需要填写"
+            />
+          </>
+        )}
       </SettingsSection>
 
       {/* 多人共创 */}
@@ -511,34 +555,75 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
         </SettingsFieldGroup>
 
         <SettingsFieldGroup cols={2}>
-          <FormInput
+          <FormSelect
             label="Pushoo Channel"
-            placeholder="请输入推送渠道"
-            value={values[KEY_ARTICLE_REVIEW_PUSH_CHANNEL]}
+            placeholder="请选择推送渠道"
+            value={values[KEY_ARTICLE_REVIEW_PUSH_CHANNEL] ?? ""}
             onValueChange={v => onChange(KEY_ARTICLE_REVIEW_PUSH_CHANNEL, v)}
-          />
+            description="文章审核结果推送渠道"
+          >
+            <FormSelectItem key="bark">bark</FormSelectItem>
+            <FormSelectItem key="webhook">webhook</FormSelectItem>
+          </FormSelect>
           <FormInput
             label="Pushoo URL"
             placeholder="请输入推送地址"
-            value={values[KEY_ARTICLE_REVIEW_PUSH_URL]}
+            value={values[KEY_ARTICLE_REVIEW_PUSH_URL] ?? ""}
             onValueChange={v => onChange(KEY_ARTICLE_REVIEW_PUSH_URL, v)}
+            description="推送地址；选 webhook 时请求体可用下方占位符自定义。"
           />
         </SettingsFieldGroup>
+        <PlaceholderHelpPanel
+          title="Pushoo / Webhook 可用占位符"
+          subtitle="选 webhook 时，请求体模板（JSON）中可使用以下 Go 模板变量，点击可复制"
+          items={[
+            { variable: "{{.TITLE}}", description: "推送标题" },
+            { variable: "{{.CONTENT}}", description: "推送内容摘要" },
+            { variable: "{{.SITE_NAME}}", description: "站点名称" },
+            { variable: "{{.SITE_URL}}", description: "站点地址" },
+            { variable: "{{.AUTHOR_NAME}}", description: "作者昵称" },
+            { variable: "{{.ARTICLE_TITLE}}", description: "文章标题" },
+            { variable: "{{.ARTICLE_ID}}", description: "文章 ID" },
+            { variable: "{{.IS_APPROVED}}", description: "是否通过 (true/false)" },
+            { variable: "{{.REVIEW_COMMENT}}", description: "审核意见/拒绝原因" },
+            { variable: "{{.TIMESTAMP}}", description: "通知时间" },
+          ]}
+          className="mt-2"
+        />
 
         <FormCodeEditor
           label="Webhook Body"
           language="json"
-          value={values[KEY_ARTICLE_REVIEW_WEBHOOK_BODY]}
+          value={values[KEY_ARTICLE_REVIEW_WEBHOOK_BODY] ?? ""}
           onValueChange={v => onChange(KEY_ARTICLE_REVIEW_WEBHOOK_BODY, v)}
-          description="审核通知 Webhook 请求体模板"
+          description="留空时使用系统默认 JSON（含 title、content、site_name 等）。"
           minRows={4}
+        />
+        <PlaceholderHelpPanel
+          title="Webhook Body 可用占位符"
+          subtitle="Go 模板格式，点击可复制"
+          items={[
+            { variable: "{{.TITLE}}", description: "推送标题" },
+            { variable: "{{.CONTENT}}", description: "推送内容摘要" },
+            { variable: "{{.SITE_NAME}}", description: "站点名称" },
+            { variable: "{{.SITE_URL}}", description: "站点地址" },
+            { variable: "{{.AUTHOR_NAME}}", description: "作者昵称" },
+            { variable: "{{.ARTICLE_TITLE}}", description: "文章标题" },
+            { variable: "{{.ARTICLE_ID}}", description: "文章 ID" },
+            { variable: "{{.IS_APPROVED}}", description: "是否通过" },
+            { variable: "{{.REVIEW_COMMENT}}", description: "审核意见" },
+            { variable: "{{.TIMESTAMP}}", description: "通知时间" },
+          ]}
+          className="mt-2"
         />
         <FormCodeEditor
           label="Webhook Headers"
           language="json"
-          value={values[KEY_ARTICLE_REVIEW_WEBHOOK_HEADERS]}
+          value={values[KEY_ARTICLE_REVIEW_WEBHOOK_HEADERS] ?? ""}
           onValueChange={v => onChange(KEY_ARTICLE_REVIEW_WEBHOOK_HEADERS, v)}
-          description="审核通知 Webhook 请求头"
+          description={
+            '审核通知 Webhook 请求头（JSON 键值对），如 {"Content-Type": "application/json"}；通常为静态，无需占位符。'
+          }
           minRows={3}
         />
 
@@ -554,6 +639,20 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           value={values[KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED]}
           onValueChange={v => onChange(KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED, v)}
           minRows={6}
+          description="留空则使用系统默认模板。"
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="Go 模板格式，点击可复制"
+          items={[
+            { variable: "{{.SiteName}}", description: "站点名称" },
+            { variable: "{{.SiteURL}}", description: "站点地址" },
+            { variable: "{{.ArticleTitle}}", description: "文章标题" },
+            { variable: "{{.ArticleURL}}", description: "文章链接" },
+            { variable: "{{.AuthorName}}", description: "作者昵称" },
+            { variable: "{{.ReviewComment}}", description: "审核意见" },
+          ]}
+          className="mt-2"
         />
 
         <FormInput
@@ -568,6 +667,20 @@ export function PostSettingsForm({ values, onChange, loading }: PostSettingsForm
           value={values[KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED]}
           onValueChange={v => onChange(KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED, v)}
           minRows={6}
+          description="留空则使用系统默认模板。"
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="Go 模板格式，点击可复制"
+          items={[
+            { variable: "{{.SiteName}}", description: "站点名称" },
+            { variable: "{{.SiteURL}}", description: "站点地址" },
+            { variable: "{{.ArticleTitle}}", description: "文章标题" },
+            { variable: "{{.ArticleURL}}", description: "文章链接" },
+            { variable: "{{.AuthorName}}", description: "作者昵称" },
+            { variable: "{{.ReviewComment}}", description: "拒绝原因" },
+          ]}
+          className="mt-2"
         />
       </SettingsSection>
     </div>

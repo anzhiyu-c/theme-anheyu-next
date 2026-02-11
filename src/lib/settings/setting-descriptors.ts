@@ -46,6 +46,58 @@ export type SettingCategoryId =
   | "advanced-payment"
   | "advanced-backup";
 
+/** 与 anheyu-pro 后端 buildApprovedEmailBody 一致的审核通过邮件默认模板（留空时后端使用此模板） */
+const DEFAULT_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED = `<div style="background-color:#f4f5f7;padding:30px 0;">
+\t<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+\t\t<div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:30px;text-align:center;">
+\t\t\t<h1 style="color:#fff;margin:0;font-size:24px;">🎉 文章审核通过</h1>
+\t\t</div>
+\t\t<div style="padding:30px;">
+\t\t\t<p style="font-size:16px;line-height:1.8;color:#333;">亲爱的 <strong>{{.Nickname}}</strong>，您好！</p>
+\t\t\t<p style="font-size:14px;line-height:1.8;color:#666;">恭喜！您在 <a href="{{.SiteURL}}" style="color:#667eea;text-decoration:none;">{{.SiteName}}</a> 提交的文章已通过审核并发布。</p>
+\t\t\t<div style="background:#f8f9fa;padding:20px;border-radius:6px;margin:20px 0;">
+\t\t\t\t<h3 style="margin:0 0 15px 0;color:#333;font-size:16px;">文章信息</h3>
+\t\t\t\t<p style="margin:8px 0;color:#666;"><strong>文章标题：</strong>{{.ArticleTitle}}</p>
+\t\t\t\t{{if .ReviewComment}}<p style="margin:8px 0;color:#666;"><strong>审核意见：</strong>{{.ReviewComment}}</p>{{end}}
+\t\t\t</div>
+\t\t\t<p style="font-size:14px;line-height:1.8;color:#666;">您的文章现已可以被所有访客阅读，感谢您的精彩创作！</p>
+\t\t\t<div style="text-align:center;margin:25px 0;">
+\t\t\t\t<a href="{{.SiteURL}}/posts/{{.ArticleID}}" style="display:inline-block;padding:12px 30px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-decoration:none;border-radius:25px;font-size:14px;">查看文章</a>
+\t\t\t</div>
+\t\t</div>
+\t\t<div style="background:#f8f9fa;padding:20px;text-align:center;color:#999;font-size:12px;">
+\t\t\t<p style="margin:5px 0;">本邮件由系统自动发送，请勿直接回复</p>
+\t\t\t<p style="margin:5px 0;">© {{.SiteName}}</p>
+\t\t</div>
+\t</div>
+</div>`;
+
+/** 与 anheyu-pro 后端 buildRejectedEmailBody 一致的审核拒绝邮件默认模板（留空时后端使用此模板） */
+const DEFAULT_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED = `<div style="background-color:#f4f5f7;padding:30px 0;">
+\t<div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+\t\t<div style="background:linear-gradient(135deg,#ff6b6b 0%,#ee5a24 100%);padding:30px;text-align:center;">
+\t\t\t<h1 style="color:#fff;margin:0;font-size:24px;">📝 文章审核未通过</h1>
+\t\t</div>
+\t\t<div style="padding:30px;">
+\t\t\t<p style="font-size:16px;line-height:1.8;color:#333;">亲爱的 <strong>{{.Nickname}}</strong>，您好！</p>
+\t\t\t<p style="font-size:14px;line-height:1.8;color:#666;">很遗憾，您在 <a href="{{.SiteURL}}" style="color:#667eea;text-decoration:none;">{{.SiteName}}</a> 提交的文章审核未通过。</p>
+\t\t\t<div style="background:#fff5f5;padding:20px;border-radius:6px;margin:20px 0;border-left:4px solid #ff6b6b;">
+\t\t\t\t<h3 style="margin:0 0 15px 0;color:#333;font-size:16px;">审核详情</h3>
+\t\t\t\t<p style="margin:8px 0;color:#666;"><strong>文章标题：</strong>{{.ArticleTitle}}</p>
+\t\t\t\t<p style="margin:8px 0;color:#666;"><strong>拒绝原因：</strong>{{.ReviewComment}}</p>
+\t\t\t</div>
+\t\t\t<p style="font-size:14px;line-height:1.8;color:#666;">请根据审核意见修改后重新提交，我们期待您的优质内容！</p>
+\t\t\t<div style="text-align:center;margin:25px 0;">
+\t\t\t\t<a href="{{.SiteURL}}/admin/post-management" style="display:inline-block;padding:12px 30px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-decoration:none;border-radius:25px;font-size:14px;">前往修改</a>
+\t\t\t</div>
+\t\t</div>
+\t\t<div style="background:#f8f9fa;padding:20px;text-align:center;color:#999;font-size:12px;">
+\t\t\t<p style="margin:5px 0;">本邮件由系统自动发送，请勿直接回复</p>
+\t\t\t<p style="margin:5px 0;">© {{.SiteName}}</p>
+\t\t</div>
+\t</div>
+</div>`;
+
 /**
  * 根据分类获取该分类下所有设置项的后端键
  */
@@ -136,7 +188,15 @@ export function parseBackendValues(
       const fallback = desc.type === "boolean" ? "false" : "";
       result[desc.backendKey] = desc.defaultValue ?? fallback;
     } else if (typeof raw === "string") {
-      result[desc.backendKey] = raw;
+      // string/code 类型做规范化（换行符 + trim），避免与表单回传不一致导致一进页就显示「有未保存的更改」
+      const s = raw;
+      const normalized = desc.type === "string" || desc.type === "code" ? normalizeStringForCompare(s) : s;
+      // 审核邮件模板：后端留空时使用内置默认模板，前端回显时也显示该默认模板（与 anheyu-pro 行为一致）
+      const isEmptyAndReviewTemplate =
+        normalized === "" &&
+        (desc.backendKey === "article.review.mail_template_approved" ||
+          desc.backendKey === "article.review.mail_template_rejected");
+      result[desc.backendKey] = isEmptyAndReviewTemplate && desc.defaultValue != null ? desc.defaultValue : normalized;
     } else {
       // JSON 类型字段，后端可能返回已解析的对象，需要转回字符串
       result[desc.backendKey] = JSON.stringify(raw);
@@ -146,17 +206,93 @@ export function parseBackendValues(
 }
 
 /**
- * 对比新旧值，仅返回变更的键值对
+ * 规范化“空”值：undefined、null、"" 视为同一空值
+ */
+function isEmptyVal(v: unknown): boolean {
+  return v == null || v === "";
+}
+
+/**
+ * 规范化字符串再比较：统一换行符为 \n 并 trim，避免后端 \r\n/尾随空格与表单回传不一致导致误判 dirty
+ */
+function normalizeStringForCompare(s: unknown): string {
+  return String(s ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+}
+
+/**
+ * 用于「复制声明」类纯文本：去掉所有换行再比较，避免后端存 "…\n原文地址" 而单行输入丢掉 \n 导致误判 dirty
+ */
+function normalizeCopyDeclarationForCompare(s: unknown): string {
+  return String(s ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\n/g, "")
+    .trim();
+}
+
+/**
+ * 规范化布尔字符串，便于比较
+ */
+function normalizeBoolean(v: unknown): string {
+  if (v == null || v === "") return "false";
+  const s = String(v).toLowerCase();
+  return s === "true" || s === "1" ? "true" : "false";
+}
+
+/**
+ * 对比新旧值，仅返回变更的键值对。
+ * 传入 descriptors 时：
+ * - 空值等价：undefined / null / "" 视为相同，避免一进入就显示「有配置更新」；
+ * - boolean 统一按 "true"/"false" 比较；
+ * - password：当前值为空不视为变更、也不提交，避免覆盖已有密码。
  */
 export function getChangedValues(
   original: Record<string, string>,
-  current: Record<string, string>
+  current: Record<string, string>,
+  descriptors?: SettingDescriptor[]
 ): Record<string, string> {
   const changed: Record<string, string> = {};
+  const descByKey = descriptors ? new Map(descriptors.map(d => [d.backendKey, d])) : null;
+
   for (const key of Object.keys(current)) {
-    if (current[key] !== original[key]) {
-      changed[key] = current[key];
+    const desc = descByKey?.get(key);
+    const cur = current[key];
+    const orig = original[key];
+
+    if (desc?.type === "password") {
+      if (isEmptyVal(cur)) continue;
+      if (cur === orig) continue;
+      changed[key] = cur;
+      continue;
     }
+
+    if (desc?.type === "boolean") {
+      if (normalizeBoolean(cur) === normalizeBoolean(orig)) continue;
+      changed[key] = cur;
+      continue;
+    }
+
+    if (isEmptyVal(cur) && isEmptyVal(orig)) continue;
+    if (cur === orig) continue;
+    // 兜底：两值均为字符串时，规范化后相等即视为未修改
+    const isCopyDeclarationKey = key === "post.copy.copyright_original" || key === "post.copy.copyright_reprint";
+    const normForCompare = isCopyDeclarationKey ? normalizeCopyDeclarationForCompare : normalizeStringForCompare;
+    const normCurFallback = typeof cur === "string" ? normForCompare(cur) : "";
+    const normOrigFallback = typeof orig === "string" ? normForCompare(orig) : "";
+    if (typeof cur === "string" && typeof orig === "string" && normCurFallback === normOrigFallback) {
+      continue;
+    }
+    // string/code 比较时按规范化后相等视为未修改（统一 \r\n + trim）
+    const isStringOrCode = desc?.type === "string" || desc?.type === "code";
+    const normCur = isStringOrCode ? normalizeStringForCompare(cur) : "";
+    const normOrig = isStringOrCode ? normalizeStringForCompare(orig) : "";
+    if (isStringOrCode && normCur === normOrig) {
+      continue;
+    }
+    changed[key] = cur;
   }
   return changed;
 }
@@ -292,11 +428,11 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_POST_COPY_COPYRIGHT_ENABLE, type: "boolean", defaultValue: "true" },
     { backendKey: K.KEY_POST_COPY_COPYRIGHT_ORIGINAL, type: "string" },
     { backendKey: K.KEY_POST_COPY_COPYRIGHT_REPRINT, type: "string" },
-    { backendKey: K.KEY_POST_TOC_HASH_MODE, type: "string", defaultValue: "scroll" },
+    { backendKey: K.KEY_POST_TOC_HASH_MODE, type: "string", defaultValue: "replace" },
     { backendKey: K.KEY_POST_WAVES_ENABLE, type: "boolean", defaultValue: "true" },
-    { backendKey: K.KEY_POST_COPYRIGHT_ORIGINAL, type: "code" },
-    { backendKey: K.KEY_POST_COPYRIGHT_REPRINT_WITH_URL, type: "code" },
-    { backendKey: K.KEY_POST_COPYRIGHT_REPRINT_NO_URL, type: "code" },
+    { backendKey: K.KEY_POST_COPYRIGHT_ORIGINAL, type: "code", defaultValue: "" },
+    { backendKey: K.KEY_POST_COPYRIGHT_REPRINT_WITH_URL, type: "code", defaultValue: "" },
+    { backendKey: K.KEY_POST_COPYRIGHT_REPRINT_NO_URL, type: "code", defaultValue: "" },
     { backendKey: K.KEY_POST_SHOW_REWARD_BTN, type: "boolean", defaultValue: "true" },
     { backendKey: K.KEY_POST_SHOW_SHARE_BTN, type: "boolean", defaultValue: "true" },
     { backendKey: K.KEY_POST_SHOW_SUBSCRIBE_BTN, type: "boolean" },
@@ -323,10 +459,30 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_ARTICLE_REVIEW_PUSH_URL, type: "string", isPro: true },
     { backendKey: K.KEY_ARTICLE_REVIEW_WEBHOOK_BODY, type: "code", isPro: true },
     { backendKey: K.KEY_ARTICLE_REVIEW_WEBHOOK_HEADERS, type: "code", isPro: true },
-    { backendKey: K.KEY_ARTICLE_REVIEW_MAIL_SUBJECT_APPROVED, type: "string", isPro: true },
-    { backendKey: K.KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED, type: "code", isPro: true },
-    { backendKey: K.KEY_ARTICLE_REVIEW_MAIL_SUBJECT_REJECTED, type: "string", isPro: true },
-    { backendKey: K.KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED, type: "code", isPro: true },
+    {
+      backendKey: K.KEY_ARTICLE_REVIEW_MAIL_SUBJECT_APPROVED,
+      type: "string",
+      defaultValue: "【{{.SiteName}}】您的文章已通过审核",
+      isPro: true,
+    },
+    {
+      backendKey: K.KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED,
+      type: "code",
+      defaultValue: DEFAULT_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED,
+      isPro: true,
+    },
+    {
+      backendKey: K.KEY_ARTICLE_REVIEW_MAIL_SUBJECT_REJECTED,
+      type: "string",
+      defaultValue: "【{{.SiteName}}】您的文章审核未通过",
+      isPro: true,
+    },
+    {
+      backendKey: K.KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED,
+      type: "code",
+      defaultValue: DEFAULT_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED,
+      isPro: true,
+    },
   ],
   "content-file": [
     { backendKey: K.KEY_UPLOAD_ALLOWED_EXTENSIONS, type: "string" },

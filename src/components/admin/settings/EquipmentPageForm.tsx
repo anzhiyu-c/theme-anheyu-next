@@ -35,26 +35,26 @@ export function EquipmentPageForm({ values, onChange, loading }: EquipmentPageFo
         <FormImageUpload
           label="背景图"
           value={values[KEY_EQUIPMENT_BANNER_BG]}
-          onValueChange={(v) => onChange(KEY_EQUIPMENT_BANNER_BG, v)}
+          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_BG, v)}
           placeholder="请输入横幅背景图 URL"
         />
         <FormInput
           label="标题"
           placeholder="请输入页面标题"
           value={values[KEY_EQUIPMENT_BANNER_TITLE]}
-          onValueChange={(v) => onChange(KEY_EQUIPMENT_BANNER_TITLE, v)}
+          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_TITLE, v)}
         />
         <FormInput
           label="描述"
           placeholder="请输入页面描述"
           value={values[KEY_EQUIPMENT_BANNER_DESC]}
-          onValueChange={(v) => onChange(KEY_EQUIPMENT_BANNER_DESC, v)}
+          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_DESC, v)}
         />
         <FormInput
           label="提示文字"
           placeholder="请输入提示文字"
           value={values[KEY_EQUIPMENT_BANNER_TIP]}
-          onValueChange={(v) => onChange(KEY_EQUIPMENT_BANNER_TIP, v)}
+          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_TIP, v)}
         />
       </SettingsSection>
 
@@ -62,9 +62,11 @@ export function EquipmentPageForm({ values, onChange, loading }: EquipmentPageFo
       <SettingsSection title="装备列表">
         <FormJsonEditor
           label="装备配置"
-          description="装备列表 JSON 配置，包含分类和装备项"
+          description={
+            "JSON 数组，每项为分类对象，含 name 与 items。items 为装备项数组，每项可含 name、image、link、description 等字段。示例见后端文档或保留原 JSON 结构。"
+          }
           value={values[KEY_EQUIPMENT_LIST]}
-          onValueChange={(v) => onChange(KEY_EQUIPMENT_LIST, v)}
+          onValueChange={v => onChange(KEY_EQUIPMENT_LIST, v)}
           minRows={10}
         />
       </SettingsSection>

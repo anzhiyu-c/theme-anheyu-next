@@ -32,6 +32,8 @@ export interface FormInputProps {
   endContent?: React.ReactNode;
   /** 禁用状态 */
   disabled?: boolean;
+  /** 只读状态（展示用，不提交修改） */
+  readOnly?: boolean;
   /** 容器额外 className */
   className?: string;
   /** 输入框额外 className */
@@ -79,6 +81,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
       startContent,
       endContent,
       disabled,
+      readOnly,
       className,
       inputClassName,
       onKeyDown,
@@ -127,6 +130,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           startContent={startContent}
           endContent={resolvedEndContent}
           isDisabled={disabled}
+          isReadOnly={readOnly}
           onKeyDown={onKeyDown}
           autoComplete={autoComplete ?? (isPassword ? "new-password" : undefined)}
           aria-describedby={description || error ? descId : undefined}

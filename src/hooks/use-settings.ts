@@ -98,10 +98,10 @@ export function useSettings(categoryId: SettingCategoryId): UseSettingsReturn {
     };
   }, [categoryId, backendKeys, descriptors, reloadFlag, accessToken]);
 
-  const isDirty = useMemo(
-    () => Object.keys(getChangedValues(originalValues, values)).length > 0,
-    [originalValues, values]
-  );
+  const isDirty = useMemo(() => {
+    const changed = getChangedValues(originalValues, values, descriptors);
+    return Object.keys(changed).length > 0;
+  }, [originalValues, values, descriptors, categoryId]);
 
   const setValue = useCallback((key: string, value: string) => {
     setValuesState(prev => ({ ...prev, [key]: value }));
@@ -112,7 +112,7 @@ export function useSettings(categoryId: SettingCategoryId): UseSettingsReturn {
   }, []);
 
   const save = useCallback(async (): Promise<boolean> => {
-    const changed = getChangedValues(originalValues, values);
+    const changed = getChangedValues(originalValues, values, descriptors);
     if (Object.keys(changed).length === 0) {
       addToast({ title: "没有需要保存的更改", color: "warning" });
       return false;
@@ -135,7 +135,7 @@ export function useSettings(categoryId: SettingCategoryId): UseSettingsReturn {
     } finally {
       setSaving(false);
     }
-  }, [values, originalValues]);
+  }, [values, originalValues, descriptors]);
 
   const reset = useCallback(() => {
     setValuesState({ ...originalValues });
@@ -221,8 +221,8 @@ export function useMultiSettings(categoryIds: SettingCategoryId[]) {
   }, [allKeys, allDescriptors, reloadFlag, accessToken]);
 
   const isDirty = useMemo(
-    () => Object.keys(getChangedValues(allOriginal, allValues)).length > 0,
-    [allOriginal, allValues]
+    () => Object.keys(getChangedValues(allOriginal, allValues, allDescriptors)).length > 0,
+    [allOriginal, allValues, allDescriptors]
   );
 
   const setValue = useCallback((key: string, value: string) => {
@@ -230,7 +230,7 @@ export function useMultiSettings(categoryIds: SettingCategoryId[]) {
   }, []);
 
   const save = useCallback(async (): Promise<boolean> => {
-    const changed = getChangedValues(allOriginal, allValues);
+    const changed = getChangedValues(allOriginal, allValues, allDescriptors);
     if (Object.keys(changed).length === 0) {
       addToast({ title: "没有需要保存的更改", color: "warning" });
       return false;
@@ -248,7 +248,7 @@ export function useMultiSettings(categoryIds: SettingCategoryId[]) {
     } finally {
       setSaving(false);
     }
-  }, [allValues, allOriginal]);
+  }, [allValues, allOriginal, allDescriptors]);
 
   const reset = useCallback(() => {
     setAllValues({ ...allOriginal });

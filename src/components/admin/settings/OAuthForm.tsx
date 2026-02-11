@@ -96,6 +96,8 @@ export function OAuthForm({ values, onChange, loading }: OAuthFormProps) {
           placeholder="https://example.com/oauth/qq/callback"
           value={values[KEY_QQ_CALLBACK_URL]}
           onValueChange={v => onChange(KEY_QQ_CALLBACK_URL, v)}
+          readOnly
+          description="由站点地址自动生成，请在 QQ 互联控制台配置此地址"
         />
       </SettingsSection>
 
@@ -170,6 +172,8 @@ export function OAuthForm({ values, onChange, loading }: OAuthFormProps) {
           placeholder="https://example.com/oauth/wechat/callback"
           value={values[KEY_WECHAT_CALLBACK_URL]}
           onValueChange={v => onChange(KEY_WECHAT_CALLBACK_URL, v)}
+          readOnly
+          description="由站点地址自动生成，请在微信开放平台配置此地址"
         />
       </SettingsSection>
 
@@ -228,6 +232,8 @@ export function OAuthForm({ values, onChange, loading }: OAuthFormProps) {
           placeholder="https://example.com/oauth/logto/callback"
           value={values[KEY_LOGTO_CALLBACK_URL]}
           onValueChange={v => onChange(KEY_LOGTO_CALLBACK_URL, v)}
+          readOnly
+          description="由站点地址自动生成，请在 Logto 控制台配置此地址"
         />
       </SettingsSection>
 
@@ -285,6 +291,8 @@ export function OAuthForm({ values, onChange, loading }: OAuthFormProps) {
           placeholder="https://example.com/oauth/oidc/callback"
           value={values[KEY_OIDC_CALLBACK_URL]}
           onValueChange={v => onChange(KEY_OIDC_CALLBACK_URL, v)}
+          readOnly
+          description="由站点地址自动生成，请在 OIDC 提供商配置此地址"
         />
       </SettingsSection>
 
@@ -330,6 +338,8 @@ export function OAuthForm({ values, onChange, loading }: OAuthFormProps) {
           placeholder="https://example.com/oauth/rainbow/callback"
           value={values[KEY_RAINBOW_CALLBACK_URL]}
           onValueChange={v => onChange(KEY_RAINBOW_CALLBACK_URL, v)}
+          readOnly
+          description="由站点地址自动生成，请在 Rainbow 控制台配置此地址"
         />
       </SettingsSection>
     </div>

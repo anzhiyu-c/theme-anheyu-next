@@ -63,7 +63,9 @@ export function MusicPageForm({ values, onChange, loading }: MusicPageFormProps)
         />
         <FormJsonEditor
           label="全局自定义歌单"
-          description="全局播放器自定义歌单 JSON 配置，优先级高于歌单 ID"
+          description={
+            "JSON 数组，每项：id（可选）、name 歌名、artist 歌手、url 音频地址。填写后优先于上方「全局歌单 ID」使用。"
+          }
           value={values[KEY_MUSIC_PLAYER_CUSTOM_PLAYLIST]}
           onValueChange={v => onChange(KEY_MUSIC_PLAYER_CUSTOM_PLAYLIST, v)}
         />
@@ -79,7 +81,7 @@ export function MusicPageForm({ values, onChange, loading }: MusicPageFormProps)
         />
         <FormJsonEditor
           label="自定义歌单"
-          description="自定义歌单 JSON 配置，优先级高于歌单 ID"
+          description="JSON 数组，每项含 name、artist、url 等，格式同全局自定义歌单。填写后优先于上方歌单 ID。"
           value={values[KEY_MUSIC_CAPSULE_CUSTOM_PLAYLIST]}
           onValueChange={v => onChange(KEY_MUSIC_CAPSULE_CUSTOM_PLAYLIST, v)}
         />
@@ -95,7 +97,7 @@ export function MusicPageForm({ values, onChange, loading }: MusicPageFormProps)
         />
         <FormJsonEditor
           label="自定义歌单"
-          description="自定义歌单 JSON 配置，优先级高于歌单 ID"
+          description="JSON 数组，每项含 name、artist、url。与网易云歌单 ID 二选一，填写本项则优先使用自定义歌单。"
           value={values[KEY_MUSIC_PAGE_CUSTOM_PLAYLIST]}
           onValueChange={v => onChange(KEY_MUSIC_PAGE_CUSTOM_PLAYLIST, v)}
         />

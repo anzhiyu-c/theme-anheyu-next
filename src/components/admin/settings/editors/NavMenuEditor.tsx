@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import { Input } from "@heroui/react";
+import { Reorder, useDragControls } from "framer-motion";
+import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FormIconSelector } from "@/components/ui/form-icon-selector";
 
 // ─── 类型 ──────────────────────────────────────────────────────────
 
@@ -15,6 +18,7 @@ interface NavSubItem {
 interface NavGroup {
   title: string;
   items: NavSubItem[];
+  _id?: string;
 }
 
 interface NavMenuEditorProps {
@@ -34,10 +38,20 @@ function parseNavGroups(value: string | undefined): NavGroup[] {
   if (!value.trim()) return [];
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((g: NavGroup, i: number) => ({
+      ...g,
+      _id: g._id || `ng-${i}-${Math.random().toString(36).slice(2)}`,
+    }));
   } catch {
     return [];
   }
+}
+
+function serializeNavGroups(groups: NavGroup[]): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- omit _id for serialization
+  const strip = groups.map(({ _id: _, ...rest }) => rest);
+  return JSON.stringify(strip, null, 2);
 }
 
 // ─── 输入框 ─────────────────────────────────────────────────────
@@ -107,7 +121,15 @@ function NavSubItemRow({
           placeholder="https://..."
           onChange={v => onUpdate("link", v)}
         />
-        <SmallInput label="图标" value={item.icon || ""} placeholder="图标名称" onChange={v => onUpdate("icon", v)} />
+        <div className="flex flex-col gap-[5px]">
+          <label className="text-xs font-medium text-foreground/60">图标</label>
+          <FormIconSelector
+            value={item.icon || ""}
+            onValueChange={v => onUpdate("icon", v)}
+            placeholder="选择图标或输入 URL"
+            size="sm"
+          />
+        </div>
       </div>
       <div className="flex items-center gap-0.5 shrink-0 mt-5">
         <button
@@ -170,6 +192,7 @@ function NavGroupCard({
   onRemove,
   onMoveUp,
   onMoveDown,
+  reorderValue,
 }: {
   group: NavGroup;
   index: number;
@@ -179,8 +202,10 @@ function NavGroupCard({
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  reorderValue?: NavGroup;
 }) {
   const [expanded, setExpanded] = React.useState(false);
+  const dragControls = useDragControls();
   const subItems = group.items || [];
 
   const addSubItem = () => {
@@ -203,13 +228,25 @@ function NavGroupCard({
     onUpdate({ ...group, items: newSubs });
   };
 
-  return (
+  const content = (
     <div className="rounded-xl border border-default-200 bg-background overflow-hidden">
       {/* 头部 */}
       <div
         className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-default-50 transition-colors select-none"
         onClick={() => setExpanded(!expanded)}
       >
+        {reorderValue != null && (
+          <div
+            onPointerDown={e => {
+              e.stopPropagation();
+              dragControls.start(e);
+            }}
+            className="shrink-0 flex items-center justify-center w-7 self-stretch cursor-grab active:cursor-grabbing touch-none text-default-400 hover:text-foreground"
+            onClick={e => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+        )}
         <svg
           className={cn("w-4 h-4 text-default-400 transition-transform duration-200 shrink-0", expanded && "rotate-90")}
           fill="none"
@@ -327,6 +364,15 @@ function NavGroupCard({
       )}
     </div>
   );
+
+  if (reorderValue != null) {
+    return (
+      <Reorder.Item value={reorderValue} dragListener={false} dragControls={dragControls} className="relative">
+        {content}
+      </Reorder.Item>
+    );
+  }
+  return content;
 }
 
 // ─── 主组件 ───────────────────────────────────────────────────────
@@ -336,13 +382,13 @@ export function NavMenuEditor({ label, description, value, onValueChange, classN
 
   const updateGroups = React.useCallback(
     (newGroups: NavGroup[]) => {
-      onValueChange?.(JSON.stringify(newGroups, null, 2));
+      onValueChange?.(serializeNavGroups(newGroups));
     },
     [onValueChange]
   );
 
   const handleAdd = () => {
-    updateGroups([...groups, { title: "", items: [] }]);
+    updateGroups([...groups, { title: "", items: [], _id: `ng-${Date.now()}-${Math.random().toString(36).slice(2)}` }]);
   };
 
   const handleRemove = (index: number) => {
@@ -351,7 +397,7 @@ export function NavMenuEditor({ label, description, value, onValueChange, classN
 
   const handleUpdate = (index: number, updated: NavGroup) => {
     const newGroups = [...groups];
-    newGroups[index] = updated;
+    newGroups[index] = { ...updated, _id: groups[index]._id };
     updateGroups(newGroups);
   };
 
@@ -371,10 +417,10 @@ export function NavMenuEditor({ label, description, value, onValueChange, classN
       )}
 
       {groups.length > 0 ? (
-        <div className="flex flex-col gap-2">
+        <Reorder.Group axis="y" values={groups} onReorder={updateGroups} className="flex flex-col gap-2">
           {groups.map((group, index) => (
             <NavGroupCard
-              key={index}
+              key={group._id ?? index}
               group={group}
               index={index}
               isFirst={index === 0}
@@ -383,9 +429,10 @@ export function NavMenuEditor({ label, description, value, onValueChange, classN
               onRemove={() => handleRemove(index)}
               onMoveUp={() => handleMove(index, index - 1)}
               onMoveDown={() => handleMove(index, index + 1)}
+              reorderValue={group}
             />
           ))}
-        </div>
+        </Reorder.Group>
       ) : (
         <div className="rounded-xl border-2 border-dashed border-default-200 py-6 text-center">
           <p className="text-sm text-default-400">暂无菜单分组</p>

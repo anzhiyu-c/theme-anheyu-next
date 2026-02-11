@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@heroui/react";
+import { Input, Switch } from "@heroui/react";
+import { Reorder, useDragControls } from "framer-motion";
+import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ─── 类型 ──────────────────────────────────────────────────────────
@@ -9,11 +11,13 @@ import { cn } from "@/lib/utils";
 interface ProjectLink {
   title: string;
   link: string;
+  external?: boolean;
 }
 
 interface ProjectGroup {
   title: string;
   links: ProjectLink[];
+  _id?: string;
 }
 
 interface ProjectListEditorProps {
@@ -33,10 +37,20 @@ function parseGroups(value: string | undefined): ProjectGroup[] {
   if (!value.trim()) return [];
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((g: ProjectGroup, i: number) => ({
+      ...g,
+      _id: g._id || `pg-${i}-${Math.random().toString(36).slice(2)}`,
+    }));
   } catch {
     return [];
   }
+}
+
+function serializeGroups(groups: ProjectGroup[]): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- omit _id for serialization
+  const strip = groups.map(({ _id: _, ...rest }) => rest);
+  return JSON.stringify(strip, null, 2);
 }
 
 // ─── 输入框 ─────────────────────────────────────────────────────
@@ -90,7 +104,7 @@ function LinkRow({
   index: number;
   isFirst: boolean;
   isLast: boolean;
-  onUpdate: (field: keyof ProjectLink, val: string) => void;
+  onUpdate: (field: keyof ProjectLink, val: string | boolean) => void;
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -107,7 +121,17 @@ function LinkRow({
           onChange={v => onUpdate("link", v)}
         />
       </div>
-      <div className="flex items-center gap-0.5 shrink-0 mt-5">
+      <div className="flex items-center gap-2 shrink-0 mt-5">
+        <div className="flex items-center gap-1.5">
+          <label className="text-xs text-foreground/60 whitespace-nowrap">新标签页</label>
+          <Switch
+            size="sm"
+            isSelected={!!item.external}
+            onValueChange={v => onUpdate("external", v)}
+            aria-label="新标签页打开"
+            classNames={{ wrapper: "group-data-[selected=true]:bg-primary" }}
+          />
+        </div>
         <button
           type="button"
           onClick={onMoveUp}
@@ -165,6 +189,7 @@ function GroupCard({
   onRemove,
   onMoveUp,
   onMoveDown,
+  reorderValue,
 }: {
   group: ProjectGroup;
   index: number;
@@ -174,19 +199,21 @@ function GroupCard({
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  reorderValue?: ProjectGroup;
 }) {
   const [expanded, setExpanded] = React.useState(false);
+  const dragControls = useDragControls();
   const links = group.links || [];
 
   const addLink = () => {
-    onUpdate({ ...group, links: [...links, { title: "", link: "" }] });
+    onUpdate({ ...group, links: [...links, { title: "", link: "", external: false }] });
   };
 
   const removeLink = (idx: number) => {
     onUpdate({ ...group, links: links.filter((_, i) => i !== idx) });
   };
 
-  const updateLink = (idx: number, field: keyof ProjectLink, val: string) => {
+  const updateLink = (idx: number, field: keyof ProjectLink, val: string | boolean) => {
     const newLinks = [...links];
     newLinks[idx] = { ...newLinks[idx], [field]: val };
     onUpdate({ ...group, links: newLinks });
@@ -198,12 +225,24 @@ function GroupCard({
     onUpdate({ ...group, links: newLinks });
   };
 
-  return (
+  const content = (
     <div className="rounded-xl border border-default-200 bg-background overflow-hidden">
       <div
         className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-default-50 transition-colors select-none"
         onClick={() => setExpanded(!expanded)}
       >
+        {reorderValue != null && (
+          <div
+            onPointerDown={e => {
+              e.stopPropagation();
+              dragControls.start(e);
+            }}
+            className="shrink-0 flex items-center justify-center w-7 self-stretch cursor-grab active:cursor-grabbing touch-none text-default-400 hover:text-foreground"
+            onClick={e => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+        )}
         <svg
           className={cn("w-4 h-4 text-default-400 transition-transform duration-200 shrink-0", expanded && "rotate-90")}
           fill="none"
@@ -316,6 +355,15 @@ function GroupCard({
       )}
     </div>
   );
+
+  if (reorderValue != null) {
+    return (
+      <Reorder.Item value={reorderValue} dragListener={false} dragControls={dragControls} className="relative">
+        {content}
+      </Reorder.Item>
+    );
+  }
+  return content;
 }
 
 // ─── 主组件 ───────────────────────────────────────────────────────
@@ -325,13 +373,13 @@ export function ProjectListEditor({ label, description, value, onValueChange, cl
 
   const updateGroups = React.useCallback(
     (newGroups: ProjectGroup[]) => {
-      onValueChange?.(JSON.stringify(newGroups, null, 2));
+      onValueChange?.(serializeGroups(newGroups));
     },
     [onValueChange]
   );
 
   const handleAdd = () => {
-    updateGroups([...groups, { title: "", links: [] }]);
+    updateGroups([...groups, { title: "", links: [], _id: `pg-${Date.now()}-${Math.random().toString(36).slice(2)}` }]);
   };
 
   const handleRemove = (index: number) => {
@@ -340,7 +388,7 @@ export function ProjectListEditor({ label, description, value, onValueChange, cl
 
   const handleUpdate = (index: number, updated: ProjectGroup) => {
     const newGroups = [...groups];
-    newGroups[index] = updated;
+    newGroups[index] = { ...updated, _id: groups[index]._id };
     updateGroups(newGroups);
   };
 
@@ -360,10 +408,10 @@ export function ProjectListEditor({ label, description, value, onValueChange, cl
       )}
 
       {groups.length > 0 ? (
-        <div className="flex flex-col gap-2">
+        <Reorder.Group axis="y" values={groups} onReorder={updateGroups} className="flex flex-col gap-2">
           {groups.map((group, index) => (
             <GroupCard
-              key={index}
+              key={group._id ?? index}
               group={group}
               index={index}
               isFirst={index === 0}
@@ -372,9 +420,10 @@ export function ProjectListEditor({ label, description, value, onValueChange, cl
               onRemove={() => handleRemove(index)}
               onMoveUp={() => handleMove(index, index - 1)}
               onMoveDown={() => handleMove(index, index + 1)}
+              reorderValue={group}
             />
           ))}
-        </div>
+        </Reorder.Group>
       ) : (
         <div className="rounded-xl border-2 border-dashed border-default-200 py-6 text-center">
           <p className="text-sm text-default-400">暂无项目分组</p>

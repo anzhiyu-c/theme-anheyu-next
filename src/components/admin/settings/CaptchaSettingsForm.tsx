@@ -48,72 +48,75 @@ export function CaptchaSettingsForm({ values, onChange, loading }: CaptchaSettin
         </FormSelect>
       </SettingsSection>
 
-      {/* Turnstile 配置 */}
-      <SettingsSection title="Turnstile 配置">
-        <FormSwitch
-          label="启用 Turnstile"
-          description="兼容旧配置，建议优先使用「验证码提供商」选择"
-          checked={values[KEY_TURNSTILE_ENABLE] === "true"}
-          onCheckedChange={v => onChange(KEY_TURNSTILE_ENABLE, String(v))}
-        />
-        <SettingsFieldGroup cols={2}>
-          <FormInput
-            label="Site Key"
-            placeholder="请输入 Turnstile Site Key"
-            value={values[KEY_TURNSTILE_SITE_KEY]}
-            onValueChange={v => onChange(KEY_TURNSTILE_SITE_KEY, v)}
-            autoComplete="off"
+      {values[KEY_CAPTCHA_PROVIDER] === "turnstile" && (
+        <SettingsSection title="Turnstile 配置">
+          <FormSwitch
+            label="启用 Turnstile"
+            description="兼容旧配置，建议优先使用「验证码提供商」选择"
+            checked={values[KEY_TURNSTILE_ENABLE] === "true"}
+            onCheckedChange={v => onChange(KEY_TURNSTILE_ENABLE, String(v))}
           />
-          <FormInput
-            label="Secret Key"
-            placeholder="请输入 Turnstile Secret Key"
-            type="password"
-            value={values[KEY_TURNSTILE_SECRET_KEY]}
-            onValueChange={v => onChange(KEY_TURNSTILE_SECRET_KEY, v)}
-            autoComplete="new-password"
-          />
-        </SettingsFieldGroup>
-      </SettingsSection>
+          <SettingsFieldGroup cols={2}>
+            <FormInput
+              label="Site Key"
+              placeholder="请输入 Turnstile Site Key"
+              value={values[KEY_TURNSTILE_SITE_KEY]}
+              onValueChange={v => onChange(KEY_TURNSTILE_SITE_KEY, v)}
+              autoComplete="off"
+            />
+            <FormInput
+              label="Secret Key"
+              placeholder="请输入 Turnstile Secret Key"
+              type="password"
+              value={values[KEY_TURNSTILE_SECRET_KEY]}
+              onValueChange={v => onChange(KEY_TURNSTILE_SECRET_KEY, v)}
+              autoComplete="new-password"
+            />
+          </SettingsFieldGroup>
+        </SettingsSection>
+      )}
 
-      {/* GeeTest 配置 */}
-      <SettingsSection title="GeeTest 配置">
-        <SettingsFieldGroup cols={2}>
-          <FormInput
-            label="Captcha ID"
-            placeholder="请输入极验 Captcha ID"
-            value={values[KEY_GEETEST_CAPTCHA_ID]}
-            onValueChange={v => onChange(KEY_GEETEST_CAPTCHA_ID, v)}
-            autoComplete="off"
-          />
-          <FormInput
-            label="Captcha Key"
-            placeholder="请输入极验 Captcha Key"
-            type="password"
-            value={values[KEY_GEETEST_CAPTCHA_KEY]}
-            onValueChange={v => onChange(KEY_GEETEST_CAPTCHA_KEY, v)}
-            autoComplete="new-password"
-          />
-        </SettingsFieldGroup>
-      </SettingsSection>
+      {values[KEY_CAPTCHA_PROVIDER] === "geetest" && (
+        <SettingsSection title="GeeTest 配置">
+          <SettingsFieldGroup cols={2}>
+            <FormInput
+              label="Captcha ID"
+              placeholder="请输入极验 Captcha ID"
+              value={values[KEY_GEETEST_CAPTCHA_ID]}
+              onValueChange={v => onChange(KEY_GEETEST_CAPTCHA_ID, v)}
+              autoComplete="off"
+            />
+            <FormInput
+              label="Captcha Key"
+              placeholder="请输入极验 Captcha Key"
+              type="password"
+              value={values[KEY_GEETEST_CAPTCHA_KEY]}
+              onValueChange={v => onChange(KEY_GEETEST_CAPTCHA_KEY, v)}
+              autoComplete="new-password"
+            />
+          </SettingsFieldGroup>
+        </SettingsSection>
+      )}
 
-      {/* 图形验证码 */}
-      <SettingsSection title="图形验证码">
-        <SettingsFieldGroup cols={2}>
-          <FormInput
-            label="验证码长度"
-            placeholder="请输入验证码字符长度"
-            value={values[KEY_IMAGE_CAPTCHA_LENGTH]}
-            onValueChange={v => onChange(KEY_IMAGE_CAPTCHA_LENGTH, v)}
-          />
-          <FormInput
-            label="过期时间"
-            placeholder="请输入过期时间"
-            value={values[KEY_IMAGE_CAPTCHA_EXPIRE]}
-            onValueChange={v => onChange(KEY_IMAGE_CAPTCHA_EXPIRE, v)}
-            description="单位：秒"
-          />
-        </SettingsFieldGroup>
-      </SettingsSection>
+      {values[KEY_CAPTCHA_PROVIDER] === "image" && (
+        <SettingsSection title="图形验证码">
+          <SettingsFieldGroup cols={2}>
+            <FormInput
+              label="验证码长度"
+              placeholder="请输入验证码字符长度"
+              value={values[KEY_IMAGE_CAPTCHA_LENGTH]}
+              onValueChange={v => onChange(KEY_IMAGE_CAPTCHA_LENGTH, v)}
+            />
+            <FormInput
+              label="过期时间"
+              placeholder="请输入过期时间"
+              value={values[KEY_IMAGE_CAPTCHA_EXPIRE]}
+              onValueChange={v => onChange(KEY_IMAGE_CAPTCHA_EXPIRE, v)}
+              description="单位：秒"
+            />
+          </SettingsFieldGroup>
+        </SettingsSection>
+      )}
     </div>
   );
 }

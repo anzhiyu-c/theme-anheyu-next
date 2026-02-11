@@ -4,6 +4,8 @@ import { FormInput } from "@/components/ui/form-input";
 import { FormSwitch } from "@/components/ui/form-switch";
 import { FormJsonEditor } from "@/components/ui/form-json-editor";
 import { FormCodeEditor } from "@/components/ui/form-code-editor";
+import { FormStringList } from "@/components/ui/form-string-list";
+import { PlaceholderHelpPanel } from "@/components/ui/placeholder-help-panel";
 import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -56,11 +58,13 @@ export function FriendLinkSettingsForm({ values, onChange, loading }: FriendLink
           value={values[KEY_FRIEND_LINK_DEFAULT_CATEGORY]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_DEFAULT_CATEGORY, v)}
         />
-        <FormJsonEditor
+        <FormStringList
           label="申请条件"
-          description="友链申请条件 JSON 配置"
+          description="申请友链时用户需勾选的条款，每行一条，支持 HTML（如 <b>加粗</b>）"
           value={values[KEY_FRIEND_LINK_APPLY_CONDITION]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_APPLY_CONDITION, v)}
+          placeholder="例如：我已添加贵站友链"
+          addButtonText="添加条件"
         />
       </SettingsSection>
 
@@ -113,15 +117,19 @@ export function FriendLinkSettingsForm({ values, onChange, loading }: FriendLink
         />
         <FormCodeEditor
           label="自定义 HTML"
-          description="友链申请页面自定义 HTML 内容"
+          description="友链申请页自定义 HTML，支持 <details> 折叠、<b> 加粗等，提交后输出到页面"
           language="html"
           value={values[KEY_FRIEND_LINK_APPLY_CUSTOM_CODE_HTML]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_APPLY_CUSTOM_CODE_HTML, v)}
+          minRows={6}
         />
       </SettingsSection>
 
       {/* 通知配置 */}
-      <SettingsSection title="通知配置">
+      <SettingsSection
+        title="通知配置"
+        description="友链申请提交后可通知管理员（邮件、Pushoo、Webhook）。Webhook 请求体可包含申请信息变量，由后端替换后发送。"
+      >
         <FormSwitch
           label="通知管理员"
           description="有新的友链申请时通知管理员"
@@ -150,13 +158,13 @@ export function FriendLinkSettingsForm({ values, onChange, loading }: FriendLink
         </SettingsFieldGroup>
         <FormJsonEditor
           label="Webhook Body"
-          description="Webhook 请求体 JSON 模板"
+          description="Webhook 请求体 JSON，可包含申请相关变量（如站点名、URL、描述等），具体变量名以后端为准"
           value={values[KEY_FRIEND_LINK_WEBHOOK_BODY]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_WEBHOOK_BODY, v)}
         />
         <FormJsonEditor
           label="Webhook Headers"
-          description="Webhook 请求头 JSON"
+          description={'请求头 JSON，如 {"Content-Type": "application/json"}，用于鉴权等'}
           value={values[KEY_FRIEND_LINK_WEBHOOK_HEADERS]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_WEBHOOK_HEADERS, v)}
         />
@@ -172,11 +180,26 @@ export function FriendLinkSettingsForm({ values, onChange, loading }: FriendLink
           value={values[KEY_FRIEND_LINK_MAIL_TEMPLATE_ADMIN]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_MAIL_TEMPLATE_ADMIN, v)}
           minRows={6}
+          description="HTML 模板，具体可用变量以后端渲染为准。"
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="常见变量，点击可复制；以实际后端为准"
+          items={[
+            { variable: "{{site_name}}", description: "站点名称" },
+            { variable: "{{apply_site_name}}", description: "申请者站点名" },
+            { variable: "{{apply_url}}", description: "申请者 URL" },
+            { variable: "{{apply_desc}}", description: "申请描述" },
+          ]}
+          className="mt-2"
         />
       </SettingsSection>
 
       {/* 审核邮件 */}
-      <SettingsSection title="审核邮件">
+      <SettingsSection
+        title="审核邮件"
+        description="审核通过或拒绝后，可向申请者发送邮件。模板中可使用站点名、友链页地址等变量。"
+      >
         <FormSwitch
           label="启用审核邮件"
           description="友链审核结果通过邮件通知申请者"
@@ -195,6 +218,16 @@ export function FriendLinkSettingsForm({ values, onChange, loading }: FriendLink
           value={values[KEY_FRIEND_LINK_REVIEW_MAIL_TEMPLATE_APPROVED]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_REVIEW_MAIL_TEMPLATE_APPROVED, v)}
           minRows={6}
+          description="具体可用变量以后端为准。"
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="常见变量，点击可复制；以实际后端为准"
+          items={[
+            { variable: "{{site_name}}", description: "站点名称" },
+            { variable: "{{flink_url}}", description: "友链页地址" },
+          ]}
+          className="mt-2"
         />
         <FormInput
           label="拒绝邮件主题"
@@ -208,6 +241,16 @@ export function FriendLinkSettingsForm({ values, onChange, loading }: FriendLink
           value={values[KEY_FRIEND_LINK_REVIEW_MAIL_TEMPLATE_REJECTED]}
           onValueChange={v => onChange(KEY_FRIEND_LINK_REVIEW_MAIL_TEMPLATE_REJECTED, v)}
           minRows={6}
+          description="具体可用变量以后端为准。"
+        />
+        <PlaceholderHelpPanel
+          title="可用占位符"
+          subtitle="常见变量，点击可复制；以实际后端为准"
+          items={[
+            { variable: "{{site_name}}", description: "站点名称" },
+            { variable: "{{flink_url}}", description: "友链页地址" },
+          ]}
+          className="mt-2"
         />
       </SettingsSection>
     </div>

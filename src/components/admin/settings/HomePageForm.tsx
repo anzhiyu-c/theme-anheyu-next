@@ -1,8 +1,12 @@
 "use client";
 
+import * as React from "react";
 import { FormInput } from "@/components/ui/form-input";
 import { FormSwitch } from "@/components/ui/form-switch";
 import { FormImageUpload } from "@/components/ui/form-image-upload";
+import { DatePicker } from "@heroui/date-picker";
+import { parseDateTime, CalendarDateTime as CalDateTime } from "@internationalized/date";
+import type { CalendarDateTime } from "@internationalized/date";
 import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -19,7 +23,6 @@ import {
   KEY_CREATIVITY,
   KEY_HEADER_MENU,
   KEY_HEADER_NAV_TRAVELLING,
-  KEY_HEADER_NAV_CLOCK,
   KEY_HEADER_NAV_MENU,
   KEY_FRONT_DESK_SITE_OWNER_NAME,
   KEY_FRONT_DESK_SITE_OWNER_EMAIL,
@@ -79,12 +82,79 @@ const defaultBadge: Record<string, unknown> = {
 const linkFields: FieldDef[] = [
   { key: "text", label: "文本", type: "text", placeholder: "链接文本" },
   { key: "link", label: "链接", type: "url", placeholder: "https://..." },
+  { key: "external", label: "新标签页打开", type: "switch" },
 ];
 
 const defaultLink: Record<string, unknown> = {
   text: "",
   link: "",
+  external: false,
 };
+
+// ─── 上线时间解析/格式化（后端格式 YYYY-MM-DD HH:mm:ss 或 MM/DD/YYYY HH:mm:ss） ───
+
+function parseLaunchTime(value: string | undefined): CalendarDateTime | null {
+  if (!value?.trim()) return null;
+  const s = value.trim();
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (isoMatch) {
+    const iso = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}T${isoMatch[4] || "00"}:${isoMatch[5] || "00"}:${
+      isoMatch[6] || "00"
+    }`;
+    try {
+      return parseDateTime(iso);
+    } catch {
+      return null;
+    }
+  }
+  const usMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (usMatch) {
+    const month = parseInt(usMatch[1], 10);
+    const day = parseInt(usMatch[2], 10);
+    const year = parseInt(usMatch[3], 10);
+    const hour = usMatch[4] ? parseInt(usMatch[4], 10) : 0;
+    const minute = usMatch[5] ? parseInt(usMatch[5], 10) : 0;
+    const second = usMatch[6] ? parseInt(usMatch[6], 10) : 0;
+    return new CalDateTime(year, month, day, hour, minute, second);
+  }
+  return null;
+}
+
+function formatLaunchTime(d: CalendarDateTime): string {
+  return d.toString().replace("T", " ");
+}
+
+function LaunchTimePicker({
+  label,
+  value,
+  onValueChange,
+  description,
+}: {
+  label: string;
+  value: string;
+  onValueChange: (v: string) => void;
+  description?: string;
+}) {
+  const dateValue = React.useMemo(() => parseLaunchTime(value), [value]);
+  return (
+    <div className="flex flex-col gap-2">
+      {label && <label className="text-sm font-medium text-foreground/70">{label}</label>}
+      <DatePicker
+        label={undefined}
+        granularity="minute"
+        value={dateValue ?? undefined}
+        onChange={d => {
+          if (d) onValueChange(formatLaunchTime(d as CalendarDateTime));
+        }}
+        labelPlacement="outside"
+        classNames={{
+          inputWrapper: "bg-default-100/50 border border-default-200 rounded-lg shadow-none min-h-9",
+        }}
+      />
+      {description && <p className="text-xs text-default-400">{description}</p>}
+    </div>
+  );
+}
 
 // ─── 主组件 ────────────────────────────────────────────────────
 
@@ -196,20 +266,19 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
           onCheckedChange={v => onChange(KEY_FOOTER_RUNTIME_ENABLE, String(v))}
         />
 
-        <FormInput
+        <LaunchTimePicker
           label="上线时间"
-          placeholder="例如：2020-01-01 00:00:00"
           value={values[KEY_FOOTER_RUNTIME_LAUNCH_TIME]}
           onValueChange={v => onChange(KEY_FOOTER_RUNTIME_LAUNCH_TIME, v)}
           description="站点上线时间，用于计算运行时长"
         />
 
         <SettingsFieldGroup cols={2}>
-          <FormInput
+          <FormImageUpload
             label="工作状态图片"
-            placeholder="工作状态图标 URL"
             value={values[KEY_FOOTER_RUNTIME_WORK_IMG]}
             onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_IMG, v)}
+            description="工作状态时显示的图片"
           />
           <FormInput
             label="工作状态描述"
@@ -220,11 +289,11 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
         </SettingsFieldGroup>
 
         <SettingsFieldGroup cols={2}>
-          <FormInput
+          <FormImageUpload
             label="休息状态图片"
-            placeholder="休息状态图标 URL"
             value={values[KEY_FOOTER_RUNTIME_OFFDUTY_IMG]}
             onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_IMG, v)}
+            description="休息状态时显示的图片"
           />
           <FormInput
             label="休息状态描述"
@@ -318,16 +387,18 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
           onCheckedChange={v => onChange(KEY_FOOTER_BADGE_ENABLE, String(v))}
         />
 
-        <VisualArrayEditor
-          label="徽章列表"
-          value={values[KEY_FOOTER_BADGE_LIST]}
-          onValueChange={v => onChange(KEY_FOOTER_BADGE_LIST, v)}
-          fields={badgeFields}
-          defaultItem={defaultBadge}
-          itemLabel={item => (item.title as string) || "未命名徽章"}
-          addButtonText="添加徽章"
-          description="页脚徽章配置列表"
-        />
+        {values[KEY_FOOTER_BADGE_ENABLE] === "true" && (
+          <VisualArrayEditor
+            label="徽章列表"
+            value={values[KEY_FOOTER_BADGE_LIST]}
+            onValueChange={v => onChange(KEY_FOOTER_BADGE_LIST, v)}
+            fields={badgeFields}
+            defaultItem={defaultBadge}
+            itemLabel={item => (item.title as string) || "未命名徽章"}
+            addButtonText="添加徽章"
+            description="页脚徽章配置列表"
+          />
+        )}
       </SettingsSection>
 
       {/* Uptime Kuma */}
@@ -339,13 +410,15 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
           onCheckedChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_ENABLE, String(v))}
         />
 
-        <FormInput
-          label="Uptime Kuma 页面地址"
-          placeholder="https://status.example.com"
-          value={values[KEY_FOOTER_UPTIME_KUMA_PAGE_URL]}
-          onValueChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_PAGE_URL, v)}
-          description="Uptime Kuma 状态页面的 URL"
-        />
+        {values[KEY_FOOTER_UPTIME_KUMA_ENABLE] === "true" && (
+          <FormInput
+            label="Uptime Kuma 页面地址"
+            placeholder="https://status.example.com"
+            value={values[KEY_FOOTER_UPTIME_KUMA_PAGE_URL]}
+            onValueChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_PAGE_URL, v)}
+            description="Uptime Kuma 状态页面的 URL"
+          />
+        )}
       </SettingsSection>
     </div>
   );

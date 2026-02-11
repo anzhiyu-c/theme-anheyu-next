@@ -3,6 +3,7 @@
 import { FormInput } from "@/components/ui/form-input";
 import { FormSwitch } from "@/components/ui/form-switch";
 import { FormImageUpload } from "@/components/ui/form-image-upload";
+import { FormCodeEditor } from "@/components/ui/form-code-editor";
 import { FormStringList } from "@/components/ui/form-string-list";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
 import { HighlightTagSelector } from "./editors/HighlightTagSelector";
@@ -84,11 +85,13 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
           onCheckedChange={v => onChange(KEY_SIDEBAR_AUTHOR_ENABLE, String(v))}
         />
 
-        <FormInput
+        <FormCodeEditor
           label="作者描述"
-          placeholder="一句话介绍自己"
           value={values[KEY_SIDEBAR_AUTHOR_DESCRIPTION]}
           onValueChange={v => onChange(KEY_SIDEBAR_AUTHOR_DESCRIPTION, v)}
+          language="text"
+          minRows={4}
+          description="支持多行与简单 HTML，用于侧边栏作者卡片"
         />
 
         <FormImageUpload
@@ -284,7 +287,20 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
               type="password"
               value={values[KEY_WEATHER_QWEATHER_KEY]}
               onValueChange={v => onChange(KEY_WEATHER_QWEATHER_KEY, v)}
-              description={<>从 <a href="https://dev.qweather.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">和风天气开发平台</a> 获取</>}
+              description={
+                <>
+                  从{" "}
+                  <a
+                    href="https://dev.qweather.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    和风天气开发平台
+                  </a>{" "}
+                  获取
+                </>
+              }
             />
 
             <FormInput
@@ -301,7 +317,20 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
               type="password"
               value={values[KEY_WEATHER_IP_API_KEY]}
               onValueChange={v => onChange(KEY_WEATHER_IP_API_KEY, v)}
-              description={<>用于获取访问者地理位置，从 <a href="https://api.nsuuu.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">NSUUU API</a> 获取</>}
+              description={
+                <>
+                  用于获取访问者地理位置，从{" "}
+                  <a
+                    href="https://api.nsuuu.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    NSUUU API
+                  </a>{" "}
+                  获取
+                </>
+              }
             />
 
             <FormInput
@@ -324,7 +353,9 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
               placeholder="格式: 经度,纬度 (例: 112.6534116,27.96920845)"
               value={values[KEY_WEATHER_RECTANGLE]}
               onValueChange={v => onChange(KEY_WEATHER_RECTANGLE, v)}
-              description={'获取访问者位置失败时会显示该位置的天气；开启\u201c默认显示固定位置\u201d后，将始终显示此位置的天气'}
+              description={
+                "获取访问者位置失败时会显示该位置的天气；开启\u201c默认显示固定位置\u201d后，将始终显示此位置的天气"
+              }
             />
           </>
         )}

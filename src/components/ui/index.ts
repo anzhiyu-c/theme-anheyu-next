@@ -6,3 +6,4 @@ export * from "./tooltip";
 export * from "./badge";
 export * from "./spinner";
 export * from "./menu-icon";
+export * from "./placeholder-help-panel";

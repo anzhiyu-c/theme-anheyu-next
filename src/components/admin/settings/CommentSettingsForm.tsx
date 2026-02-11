@@ -335,7 +335,10 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
       </SettingsSection>
 
       {/* 邮件模板 */}
-      <SettingsSection title="邮件模板">
+      <SettingsSection
+        title="邮件模板"
+        description="评论回复通知发给被回复用户，管理员通知在收到新评论时发给站长。下方模板支持变量替换。"
+      >
         <SettingsFieldGroup cols={2}>
           <FormInput
             label="回复通知邮件主题"

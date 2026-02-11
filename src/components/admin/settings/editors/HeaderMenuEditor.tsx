@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import { Input, Select, SelectItem, Switch } from "@heroui/react";
+import { Reorder, useDragControls } from "framer-motion";
+import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FormIconSelector } from "@/components/ui/form-icon-selector";
 
 // ─── 类型 ──────────────────────────────────────────────────────────
 
@@ -20,6 +23,7 @@ interface MenuItem {
   icon?: string;
   isExternal?: boolean;
   items?: MenuSubItem[];
+  _id?: string;
 }
 
 interface HeaderMenuEditorProps {
@@ -39,10 +43,20 @@ function parseMenuArray(value: string | undefined): MenuItem[] {
   if (!value.trim()) return [];
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((it: MenuItem, i: number) => ({
+      ...it,
+      _id: (it as MenuItem)._id || `mi-${i}-${Math.random().toString(36).slice(2)}`,
+    }));
   } catch {
     return [];
   }
+}
+
+function serializeMenuItems(items: MenuItem[]): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- omit _id for serialization
+  const strip = items.map(({ _id: _, ...rest }) => rest);
+  return JSON.stringify(strip, null, 2);
 }
 
 const defaultMenuItem: MenuItem = {
@@ -128,7 +142,15 @@ function SubItemRow({
           onChange={v => onUpdate("title", v)}
         />
         <SmallInput label="路径" value={item.path || ""} placeholder="/path" onChange={v => onUpdate("path", v)} />
-        <SmallInput label="图标" value={item.icon || ""} placeholder="图标名称" onChange={v => onUpdate("icon", v)} />
+        <div className="flex flex-col gap-[5px]">
+          <label className="text-xs font-medium text-foreground/60">图标</label>
+          <FormIconSelector
+            value={item.icon || ""}
+            onValueChange={v => onUpdate("icon", v)}
+            placeholder="选择图标或输入 URL"
+            size="sm"
+          />
+        </div>
       </div>
       <div className="flex items-center gap-0.5 shrink-0 mt-5">
         {/* 外部链接开关 */}
@@ -198,7 +220,7 @@ function SubItemRow({
   );
 }
 
-// ─── 菜单项组件 ─────────────────────────────────────────────────
+// ─── 菜单项组件（用于 Reorder.Item，需接收 reorderValue） ─────────
 
 function MenuItemCard({
   item,
@@ -209,6 +231,8 @@ function MenuItemCard({
   onRemove,
   onMoveUp,
   onMoveDown,
+  reorderValue,
+  dragHandleProps,
 }: {
   item: MenuItem;
   index: number;
@@ -218,9 +242,12 @@ function MenuItemCard({
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  reorderValue?: MenuItem;
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }) {
   const [expanded, setExpanded] = React.useState(false);
   const isDropdown = item.type === "dropdown";
+  const dragControls = useDragControls();
 
   const handleFieldChange = (field: keyof MenuItem, val: unknown) => {
     onUpdate({ ...item, [field]: val });
@@ -249,13 +276,25 @@ function MenuItemCard({
     onUpdate({ ...item, items: newSubs });
   };
 
-  return (
+  const content = (
     <div className="rounded-xl border border-default-200 bg-background overflow-hidden transition-all duration-200">
       {/* 头部 */}
       <div
         className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-default-50 transition-colors select-none"
         onClick={() => setExpanded(!expanded)}
       >
+        {dragHandleProps && (
+          <div
+            onPointerDown={e => {
+              e.stopPropagation();
+              dragControls.start(e);
+            }}
+            className="shrink-0 flex items-center justify-center w-7 self-stretch cursor-grab active:cursor-grabbing touch-none text-default-400 hover:text-foreground"
+            onClick={e => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+        )}
         <svg
           className={cn("w-4 h-4 text-default-400 transition-transform duration-200 shrink-0", expanded && "rotate-90")}
           fill="none"
@@ -374,12 +413,15 @@ function MenuItemCard({
                 onChange={v => handleFieldChange("path", v)}
               />
             )}
-            <SmallInput
-              label="图标"
-              value={item.icon || ""}
-              placeholder="图标名称"
-              onChange={v => handleFieldChange("icon", v)}
-            />
+            <div className="flex flex-col gap-[5px]">
+              <label className="text-xs font-medium text-foreground/60">图标</label>
+              <FormIconSelector
+                value={item.icon || ""}
+                onValueChange={v => handleFieldChange("icon", v)}
+                placeholder="选择图标或输入 URL"
+                size="sm"
+              />
+            </div>
           </div>
 
           {/* 外部链接开关 */}
@@ -446,6 +488,15 @@ function MenuItemCard({
       )}
     </div>
   );
+
+  if (reorderValue != null) {
+    return (
+      <Reorder.Item value={reorderValue} dragListener={false} dragControls={dragControls} className="relative">
+        {content}
+      </Reorder.Item>
+    );
+  }
+  return content;
 }
 
 // ─── 主组件 ───────────────────────────────────────────────────────
@@ -455,13 +506,13 @@ export function HeaderMenuEditor({ label, description, value, onValueChange, cla
 
   const updateItems = React.useCallback(
     (newItems: MenuItem[]) => {
-      onValueChange?.(JSON.stringify(newItems, null, 2));
+      onValueChange?.(serializeMenuItems(newItems));
     },
     [onValueChange]
   );
 
   const handleAdd = () => {
-    updateItems([...items, { ...defaultMenuItem }]);
+    updateItems([...items, { ...defaultMenuItem, _id: `mi-${Date.now()}-${Math.random().toString(36).slice(2)}` }]);
   };
 
   const handleRemove = (index: number) => {
@@ -470,7 +521,7 @@ export function HeaderMenuEditor({ label, description, value, onValueChange, cla
 
   const handleUpdate = (index: number, updated: MenuItem) => {
     const newItems = [...items];
-    newItems[index] = updated;
+    newItems[index] = { ...updated, _id: items[index]._id };
     updateItems(newItems);
   };
 
@@ -490,10 +541,10 @@ export function HeaderMenuEditor({ label, description, value, onValueChange, cla
       )}
 
       {items.length > 0 ? (
-        <div className="flex flex-col gap-2">
+        <Reorder.Group axis="y" values={items} onReorder={updateItems} className="flex flex-col gap-2">
           {items.map((item, index) => (
             <MenuItemCard
-              key={index}
+              key={item._id ?? index}
               item={item}
               index={index}
               isFirst={index === 0}
@@ -502,9 +553,11 @@ export function HeaderMenuEditor({ label, description, value, onValueChange, cla
               onRemove={() => handleRemove(index)}
               onMoveUp={() => handleMove(index, index - 1)}
               onMoveDown={() => handleMove(index, index + 1)}
+              reorderValue={item}
+              dragHandleProps={{}}
             />
           ))}
-        </div>
+        </Reorder.Group>
       ) : (
         <div className="rounded-xl border-2 border-dashed border-default-200 py-6 text-center">
           <p className="text-sm text-default-400">暂无菜单项</p>
