@@ -101,7 +101,7 @@ export function useSettings(categoryId: SettingCategoryId): UseSettingsReturn {
   const isDirty = useMemo(() => {
     const changed = getChangedValues(originalValues, values, descriptors);
     return Object.keys(changed).length > 0;
-  }, [originalValues, values, descriptors, categoryId]);
+  }, [originalValues, values, descriptors]);
 
   const setValue = useCallback((key: string, value: string) => {
     setValuesState(prev => ({ ...prev, [key]: value }));
