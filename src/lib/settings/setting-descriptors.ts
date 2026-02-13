@@ -98,6 +98,69 @@ const DEFAULT_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED = `<div style="background-co
 \t</div>
 </div>`;
 
+/** 文章版权声明默认模板（与前台渲染兜底保持一致） */
+const DEFAULT_POST_COPYRIGHT_TEMPLATE_ORIGINAL =
+  '本文是原创文章，采用 <a href="{licenseUrl}" target="_blank">{license}</a> 协议，完整转载请注明来自 <a href="{siteUrl}" target="_blank">{author}</a>';
+
+const DEFAULT_POST_COPYRIGHT_TEMPLATE_REPRINT_WITH_URL =
+  '本文是转载或翻译文章，版权归 <a href="{originalUrl}" target="_blank">{originalAuthor}</a> 所有。建议访问原文，转载本文请联系原作者。';
+
+const DEFAULT_POST_COPYRIGHT_TEMPLATE_REPRINT_NO_URL =
+  "本文是转载或翻译文章，版权归 {originalAuthor} 所有。建议访问原文，转载本文请联系原作者。";
+
+/** 文章订阅通知默认模板 */
+const DEFAULT_POST_SUBSCRIBE_MAIL_TEMPLATE = `<p>你好，</p>
+<p>你订阅的文章有更新：</p>
+<p><strong>{{post_title}}</strong></p>
+<p><a href="{{post_link}}" target="_blank">点击查看文章</a></p>
+<p>如果你不想再接收通知，可点击：<a href="{{unsubscribe_link}}" target="_blank">取消订阅</a></p>
+<p>— {{site_name}}</p>`;
+
+/** AI 默认 Prompt（与 anheyu-pro 默认配置对齐） */
+const DEFAULT_AI_SUMMARY_SYSTEM_PROMPT =
+  "你是一个专业的内容总结助手。请将用户提供的文章内容总结为 100-200 字的单段中文摘要，语言简洁、客观、准确。";
+
+const DEFAULT_AI_WRITING_SYSTEM_PROMPT =
+  "你是一个专业的中文技术博客写作助手。请根据用户主题输出结构清晰、内容准确、可读性高的 Markdown 文章，必要时给出可运行示例。";
+
+const DEFAULT_AI_ASSISTANT_SYSTEM_PROMPT =
+  "你是站点 AI 助手。优先基于检索到的站点内容回答，无法确认时明确说明不确定，不要编造事实。";
+
+const DEFAULT_AI_ASSISTANT_USER_PROMPT = `以下是相关的博客文章内容：
+
+{{context}}
+
+用户问：{{question}}
+
+请用简洁友好的方式直接回答用户的问题。`;
+
+const DEFAULT_AI_ASSISTANT_NO_CONTEXT_PROMPT = `你是「{{site_name}}」的博客助手。用户说：{{question}}
+
+请友好简洁地回复用户（1-3 句话），可以用 emoji。`;
+
+const DEFAULT_AI_ASSISTANT_CHAT_SUGGESTIONS = JSON.stringify(["你是谁？", "博客有哪些功能？", "如何配置主题?"]);
+const DEFAULT_AI_ASSISTANT_SEARCH_SUGGESTIONS = JSON.stringify(["前端开发", "后端开发", "Anheyu-App使用"]);
+
+/**
+ * 后端返回空字符串时，前端需要回显默认值的配置键白名单。
+ * 这些字段在后端常以空值表示“使用系统默认模板”。
+ */
+const EMPTY_STRING_DEFAULT_KEYS = new Set<string>([
+  K.KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_APPROVED,
+  K.KEY_ARTICLE_REVIEW_MAIL_TEMPLATE_REJECTED,
+  K.KEY_POST_COPYRIGHT_ORIGINAL,
+  K.KEY_POST_COPYRIGHT_REPRINT_WITH_URL,
+  K.KEY_POST_COPYRIGHT_REPRINT_NO_URL,
+  K.KEY_POST_SUBSCRIBE_MAIL_TEMPLATE,
+  K.KEY_AI_SUMMARY_SYSTEM_PROMPT,
+  K.KEY_AI_WRITING_SYSTEM_PROMPT,
+  K.KEY_AI_ASSISTANT_SYSTEM_PROMPT,
+  K.KEY_AI_ASSISTANT_USER_PROMPT,
+  K.KEY_AI_ASSISTANT_NO_CONTEXT_PROMPT,
+  K.KEY_AI_ASSISTANT_CHAT_SUGGESTIONS,
+  K.KEY_AI_ASSISTANT_SEARCH_SUGGESTIONS,
+]);
+
 /**
  * 根据分类获取该分类下所有设置项的后端键
  */
@@ -191,12 +254,13 @@ export function parseBackendValues(
       // string/code 类型做规范化（换行符 + trim），避免与表单回传不一致导致一进页就显示「有未保存的更改」
       const s = raw;
       const normalized = desc.type === "string" || desc.type === "code" ? normalizeStringForCompare(s) : s;
-      // 审核邮件模板：后端留空时使用内置默认模板，前端回显时也显示该默认模板（与 anheyu-pro 行为一致）
-      const isEmptyAndReviewTemplate =
-        normalized === "" &&
-        (desc.backendKey === "article.review.mail_template_approved" ||
-          desc.backendKey === "article.review.mail_template_rejected");
-      result[desc.backendKey] = isEmptyAndReviewTemplate && desc.defaultValue != null ? desc.defaultValue : normalized;
+      const shouldUseDefaultValue =
+        s.trim() === "" && desc.defaultValue != null && EMPTY_STRING_DEFAULT_KEYS.has(desc.backendKey);
+      if (shouldUseDefaultValue) {
+        result[desc.backendKey] = desc.defaultValue!;
+      } else {
+        result[desc.backendKey] = normalized;
+      }
     } else {
       // JSON 类型字段，后端可能返回已解析的对象，需要转回字符串
       result[desc.backendKey] = JSON.stringify(raw);
@@ -210,6 +274,44 @@ export function parseBackendValues(
  */
 function isEmptyVal(v: unknown): boolean {
   return v == null || v === "";
+}
+
+/**
+ * 装备列表 JSON 规范化，用于语义比较。
+ * 与 EquipmentListEditor 的 parse+serialize 逻辑一致，避免拖拽还原后因格式差异（如 name vs title）误判 dirty。
+ */
+function canonicalizeEquipmentListJson(raw: string | undefined): string | null {
+  if (!raw || raw.trim() === "") return "[]";
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    const normalized = parsed.map((category: unknown) => {
+      const c =
+        category && typeof category === "object" && !Array.isArray(category)
+          ? (category as Record<string, unknown>)
+          : {};
+      const title = String(c.title ?? c.name ?? "");
+      const description = String(c.description ?? "");
+      const rawItems = Array.isArray(c.equipment_list) ? c.equipment_list : Array.isArray(c.items) ? c.items : [];
+      return {
+        title,
+        description,
+        equipment_list: rawItems.map((item: unknown) => {
+          const i = item && typeof item === "object" && !Array.isArray(item) ? (item as Record<string, unknown>) : {};
+          return {
+            name: String(i.name ?? ""),
+            image: String(i.image ?? ""),
+            link: String(i.link ?? ""),
+            description: String(i.description ?? ""),
+            specification: String(i.specification ?? ""),
+          };
+        }),
+      };
+    });
+    return JSON.stringify(normalized, null, 2);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -292,6 +394,12 @@ export function getChangedValues(
     if (isStringOrCode && normCur === normOrig) {
       continue;
     }
+    // json 类型：装备列表按语义规范化后比较，避免拖拽还原后因格式差异误判 dirty
+    if (desc?.type === "json" && key === K.KEY_EQUIPMENT_LIST) {
+      const canonCur = canonicalizeEquipmentListJson(cur);
+      const canonOrig = canonicalizeEquipmentListJson(orig);
+      if (canonCur != null && canonOrig != null && canonCur === canonOrig) continue;
+    }
     changed[key] = cur;
   }
   return changed;
@@ -372,12 +480,12 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_SIDEBAR_WECHAT_LINK, type: "string" },
     { backendKey: K.KEY_SIDEBAR_TAGS_ENABLE, type: "boolean", defaultValue: "true" },
     { backendKey: K.KEY_SIDEBAR_TAGS_HIGHLIGHT, type: "json" },
-    { backendKey: K.KEY_SIDEBAR_SITEINFO_POST_COUNT, type: "boolean", defaultValue: "true" },
+    { backendKey: K.KEY_SIDEBAR_SITEINFO_POST_COUNT, type: "number" },
     { backendKey: K.KEY_SIDEBAR_SITEINFO_RUNTIME, type: "boolean", defaultValue: "true" },
-    { backendKey: K.KEY_SIDEBAR_SITEINFO_WORD_COUNT, type: "boolean", defaultValue: "true" },
+    { backendKey: K.KEY_SIDEBAR_SITEINFO_WORD_COUNT, type: "number" },
     { backendKey: K.KEY_SIDEBAR_ARCHIVE_MONTHS, type: "number", defaultValue: "12" },
     { backendKey: K.KEY_SIDEBAR_CUSTOM_SHOW_IN_POST, type: "boolean" },
-    { backendKey: K.KEY_SIDEBAR_TOC_COLLAPSE_MODE, type: "string", defaultValue: "none" },
+    { backendKey: K.KEY_SIDEBAR_TOC_COLLAPSE_MODE, type: "boolean" },
     { backendKey: K.KEY_SIDEBAR_SERIES_POST_COUNT, type: "number", defaultValue: "5" },
     { backendKey: K.KEY_SIDEBAR_DOC_LINKS, type: "json" },
     { backendKey: K.KEY_CUSTOM_SIDEBAR, type: "json" },
@@ -430,9 +538,17 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_POST_COPY_COPYRIGHT_REPRINT, type: "string" },
     { backendKey: K.KEY_POST_TOC_HASH_MODE, type: "string", defaultValue: "replace" },
     { backendKey: K.KEY_POST_WAVES_ENABLE, type: "boolean", defaultValue: "true" },
-    { backendKey: K.KEY_POST_COPYRIGHT_ORIGINAL, type: "code", defaultValue: "" },
-    { backendKey: K.KEY_POST_COPYRIGHT_REPRINT_WITH_URL, type: "code", defaultValue: "" },
-    { backendKey: K.KEY_POST_COPYRIGHT_REPRINT_NO_URL, type: "code", defaultValue: "" },
+    { backendKey: K.KEY_POST_COPYRIGHT_ORIGINAL, type: "code", defaultValue: DEFAULT_POST_COPYRIGHT_TEMPLATE_ORIGINAL },
+    {
+      backendKey: K.KEY_POST_COPYRIGHT_REPRINT_WITH_URL,
+      type: "code",
+      defaultValue: DEFAULT_POST_COPYRIGHT_TEMPLATE_REPRINT_WITH_URL,
+    },
+    {
+      backendKey: K.KEY_POST_COPYRIGHT_REPRINT_NO_URL,
+      type: "code",
+      defaultValue: DEFAULT_POST_COPYRIGHT_TEMPLATE_REPRINT_NO_URL,
+    },
     { backendKey: K.KEY_POST_SHOW_REWARD_BTN, type: "boolean", defaultValue: "true" },
     { backendKey: K.KEY_POST_SHOW_SHARE_BTN, type: "boolean", defaultValue: "true" },
     { backendKey: K.KEY_POST_SHOW_SUBSCRIBE_BTN, type: "boolean" },
@@ -441,7 +557,11 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_POST_SUBSCRIBE_TITLE, type: "string" },
     { backendKey: K.KEY_POST_SUBSCRIBE_DESC, type: "string" },
     { backendKey: K.KEY_POST_SUBSCRIBE_MAIL_SUBJECT, type: "string" },
-    { backendKey: K.KEY_POST_SUBSCRIBE_MAIL_TEMPLATE, type: "code" },
+    {
+      backendKey: K.KEY_POST_SUBSCRIBE_MAIL_TEMPLATE,
+      type: "code",
+      defaultValue: DEFAULT_POST_SUBSCRIBE_MAIL_TEMPLATE,
+    },
     { backendKey: K.KEY_CDN_ENABLE, type: "boolean" },
     { backendKey: K.KEY_CDN_PROVIDER, type: "string" },
     { backendKey: K.KEY_CDN_SECRET_ID, type: "password" },
@@ -576,6 +696,7 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_ENABLE_USER_ACTIVATION, type: "boolean" },
   ],
   "integration-oauth": [
+    { backendKey: K.KEY_SITE_URL, type: "string" }, // 用于计算回调地址
     { backendKey: K.KEY_QQ_ENABLE, type: "boolean", isPro: true },
     { backendKey: K.KEY_QQ_APP_ID, type: "string", isPro: true },
     { backendKey: K.KEY_QQ_APP_KEY, type: "password", isPro: true },
@@ -753,11 +874,8 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
   "pages-music": [
     { backendKey: K.KEY_MUSIC_PLAYER_ENABLE, type: "boolean" },
     { backendKey: K.KEY_MUSIC_PLAYER_PLAYLIST_ID, type: "string" },
-    { backendKey: K.KEY_MUSIC_PLAYER_CUSTOM_PLAYLIST, type: "json" },
-    { backendKey: K.KEY_MUSIC_CAPSULE_PLAYLIST_ID, type: "string" },
-    { backendKey: K.KEY_MUSIC_CAPSULE_CUSTOM_PLAYLIST, type: "json" },
-    { backendKey: K.KEY_MUSIC_PAGE_PLAYLIST_ID, type: "string" },
-    { backendKey: K.KEY_MUSIC_PAGE_CUSTOM_PLAYLIST, type: "json" },
+    { backendKey: K.KEY_MUSIC_PLAYER_CUSTOM_PLAYLIST, type: "string" },
+    { backendKey: K.KEY_MUSIC_CAPSULE_CUSTOM_PLAYLIST, type: "string" },
     { backendKey: K.KEY_MUSIC_API_BASE_URL, type: "string" },
     { backendKey: K.KEY_MUSIC_VINYL_BACKGROUND, type: "string" },
     { backendKey: K.KEY_MUSIC_VINYL_OUTER, type: "string" },
@@ -781,18 +899,28 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_WECHAT_SHARE_APP_SECRET, type: "password" },
   ],
   "advanced-ai": [
-    { backendKey: K.KEY_AI_SUMMARY_PROVIDER, type: "string", isPro: true },
+    { backendKey: K.KEY_AI_SUMMARY_PROVIDER, type: "string", defaultValue: "glm", isPro: true },
     { backendKey: K.KEY_AI_SUMMARY_API_KEY, type: "password", isPro: true },
     { backendKey: K.KEY_AI_SUMMARY_API_URL, type: "string", isPro: true },
     { backendKey: K.KEY_AI_SUMMARY_MODEL, type: "string", isPro: true },
-    { backendKey: K.KEY_AI_SUMMARY_SYSTEM_PROMPT, type: "code", isPro: true },
-    { backendKey: K.KEY_AI_WRITING_PROVIDER, type: "string", isPro: true },
+    {
+      backendKey: K.KEY_AI_SUMMARY_SYSTEM_PROMPT,
+      type: "code",
+      defaultValue: DEFAULT_AI_SUMMARY_SYSTEM_PROMPT,
+      isPro: true,
+    },
+    { backendKey: K.KEY_AI_WRITING_PROVIDER, type: "string", defaultValue: "glm", isPro: true },
     { backendKey: K.KEY_AI_WRITING_API_KEY, type: "password", isPro: true },
     { backendKey: K.KEY_AI_WRITING_API_URL, type: "string", isPro: true },
     { backendKey: K.KEY_AI_WRITING_MODEL, type: "string", isPro: true },
-    { backendKey: K.KEY_AI_WRITING_SYSTEM_PROMPT, type: "code", isPro: true },
-    { backendKey: K.KEY_AI_WRITING_MAX_TOKENS, type: "number", isPro: true },
-    { backendKey: K.KEY_AI_WRITING_TEMPERATURE, type: "string", isPro: true },
+    {
+      backendKey: K.KEY_AI_WRITING_SYSTEM_PROMPT,
+      type: "code",
+      defaultValue: DEFAULT_AI_WRITING_SYSTEM_PROMPT,
+      isPro: true,
+    },
+    { backendKey: K.KEY_AI_WRITING_MAX_TOKENS, type: "number", defaultValue: "4096", isPro: true },
+    { backendKey: K.KEY_AI_WRITING_TEMPERATURE, type: "string", defaultValue: "0.7", isPro: true },
     { backendKey: K.KEY_AI_PODCAST_ENABLE, type: "boolean", isPro: true },
     { backendKey: K.KEY_AI_PODCAST_PROVIDER, type: "string", isPro: true },
     { backendKey: K.KEY_AI_PODCAST_APP_ID, type: "string", isPro: true },
@@ -808,17 +936,42 @@ const categoryDescriptors: Record<SettingCategoryId, SettingDescriptor[]> = {
     { backendKey: K.KEY_AI_PODCAST_BUTTON_TEXT, type: "string", isPro: true },
     { backendKey: K.KEY_AI_PODCAST_BUTTON_ICON, type: "string", isPro: true },
     { backendKey: K.KEY_AI_ASSISTANT_ENABLE, type: "boolean", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_NAME, type: "string", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_WELCOME, type: "string", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_CHAT_SUGGESTIONS, type: "json", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_SEARCH_SUGGESTIONS, type: "json", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_EMBEDDING_PROVIDER, type: "string", isPro: true },
+    { backendKey: K.KEY_AI_ASSISTANT_NAME, type: "string", defaultValue: "AI 助手", isPro: true },
+    { backendKey: K.KEY_AI_ASSISTANT_WELCOME, type: "string", defaultValue: "如果有问题欢迎问我哦！", isPro: true },
+    {
+      backendKey: K.KEY_AI_ASSISTANT_CHAT_SUGGESTIONS,
+      type: "json",
+      defaultValue: DEFAULT_AI_ASSISTANT_CHAT_SUGGESTIONS,
+      isPro: true,
+    },
+    {
+      backendKey: K.KEY_AI_ASSISTANT_SEARCH_SUGGESTIONS,
+      type: "json",
+      defaultValue: DEFAULT_AI_ASSISTANT_SEARCH_SUGGESTIONS,
+      isPro: true,
+    },
+    { backendKey: K.KEY_AI_ASSISTANT_EMBEDDING_PROVIDER, type: "string", defaultValue: "siliconflow", isPro: true },
     { backendKey: K.KEY_AI_ASSISTANT_EMBEDDING_API_KEY, type: "password", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_EMBEDDING_MODEL, type: "string", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_VECTOR_STORE, type: "string", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_SYSTEM_PROMPT, type: "code", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_USER_PROMPT, type: "code", isPro: true },
-    { backendKey: K.KEY_AI_ASSISTANT_NO_CONTEXT_PROMPT, type: "code", isPro: true },
+    { backendKey: K.KEY_AI_ASSISTANT_EMBEDDING_MODEL, type: "string", defaultValue: "BAAI/bge-m3", isPro: true },
+    { backendKey: K.KEY_AI_ASSISTANT_VECTOR_STORE, type: "string", defaultValue: "embedded", isPro: true },
+    {
+      backendKey: K.KEY_AI_ASSISTANT_SYSTEM_PROMPT,
+      type: "code",
+      defaultValue: DEFAULT_AI_ASSISTANT_SYSTEM_PROMPT,
+      isPro: true,
+    },
+    {
+      backendKey: K.KEY_AI_ASSISTANT_USER_PROMPT,
+      type: "code",
+      defaultValue: DEFAULT_AI_ASSISTANT_USER_PROMPT,
+      isPro: true,
+    },
+    {
+      backendKey: K.KEY_AI_ASSISTANT_NO_CONTEXT_PROMPT,
+      type: "code",
+      defaultValue: DEFAULT_AI_ASSISTANT_NO_CONTEXT_PROMPT,
+      isPro: true,
+    },
   ],
   "advanced-payment": [], // 支付配置使用独立 API，不通过 settings 系统管理
   "advanced-backup": [],

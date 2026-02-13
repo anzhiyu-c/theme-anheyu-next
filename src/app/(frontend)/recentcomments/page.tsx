@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useLatestComments } from "@/hooks/queries";
 import { useSiteConfigStore } from "@/store/site-config-store";
 import { Spinner } from "@/components/ui";
+import { BannerCard } from "@/components/common/BannerCard";
 import {
   formatRelativeTime,
   getAvatarUrl,
@@ -24,6 +25,8 @@ export default function RecentCommentsPage() {
   const { data, isPending, isError } = useLatestComments({ page: 1, pageSize: 20 });
   const comments = data?.list || [];
 
+  const bannerConfig = siteConfig?.recent_comments?.banner;
+
   const displayConfig: CommentDisplayConfig = useMemo(
     () => ({
       gravatarUrl: siteConfig?.GRAVATAR_URL || "https://cravatar.cn/",
@@ -35,10 +38,13 @@ export default function RecentCommentsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">最近评论</h1>
-        <div className="text-sm text-muted-foreground">共 {data?.total || 0} 条</div>
-      </div>
+      <BannerCard
+        tips={bannerConfig?.title || "最近评论"}
+        title={bannerConfig?.description || "Recent Comments"}
+        description={bannerConfig?.tip}
+        backgroundImage={bannerConfig?.background}
+        height={300}
+      />
 
       {isPending && (
         <div className="flex items-center justify-center py-10">

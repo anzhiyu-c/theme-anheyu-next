@@ -13,7 +13,11 @@ import {
   Clock3,
   Archive,
   Loader2,
+  Upload,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { articleApi } from "@/lib/api/article";
+import { postManagementApi } from "@/lib/api/post-management";
 import type { Editor } from "@tiptap/react";
 import type { ArticleStatus } from "@/types/post-management";
 import type { PostCategory, PostTag } from "@/types/article";
@@ -181,6 +185,8 @@ function SbMultiSelect({
   selectedIds,
   onChange,
   isLoading,
+  onCreate,
+  createLabel,
 }: {
   label?: string;
   placeholder?: string;
@@ -188,9 +194,12 @@ function SbMultiSelect({
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   isLoading?: boolean;
+  onCreate?: (name: string) => Promise<{ id: string; name: string } | null>;
+  createLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 点击外部关闭
@@ -213,6 +222,26 @@ function SbMultiSelect({
   const filtered = search ? options.filter(o => o.name.toLowerCase().includes(search.toLowerCase())) : options;
 
   const selectedNames = selectedIds.map(id => options.find(o => o.id === id)?.name).filter(Boolean);
+
+  // 是否显示「创建」按钮：有 onCreate 回调 + 搜索词不为空 + 搜索词不完全匹配已有选项
+  const canCreate =
+    onCreate && search.trim() && !options.some(o => o.name.toLowerCase() === search.trim().toLowerCase());
+
+  const handleCreate = async () => {
+    if (!onCreate || !search.trim()) return;
+    setIsCreating(true);
+    try {
+      const created = await onCreate(search.trim());
+      if (created) {
+        onChange([...selectedIds, created.id]);
+        setSearch("");
+      }
+    } catch (err) {
+      console.error("创建失败:", err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   return (
     <div className="sb-field" ref={containerRef}>
@@ -244,29 +273,46 @@ function SbMultiSelect({
               placeholder="搜索..."
               className="sb-dropdown-search-input"
               autoFocus
+              onKeyDown={e => {
+                if (e.key === "Enter" && canCreate) {
+                  e.preventDefault();
+                  handleCreate();
+                }
+              }}
             />
           </div>
           {/* 选项列表 */}
           <div className="sb-dropdown-list">
-            {filtered.length === 0 ? (
-              <div className="sb-dropdown-empty">无匹配项</div>
-            ) : (
-              filtered.map(opt => {
-                const isSelected = selectedIds.includes(opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    className={`sb-dropdown-item ${isSelected ? "sb-dropdown-item-active" : ""}`}
-                    onClick={() => toggle(opt.id)}
-                  >
-                    <span className={`sb-checkbox ${isSelected ? "sb-checkbox-checked" : ""}`}>
-                      {isSelected && <Check className="w-2.5 h-2.5" />}
-                    </span>
-                    <span className="truncate">{opt.name}</span>
-                  </button>
-                );
-              })
+            {filtered.length === 0 && !canCreate && <div className="sb-dropdown-empty">无匹配项</div>}
+            {filtered.map(opt => {
+              const isSelected = selectedIds.includes(opt.id);
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`sb-dropdown-item ${isSelected ? "sb-dropdown-item-active" : ""}`}
+                  onClick={() => toggle(opt.id)}
+                >
+                  <span className={`sb-checkbox ${isSelected ? "sb-checkbox-checked" : ""}`}>
+                    {isSelected && <Check className="w-2.5 h-2.5" />}
+                  </span>
+                  <span className="truncate">{opt.name}</span>
+                </button>
+              );
+            })}
+            {/* 创建新选项 */}
+            {canCreate && (
+              <button
+                type="button"
+                className="sb-dropdown-item sb-dropdown-create"
+                onClick={handleCreate}
+                disabled={isCreating}
+              >
+                {isCreating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                <span className="truncate">
+                  {createLabel || "创建"} &ldquo;{search.trim()}&rdquo;
+                </span>
+              </button>
             )}
           </div>
         </div>
@@ -529,6 +575,64 @@ function SettingsContent({
   isLoadingCategories,
   isLoadingTags,
 }: SettingsContentProps) {
+  const queryClient = useQueryClient();
+  const topImgInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingTopImg, setIsUploadingTopImg] = useState(false);
+  const coverImgInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
+  // 创建分类
+  const handleCreateCategory = useCallback(
+    async (name: string) => {
+      const created = await articleApi.createCategory({ name });
+      queryClient.invalidateQueries({ queryKey: ["post-categories"] });
+      return created;
+    },
+    [queryClient]
+  );
+
+  // 创建标签
+  const handleCreateTag = useCallback(
+    async (name: string) => {
+      const created = await articleApi.createTag(name);
+      queryClient.invalidateQueries({ queryKey: ["post-tags"] });
+      return created;
+    },
+    [queryClient]
+  );
+
+  // 上传顶部大图
+  const handleTopImgUpload = useCallback(
+    async (file: File) => {
+      setIsUploadingTopImg(true);
+      try {
+        const url = await postManagementApi.uploadArticleImage(file);
+        onUpdateField("top_img_url", url);
+      } catch (err) {
+        console.error("顶部大图上传失败:", err);
+      } finally {
+        setIsUploadingTopImg(false);
+      }
+    },
+    [onUpdateField]
+  );
+
+  // 上传封面图
+  const handleCoverUpload = useCallback(
+    async (file: File) => {
+      setIsUploadingCover(true);
+      try {
+        const url = await postManagementApi.uploadArticleImage(file);
+        onUpdateField("cover_url", url);
+      } catch (err) {
+        console.error("封面图上传失败:", err);
+      } finally {
+        setIsUploadingCover(false);
+      }
+    },
+    [onUpdateField]
+  );
+
   return (
     <div className="sb-body">
       {/* ── 状态选择器 ── */}
@@ -555,6 +659,8 @@ function SettingsContent({
           selectedIds={meta.post_category_ids}
           onChange={ids => onUpdateField("post_category_ids", ids)}
           isLoading={isLoadingCategories}
+          onCreate={handleCreateCategory}
+          createLabel="新建分类"
         />
 
         <SbMultiSelect
@@ -564,6 +670,8 @@ function SettingsContent({
           selectedIds={meta.post_tag_ids}
           onChange={ids => onUpdateField("post_tag_ids", ids)}
           isLoading={isLoadingTags}
+          onCreate={handleCreateTag}
+          createLabel="新建标签"
         />
         {meta.post_tag_ids.length > 0 && (
           <div className="sb-tags-wrap">
@@ -589,21 +697,75 @@ function SettingsContent({
         <div className="sb-field">
           <span className="sb-label">封面图</span>
           <CoverPreview url={meta.cover_url} />
-          <input
-            type="text"
-            value={meta.cover_url}
-            onChange={e => onUpdateField("cover_url", e.target.value)}
-            placeholder="https://..."
-            className="sb-input mt-1.5"
-          />
+          <div className="flex gap-1.5 mt-1.5">
+            <input
+              type="text"
+              value={meta.cover_url}
+              onChange={e => onUpdateField("cover_url", e.target.value)}
+              placeholder="https://..."
+              className="sb-input flex-1"
+            />
+            <button
+              type="button"
+              className="sb-upload-btn"
+              onClick={() => coverImgInputRef.current?.click()}
+              disabled={isUploadingCover}
+              title="上传封面图"
+            >
+              {isUploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            </button>
+            <input
+              ref={coverImgInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) handleCoverUpload(file);
+                e.target.value = "";
+              }}
+            />
+          </div>
         </div>
 
-        <SbInput
-          label="顶部大图"
-          value={meta.top_img_url}
-          onChange={v => onUpdateField("top_img_url", v)}
-          placeholder="https://..."
-        />
+        {/* 顶部大图 */}
+        <div className="sb-field">
+          <span className="sb-label">顶部大图</span>
+          <CoverPreview url={meta.top_img_url} />
+          <div className="flex gap-1.5 mt-1.5">
+            <input
+              type="text"
+              value={meta.top_img_url}
+              onChange={e => onUpdateField("top_img_url", e.target.value)}
+              placeholder="https://..."
+              className="sb-input flex-1"
+            />
+            <button
+              type="button"
+              className="sb-upload-btn"
+              onClick={() => topImgInputRef.current?.click()}
+              disabled={isUploadingTopImg}
+              title="上传顶部大图"
+            >
+              {isUploadingTopImg ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Upload className="w-3.5 h-3.5" />
+              )}
+            </button>
+            <input
+              ref={topImgInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) handleTopImgUpload(file);
+                e.target.value = "";
+              }}
+            />
+          </div>
+        </div>
 
         <SbToggle
           label="转载文章"

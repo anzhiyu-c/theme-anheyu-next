@@ -7,6 +7,8 @@
 import { useMemo } from "react";
 import { AuthorInfoCard } from "@/components/home/Sidebar/AuthorInfoCard";
 import { CardWechat } from "@/components/home/Sidebar/CardWechat";
+import { CardClock } from "@/components/home/Sidebar/CardClock";
+import { CustomSidebarBlocks } from "@/components/home/Sidebar/CustomSidebarBlocks";
 import { CardToc } from "./CardToc";
 import { CardSeriesPost } from "./CardSeriesPost";
 import { CardRecentPost } from "./CardRecentPost";
@@ -53,7 +55,7 @@ export function PostSidebar({ article, recentArticles = [] }: PostSidebarProps) 
     const owner = siteConfig?.frontDesk?.siteOwner;
     return {
       ownerName: owner?.name || "安知鱼",
-      subTitle: "",
+      subTitle: siteConfig?.SUB_TITLE || "",
       description: author.description || "",
       userAvatar: siteConfig?.USER_AVATAR || "",
       statusImg: author.statusImg || "",
@@ -74,6 +76,22 @@ export function PostSidebar({ article, recentArticles = [] }: PostSidebarProps) 
     };
   }, [siteConfig]);
 
+  // 天气时钟配置 - enable_page 为 "all" 或 "post" 时在文章页显示
+  const clockConfig = useMemo(() => {
+    const w = siteConfig?.sidebar?.weather;
+    if (!w?.enable || !w.qweather_key) return null;
+    const page = w.enable_page || "all";
+    if (page !== "all" && page !== "post") return null;
+    return {
+      qweatherKey: w.qweather_key,
+      qweatherAPIHost: w.qweather_api_host || "devapi.qweather.com",
+      ipAPIKey: w.ip_api_key || "",
+      loading: w.loading || "",
+      defaultRectangle: w.default_rectangle === true || (w.default_rectangle as unknown) === "true",
+      rectangle: w.rectangle || "112.6534116,27.96920845",
+    };
+  }, [siteConfig]);
+
   // 默认封面
   const defaultCover = siteConfig?.post?.default?.default_cover || "/images/default-cover.webp";
 
@@ -87,6 +105,12 @@ export function PostSidebar({ article, recentArticles = [] }: PostSidebarProps) 
 
       {/* 微信卡片 */}
       {wechatConfig && <CardWechat config={wechatConfig} />}
+
+      {/* 自定义侧边栏块 */}
+      <CustomSidebarBlocks isPostPage />
+
+      {/* 天气时钟 */}
+      {clockConfig && <CardClock config={clockConfig} />}
 
       {/* 粘性区域 */}
       <div className={styles.stickyContainer}>

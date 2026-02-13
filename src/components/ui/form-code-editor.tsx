@@ -41,7 +41,7 @@ const FormCodeEditor = React.forwardRef<HTMLTextAreaElement, FormCodeEditorProps
       <div className={cn("flex flex-col gap-1.5", className)}>
         {label && (
           <div className="flex items-center justify-between">
-            <label htmlFor={id} className="text-sm font-medium text-foreground/70">
+            <label htmlFor={id} className="text-sm font-medium text-foreground/80">
               {label}
             </label>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-default-100 text-default-500 font-mono">
@@ -67,7 +67,7 @@ const FormCodeEditor = React.forwardRef<HTMLTextAreaElement, FormCodeEditorProps
             "disabled:cursor-not-allowed disabled:opacity-50",
             error
               ? "border-danger bg-danger-50/50 focus:border-danger focus:ring-1 focus:ring-danger/20"
-              : "border-default-200 bg-default-100/50 hover:border-default-300 focus:bg-white focus:dark:bg-default-50 focus:border-primary focus:ring-1 focus:ring-primary/20"
+              : "border-default-200/80 bg-white dark:bg-default-100/50 hover:border-default-300/90 focus:bg-white dark:focus:bg-default-100/60 focus:border-primary/65 focus:ring-2 focus:ring-primary/15"
           )}
         />
 
@@ -75,7 +75,7 @@ const FormCodeEditor = React.forwardRef<HTMLTextAreaElement, FormCodeEditorProps
           <p
             id={descId}
             role={error ? "alert" : undefined}
-            className={cn("text-xs", error ? "text-danger" : "text-default-400")}
+            className={cn("text-xs leading-relaxed", error ? "text-danger" : "text-default-400")}
           >
             {error || description}
           </p>

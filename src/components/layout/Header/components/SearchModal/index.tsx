@@ -247,9 +247,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             classNames={{
               base: "w-full",
               inputWrapper: [
-                "bg-default-100/70",
-                "hover:bg-default-100",
-                "group-data-[focus=true]:bg-default-100",
+                "bg-default-100/5",
+                "hover:bg-default-100/5",
+                "group-data-[focus=true]:bg-white group-data-[focus=true]:dark:bg-default-50",
                 "border-none",
                 "shadow-none",
                 "h-10",

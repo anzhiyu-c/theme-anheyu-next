@@ -14,8 +14,15 @@ import "./code-highlight.css";
 import { useSiteConfigStore } from "@/store/site-config-store";
 import { apiClient } from "@/lib/api/client";
 
+interface ArticleCopyInfo {
+  isReprint?: boolean;
+  copyrightAuthor?: string;
+  copyrightUrl?: string;
+}
+
 interface PostContentProps {
   content: string;
+  articleInfo?: ArticleCopyInfo;
 }
 
 // Mermaid 缩放功能的清理函数类型
@@ -29,10 +36,78 @@ declare global {
   }
 }
 
-export function PostContent({ content }: PostContentProps) {
+export function PostContent({ content, articleInfo }: PostContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const mermaidCleanupRef = useRef<MermaidCleanupFn>(null);
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
+
+  // ── 复制版权拦截 ──
+  useEffect(() => {
+    const copyConfig = siteConfig?.post?.copy;
+    // 如果复制功能被禁用或版权追加未启用，直接返回
+    if (copyConfig?.enable === false) {
+      // 禁止复制
+      const preventCopy = (e: ClipboardEvent) => {
+        if (contentRef.current?.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      };
+      document.addEventListener("copy", preventCopy, true);
+      return () => document.removeEventListener("copy", preventCopy, true);
+    }
+
+    const copyrightEnabled = copyConfig?.copyrightEnable === true || copyConfig?.copyright_enable === true;
+    if (!copyrightEnabled) return;
+
+    const handleCopy = (e: ClipboardEvent) => {
+      const selection = window.getSelection();
+      if (!selection || selection.toString().length === 0) return;
+
+      // 检查选择区域是否在文章内容区域内
+      const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      if (!range) return;
+      const container = range.commonAncestorContainer;
+      const target = container.nodeType === Node.TEXT_NODE ? container.parentElement : (container as HTMLElement);
+      if (!target || !contentRef.current?.contains(target)) return;
+
+      // 生成版权文本
+      const currentUrl = window.location.href;
+      const siteName = siteConfig?.APP_NAME || "本站";
+      const ownerName = siteConfig?.frontDesk?.siteOwner?.name || "博主";
+      let copyrightText: string;
+
+      if (articleInfo?.isReprint) {
+        const author = articleInfo.copyrightAuthor || "原作者";
+        const originalUrl = articleInfo.copyrightUrl || "";
+        const template =
+          copyConfig?.copyrightReprint ||
+          copyConfig?.copyright_reprint ||
+          "本文转载自 {originalAuthor}，原文地址：{originalUrl}\n当前页面：{currentUrl}";
+        copyrightText = template
+          .replace(/{originalAuthor}/g, author)
+          .replace(/{originalUrl}/g, originalUrl)
+          .replace(/{currentUrl}/g, currentUrl);
+      } else {
+        const template =
+          copyConfig?.copyrightOriginal ||
+          copyConfig?.copyright_original ||
+          "本文来自 {siteName}，作者 {author}，转载请注明出处。\n原文地址：{url}";
+        copyrightText = template
+          .replace(/{siteName}/g, siteName)
+          .replace(/{author}/g, ownerName)
+          .replace(/{url}/g, currentUrl);
+      }
+
+      const originalText = selection.toString();
+      e.clipboardData?.setData("text/plain", originalText + "\n\n---\n" + copyrightText);
+      e.preventDefault();
+
+      addToast({ title: "复制成功，复制和转载请标注本文地址", color: "success", timeout: 2000 });
+    };
+
+    document.addEventListener("copy", handleCopy as EventListener, true);
+    return () => document.removeEventListener("copy", handleCopy as EventListener, true);
+  }, [siteConfig, articleInfo]);
 
   // 代码块配置
   const codeBlockConfig = useMemo(() => {

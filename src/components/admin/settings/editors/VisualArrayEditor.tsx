@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Input, Switch, Select, SelectItem } from "@heroui/react";
+import { Input, Switch, Select, SelectItem, Popover, PopoverTrigger, PopoverContent, Button } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { ChevronDown, GripVertical, Plus } from "lucide-react";
@@ -63,11 +63,8 @@ const ICON_GRADIENTS = [
   "linear-gradient(135deg, #00C7BE, #64D2FF)",
 ];
 
-/** 容器阴影 */
-const LIST_SHADOW = [
-  "shadow-[0_0_0_0.5px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.03)]",
-  "dark:shadow-[0_0_0_0.5px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2)]",
-].join(" ");
+/** 容器样式 — 扁平边框，不使用多层阴影 */
+const LIST_SHADOW = "border border-default-200/50";
 
 // ─── 内部类型 ─────────────────────────────────────────────────────
 
@@ -111,15 +108,15 @@ const itemVariants = {
 
 /** 输入框包裹器 */
 const inputWrapperBase = cn(
-  "bg-default-100/50 border border-default-200 rounded-lg shadow-none! h-9 min-h-9",
-  "data-[hover=true]:border-default-300",
-  "group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50",
-  "group-data-[focus=true]:border-primary group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
-  "transition-all duration-150"
+  "h-9 min-h-9 rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none!",
+  "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
+  "group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-100/60 group-data-[focus=true]:border-primary/65",
+  "group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-primary/15",
+  "transition-all duration-200"
 );
 
 /** 输入框文字 */
-const inputTextBase = "text-[13px] text-foreground placeholder:text-default-400";
+const inputTextBase = "text-sm text-foreground/90 placeholder:text-default-400/80";
 
 // ─── 子组件：单个字段渲染 ──────────────────────────────────────────
 
@@ -136,17 +133,15 @@ function FieldRenderer({
     case "text":
     case "url":
       return (
-        <div className="flex flex-col gap-[5px]">
-          <label className="text-[11px] font-semibold text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)] uppercase tracking-[0.5px] leading-tight">
-            {field.label}
-          </label>
+        <div className="flex flex-col gap-[5px] min-w-0">
+          <label className="text-[11px] font-medium tracking-wide text-foreground/60">{field.label}</label>
           <Input
             size="sm"
             value={(value as string) || ""}
             placeholder={field.placeholder}
             onValueChange={v => onChange(v)}
             classNames={{
-              inputWrapper: inputWrapperBase,
+              inputWrapper: cn(inputWrapperBase, "min-w-0"),
               input: inputTextBase,
             }}
           />
@@ -156,9 +151,7 @@ function FieldRenderer({
     case "color":
       return (
         <div className="flex flex-col gap-[5px]">
-          <label className="text-[11px] font-semibold text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)] uppercase tracking-[0.5px] leading-tight">
-            {field.label}
-          </label>
+          <label className="text-[11px] font-medium tracking-wide text-foreground/60">{field.label}</label>
           <div className="flex items-center gap-2">
             {/* 颜色色块 - 可点击 */}
             <div className="relative shrink-0 group/swatch">
@@ -196,9 +189,7 @@ function FieldRenderer({
     case "switch":
       return (
         <div className="flex items-center justify-between h-9">
-          <label className="text-[11px] font-semibold text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)] uppercase tracking-[0.5px] leading-tight">
-            {field.label}
-          </label>
+          <label className="text-[11px] font-medium tracking-wide text-foreground/60">{field.label}</label>
           <Switch
             size="sm"
             isSelected={!!value}
@@ -214,9 +205,7 @@ function FieldRenderer({
     case "select":
       return (
         <div className="flex flex-col gap-[5px]">
-          <label className="text-[11px] font-semibold text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)] uppercase tracking-[0.5px] leading-tight">
-            {field.label}
-          </label>
+          <label className="text-[11px] font-medium tracking-wide text-foreground/60">{field.label}</label>
           <Select
             size="sm"
             selectedKeys={(value as string) ? [value as string] : []}
@@ -229,9 +218,9 @@ function FieldRenderer({
             classNames={{
               trigger: cn(
                 inputWrapperBase,
-                "data-[open=true]:!bg-white data-[open=true]:dark:!bg-default-50 data-[open=true]:border-primary data-[open=true]:ring-1 data-[open=true]:ring-primary/20"
+                "data-[open=true]:bg-white! dark:data-[open=true]:bg-default-100/60 data-[open=true]:border-primary/65 data-[open=true]:ring-2 data-[open=true]:ring-primary/15"
               ),
-              value: "text-[13px] text-foreground",
+              value: "text-sm text-foreground/90",
               popoverContent: "rounded-xl shadow-lg",
             }}
           >
@@ -244,7 +233,7 @@ function FieldRenderer({
 
     case "icon":
       return (
-        <div className="flex flex-col gap-[5px]">
+        <div className="flex flex-col gap-[5px] min-w-0">
           <label className="text-[11px] font-semibold text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)] uppercase tracking-[0.5px] leading-tight">
             {field.label}
           </label>
@@ -253,6 +242,7 @@ function FieldRenderer({
             onValueChange={v => onChange(v)}
             placeholder={field.placeholder || "选择图标或输入 URL"}
             size="sm"
+            className="min-w-0"
           />
         </div>
       );
@@ -351,6 +341,53 @@ function TrashIcon() {
     >
       <path d="M2.5 3.5h7M4.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M5 5.5v3M7 5.5v3M3.5 3.5l.5 6a1 1 0 001 1h2a1 1 0 001-1l.5-6" />
     </svg>
+  );
+}
+
+// ─── 子组件：删除确认按钮（Popover 二次确认） ─────────────────────
+
+function DeleteConfirmButton({ onConfirm }: { onConfirm: () => void }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  return (
+    <Popover
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      placement="bottom"
+      showArrow
+      classNames={{
+        content: "px-3 py-2.5",
+      }}
+    >
+      <PopoverTrigger>
+        <div>
+          <ActionButton onClick={() => setIsOpen(true)} danger ariaLabel="删除">
+            <TrashIcon />
+          </ActionButton>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent>
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-foreground/70">确定删除该项？</p>
+          <div className="flex gap-1.5 justify-end">
+            <Button size="sm" variant="flat" className="h-7 min-w-0 px-2.5 text-xs" onPress={() => setIsOpen(false)}>
+              取消
+            </Button>
+            <Button
+              size="sm"
+              color="danger"
+              className="h-7 min-w-0 px-2.5 text-xs"
+              onPress={() => {
+                setIsOpen(false);
+                onConfirm();
+              }}
+            >
+              删除
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -458,24 +495,30 @@ function ArrayItem({
           )}
         </div>
 
-        {/* 删除按钮 — hover 时显示 */}
+        {/* Chevron 展开指示器 — 只旋转图标 */}
         <div
-          className="flex items-center shrink-0 opacity-0 group-hover/row:opacity-100 transition-opacity duration-150"
-          onClick={e => e.stopPropagation()}
+          className={cn(
+            "mr-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+            "text-[rgba(60,60,67,0.3)] dark:text-[rgba(235,235,245,0.3)]",
+            "hover:bg-[rgba(120,120,128,0.08)] dark:hover:bg-[rgba(120,120,128,0.14)]"
+          )}
         >
-          <ActionButton onClick={onRemove} danger ariaLabel="删除">
-            <TrashIcon />
-          </ActionButton>
+          <ChevronDown
+            className="w-4 h-4 transition-transform duration-250"
+            style={{
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transitionTimingFunction: "cubic-bezier(0.32,0.72,0,1)",
+            }}
+          />
         </div>
 
-        {/* Chevron 展开指示器 */}
-        <motion.div
-          animate={{ rotate: expanded ? 180 : 0 }}
-          transition={{ duration: 0.25, ease: APPLE_EASE }}
-          className="shrink-0 text-[rgba(60,60,67,0.3)] dark:text-[rgba(235,235,245,0.3)]"
+        {/* 删除按钮 — hover 时显示，带二次确认 */}
+        <div
+          className="flex shrink-0 items-center opacity-0 transition-opacity duration-150 group-hover/row:opacity-100"
+          onClick={e => e.stopPropagation()}
         >
-          <ChevronDown className="w-4 h-4" />
-        </motion.div>
+          <DeleteConfirmButton onConfirm={onRemove} />
+        </div>
       </div>
 
       {/* ── 分隔线 ── */}
@@ -495,11 +538,14 @@ function ArrayItem({
             transition={expandTransition}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-1">
-              <div className="rounded-xl border border-default-200/60 bg-white dark:bg-default-50 p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div className="px-4 pb-4 pt-1 min-w-0">
+              <div className="rounded-xl border border-default-200/60 bg-white dark:bg-card p-4 min-w-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 min-w-0">
                   {fields.map(field => (
-                    <div key={field.key} className={cn(field.colSpan === 2 && "md:col-span-2")}>
+                    <div
+                      key={field.key}
+                      className={cn(field.colSpan === 2 && "md:col-span-2", "min-w-0 overflow-hidden")}
+                    >
                       <FieldRenderer field={field} value={item[field.key]} onChange={val => onUpdate(field.key, val)} />
                     </div>
                   ))}
@@ -590,7 +636,7 @@ export function VisualArrayEditor({
   const canAdd = !maxItems || internalItems.length < maxItems;
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col gap-2 min-w-0", className)}>
       {/* ── 标题栏 ── */}
       {label && (
         <div className="flex items-baseline justify-between px-0.5 mb-0.5">
@@ -610,7 +656,7 @@ export function VisualArrayEditor({
           values={internalItems}
           onReorder={handleReorder}
           as="div"
-          className={cn("rounded-[14px] bg-background overflow-hidden", LIST_SHADOW)}
+          className={cn("rounded-[14px] bg-background overflow-hidden min-w-0", LIST_SHADOW)}
         >
           <AnimatePresence initial={false}>
             {internalItems.map((internalItem, index) => (
@@ -676,11 +722,7 @@ export function VisualArrayEditor({
       )}
 
       {/* ── 描述 ── */}
-      {description && (
-        <p className="text-xs text-[rgba(60,60,67,0.3)] dark:text-[rgba(235,235,245,0.3)] leading-relaxed px-1">
-          {description}
-        </p>
-      )}
+      {description && <p className="text-xs leading-relaxed text-default-400">{description}</p>}
     </div>
   );
 }

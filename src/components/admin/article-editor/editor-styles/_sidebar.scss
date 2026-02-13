@@ -513,6 +513,48 @@
   opacity: 1;
 }
 
+// ---- 上传按钮 ----
+.sb-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--sb-radius);
+  border: 1.5px solid var(--sb-border);
+  background: var(--sb-bg2);
+  color: var(--sb-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--sb-accent);
+    color: var(--sb-accent);
+    background: var(--sb-accent-light);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ---- 下拉创建按钮 ----
+.sb-dropdown-create {
+  color: var(--sb-accent);
+  font-weight: 500;
+
+  &:hover {
+    background: var(--sb-accent-light);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 // ---- 颜色选择器 ----
 .sb-color-input {
   width: 32px;

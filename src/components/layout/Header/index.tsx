@@ -12,6 +12,9 @@ import { useHeader } from "@/hooks/use-header";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { updateMetaThemeColorDynamic } from "@/utils/theme-manager";
 
+// hooks
+import { friendsApi } from "@/lib/api/friends";
+
 // 子组件
 import { HeaderRight } from "./components/HeaderRight";
 import { MobileMenu } from "./components/MobileMenu";
@@ -40,6 +43,22 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // 菜单中 /travelling 项：跳转随机友链（对齐 anheyu-pro articleStore.navigateToRandomLink）
+  const navigateToRandomLink = useCallback(async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      const links = await friendsApi.getRandomLinks(1);
+      if (links.length > 0) {
+        window.open(links[0].url, "_blank");
+      }
+    } catch (error) {
+      console.error("获取随机友链失败:", error);
+    }
+  }, []);
 
   // 判断是否是文章详情页
   const isPostDetailPage = useMemo(() => {
@@ -138,6 +157,18 @@ export function Header() {
     window.addEventListener("frontend-open-search", handleOpenSearch);
     return () => {
       window.removeEventListener("frontend-open-search", handleOpenSearch);
+    };
+  }, []);
+
+  // 监听中控台切换（来自快捷键 Shift+A）
+  useEffect(() => {
+    const handleToggleConsole = () => {
+      setIsConsoleOpen(prev => !prev);
+    };
+
+    window.addEventListener("toggle-console", handleToggleConsole);
+    return () => {
+      window.removeEventListener("toggle-console", handleToggleConsole);
     };
   }, []);
 
@@ -258,20 +289,36 @@ export function Header() {
                   <div key={menuItem.title} className={styles.menusItem}>
                     {/* 一级菜单：直接跳转 */}
                     {getMenuType(menuItem) === "direct" ? (
-                      <Link
-                        href={menuItem.path || "#"}
-                        target={menuItem.isExternal ? "_blank" : "_self"}
-                        rel={menuItem.isExternal ? "noopener noreferrer" : undefined}
-                        className={cn(styles.menuTitle, styles.directLink, styles.sitePage)}
-                      >
-                        <MenuIcon
-                          icon={menuItem.icon}
-                          className={styles.menuIcon}
-                          imageClassName={styles.menuIconImg}
-                          iconifyClassName={styles.menuIconIconify}
-                        />
-                        <span>{menuItem.title}</span>
-                      </Link>
+                      menuItem.path === "/travelling" ? (
+                        <a
+                          href="#"
+                          className={cn(styles.menuTitle, styles.directLink, styles.sitePage)}
+                          onClick={navigateToRandomLink}
+                        >
+                          <MenuIcon
+                            icon={menuItem.icon}
+                            className={styles.menuIcon}
+                            imageClassName={styles.menuIconImg}
+                            iconifyClassName={styles.menuIconIconify}
+                          />
+                          <span>{menuItem.title}</span>
+                        </a>
+                      ) : (
+                        <Link
+                          href={menuItem.path || "#"}
+                          target={menuItem.isExternal ? "_blank" : "_self"}
+                          rel={menuItem.isExternal ? "noopener noreferrer" : undefined}
+                          className={cn(styles.menuTitle, styles.directLink, styles.sitePage)}
+                        >
+                          <MenuIcon
+                            icon={menuItem.icon}
+                            className={styles.menuIcon}
+                            imageClassName={styles.menuIconImg}
+                            iconifyClassName={styles.menuIconIconify}
+                          />
+                          <span>{menuItem.title}</span>
+                        </Link>
+                      )
                     ) : (
                       /* 二级菜单：下拉菜单 */
                       <>
@@ -281,15 +328,8 @@ export function Header() {
                         <ul className={styles.menusItemChild}>
                           {menuItem.items?.map(item => (
                             <li key={item.path}>
-                              {item.isExternal ||
-                              item.path?.startsWith("http://") ||
-                              item.path?.startsWith("https://") ? (
-                                <a
-                                  href={item.path}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={styles.sitePage}
-                                >
+                              {item.path === "/travelling" ? (
+                                <a href="#" className={styles.sitePage} onClick={navigateToRandomLink}>
                                   <MenuIcon
                                     icon={item.icon}
                                     className={styles.menuIcon}

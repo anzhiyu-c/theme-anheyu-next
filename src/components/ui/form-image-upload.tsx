@@ -114,7 +114,7 @@ const FormImageUpload = React.forwardRef<HTMLDivElement, FormImageUploadProps>(
 
     return (
       <div ref={ref} className={cn("flex flex-col gap-2", className)}>
-        {label && <label className="text-sm font-medium text-foreground/70">{label}</label>}
+        {label && <label className="text-sm font-medium text-foreground/80">{label}</label>}
 
         {/* 输入行：可选 inlineLabel + input + 上传按钮 */}
         <div className="flex items-center gap-2">
@@ -137,13 +137,13 @@ const FormImageUpload = React.forwardRef<HTMLDivElement, FormImageUploadProps>(
             onClear={() => onValueChange?.("")}
             classNames={{
               inputWrapper: cn(
-                "bg-default-100/50 border border-default-200 rounded-xl !shadow-none",
-                "data-[hover=true]:border-default-300",
-                "group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50 group-data-[focus=true]:border-primary group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
+                "rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none!",
+                "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
+                "group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-100/60 group-data-[focus=true]:border-primary/65 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-primary/15",
                 "h-10 min-h-10",
                 "transition-all duration-200"
               ),
-              input: "text-sm text-foreground placeholder:text-default-400",
+              input: "text-sm text-foreground/90 placeholder:text-default-400/80",
               clearButton: "text-default-400 hover:text-danger",
             }}
           />
@@ -165,7 +165,7 @@ const FormImageUpload = React.forwardRef<HTMLDivElement, FormImageUploadProps>(
           <input ref={fileInputRef} type="file" accept={accept} onChange={handleFileChange} className="hidden" />
         </div>
 
-        {description && <p className="text-xs text-default-400">{description}</p>}
+        {description && <p className="text-xs leading-relaxed text-default-400">{description}</p>}
 
         {/* 预览区域 - 在输入框下方 */}
         {showPreview &&

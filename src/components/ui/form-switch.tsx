@@ -27,7 +27,7 @@ const FormSwitch = React.forwardRef<HTMLInputElement, FormSwitchProps>(
       <div className={cn("flex items-center justify-between gap-4 py-2", className)}>
         <div className="flex-1 min-w-0">
           {label && (
-            <span className="text-sm font-medium text-foreground/70 flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground/80 flex items-center gap-2">
               {label}
               {isPro && (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-linear-to-r from-amber-500 to-orange-500 text-white leading-none">
@@ -36,7 +36,7 @@ const FormSwitch = React.forwardRef<HTMLInputElement, FormSwitchProps>(
               )}
             </span>
           )}
-          {description && <p className="text-xs text-default-400 mt-0.5">{description}</p>}
+          {description && <p className="text-xs leading-relaxed text-default-400 mt-0.5">{description}</p>}
         </div>
 
         <Switch
@@ -47,9 +47,7 @@ const FormSwitch = React.forwardRef<HTMLInputElement, FormSwitchProps>(
           aria-label={label || "开关"}
           size="sm"
           classNames={{
-            wrapper: cn(
-              "group-data-[selected=true]:bg-primary",
-            ),
+            wrapper: cn("group-data-[selected=true]:bg-primary"),
           }}
         />
       </div>

@@ -3,7 +3,7 @@
 import { FormInput } from "@/components/ui/form-input";
 import { FormSwitch } from "@/components/ui/form-switch";
 import { FormImageUpload } from "@/components/ui/form-image-upload";
-import { FormCodeEditor } from "@/components/ui/form-code-editor";
+import { FormMonacoEditor } from "@/components/ui/form-monaco-editor";
 import { FormStringList } from "@/components/ui/form-string-list";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
 import { HighlightTagSelector } from "./editors/HighlightTagSelector";
@@ -85,13 +85,14 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
           onCheckedChange={v => onChange(KEY_SIDEBAR_AUTHOR_ENABLE, String(v))}
         />
 
-        <FormCodeEditor
+        <FormMonacoEditor
           label="作者描述"
           value={values[KEY_SIDEBAR_AUTHOR_DESCRIPTION]}
           onValueChange={v => onChange(KEY_SIDEBAR_AUTHOR_DESCRIPTION, v)}
-          language="text"
-          minRows={4}
-          description="支持多行与简单 HTML，用于侧边栏作者卡片"
+          language="markdown"
+          height={180}
+          wordWrap
+          description="支持 Markdown 与简单 HTML，用于侧边栏作者卡片文案。"
         />
 
         <FormImageUpload
@@ -175,9 +176,9 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
       <SettingsSection title="站点信息">
         <FormSwitch
           label="显示文章总数"
-          description="侧边栏显示站点文章总数"
-          checked={values[KEY_SIDEBAR_SITEINFO_POST_COUNT] === "true"}
-          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_POST_COUNT, String(v))}
+          description="侧边栏显示站点文章总数（数值由系统自动统计）"
+          checked={values[KEY_SIDEBAR_SITEINFO_POST_COUNT] !== "-1"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_POST_COUNT, v ? "0" : "-1")}
         />
 
         <FormSwitch
@@ -189,9 +190,9 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
 
         <FormSwitch
           label="显示总字数"
-          description="侧边栏显示站点总字数统计"
-          checked={values[KEY_SIDEBAR_SITEINFO_WORD_COUNT] === "true"}
-          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_WORD_COUNT, String(v))}
+          description="侧边栏显示站点总字数统计（数值由系统自动统计）"
+          checked={values[KEY_SIDEBAR_SITEINFO_WORD_COUNT] !== "-1"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_SITEINFO_WORD_COUNT, v ? "0" : "-1")}
         />
 
         <FormInput
@@ -205,17 +206,12 @@ export function SidebarForm({ values, onChange, loading }: SidebarFormProps) {
 
       {/* 目录与文档 */}
       <SettingsSection title="目录与文档">
-        <FormSelect
+        <FormSwitch
           label="目录折叠模式"
-          value={values[KEY_SIDEBAR_TOC_COLLAPSE_MODE]}
-          onValueChange={v => onChange(KEY_SIDEBAR_TOC_COLLAPSE_MODE, v)}
-          placeholder="请选择折叠模式"
-          description="文章目录的默认展开/折叠行为"
-        >
-          <FormSelectItem key="none">不折叠</FormSelectItem>
-          <FormSelectItem key="expanded">默认展开</FormSelectItem>
-          <FormSelectItem key="collapsed">默认折叠</FormSelectItem>
-        </FormSelect>
+          checked={values[KEY_SIDEBAR_TOC_COLLAPSE_MODE] === "true"}
+          onCheckedChange={v => onChange(KEY_SIDEBAR_TOC_COLLAPSE_MODE, String(v))}
+          description="开启后，目录会根据当前阅读位置自动折叠/展开子标题"
+        />
 
         <FormInput
           label="系列文章数量"

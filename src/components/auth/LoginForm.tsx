@@ -7,13 +7,14 @@
  */
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
-import { ArrowLeft, Eye, EyeOff, Lock, User } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Lock, User, Loader2 } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { addToast } from "@heroui/react";
 import { Input } from "@/components/ui";
 import { authApi as authService } from "@/lib/api/auth";
@@ -22,6 +23,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useSiteConfigStore } from "@/store/site-config-store";
 import { ThemeToggle } from "@/components/common";
 import { cn } from "@/lib/utils";
+import { WechatLoginDialog } from "./WechatLoginDialog";
 
 // 邮箱图标
 function MailIcon({ className }: { className?: string }) {
@@ -89,6 +91,23 @@ const pageVariants = {
   exit: { opacity: 0, x: -20 },
 };
 
+// 彩虹聚合登录方式配置（图标 + 颜色 + 标签）
+const RAINBOW_METHOD_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+  qq: { label: "QQ登录", color: "#12B7F5", icon: "ri:qq-fill" },
+  wechat: { label: "微信登录", color: "#07C160", icon: "ri:wechat-fill" },
+  alipay: { label: "支付宝登录", color: "#1677FF", icon: "ri:alipay-fill" },
+  weibo: { label: "微博登录", color: "#E6162D", icon: "ri:weibo-fill" },
+  baidu: { label: "百度登录", color: "#2932E1", icon: "ri:baidu-fill" },
+  douyin: { label: "抖音登录", color: "#000000", icon: "ri:tiktok-fill" },
+  github: { label: "GitHub登录", color: "#24292E", icon: "ri:github-fill" },
+  gitee: { label: "Gitee登录", color: "#C71D23", icon: "ri:git-repository-fill" },
+  google: { label: "Google登录", color: "#4285F4", icon: "ri:google-fill" },
+  microsoft: { label: "Microsoft登录", color: "#00A4EF", icon: "ri:microsoft-fill" },
+  facebook: { label: "Facebook登录", color: "#1877F2", icon: "ri:facebook-fill" },
+  twitter: { label: "Twitter登录", color: "#1DA1F2", icon: "mdi:twitter" },
+  dingtalk: { label: "钉钉登录", color: "#0089FF", icon: "ri:chat-3-fill" },
+};
+
 // 默认 Logo 路径
 const DEFAULT_LOGO_DAY = "/static/img/logo-horizontal-day.png";
 const DEFAULT_LOGO_NIGHT = "/static/img/logo-horizontal-night.png";
@@ -98,6 +117,7 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
   const { resolvedTheme } = useTheme();
   const setAuth = useAuthStore(state => state.setAuth);
   const { getTitle, getHorizontalLogo } = useSiteConfigStore();
+  const siteConfig = useSiteConfigStore(state => state.siteConfig);
 
   // 防止 hydration 错误
   const [mounted, setMounted] = useState(false);
@@ -120,6 +140,32 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showWechatDialog, setShowWechatDialog] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+
+  // OAuth 配置
+  const oauthConfig = siteConfig?.oauth;
+
+  // 彩虹聚合登录方式
+  const rainbowLoginMethods = useMemo(() => {
+    if (!oauthConfig?.rainbow?.enable) return [];
+    const methods = oauthConfig.rainbow.login_methods || "";
+    return methods
+      .split(",")
+      .map(m => m.trim())
+      .filter(Boolean);
+  }, [oauthConfig]);
+
+  // 是否有任何 OAuth 登录方式启用
+  const hasOAuthProviders = useMemo(() => {
+    return !!(
+      oauthConfig?.qq?.enable ||
+      oauthConfig?.wechat?.enable ||
+      oauthConfig?.logto?.enable ||
+      oauthConfig?.oidc?.enable ||
+      rainbowLoginMethods.length > 0
+    );
+  }, [oauthConfig, rainbowLoginMethods]);
 
   const switchStep = (targetStep: Step) => {
     setStep(targetStep);
@@ -242,6 +288,65 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
       addToast({ title: getErrorMessage(err), color: "danger", timeout: 3000 });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // OAuth 登录处理
+  const handleOAuthLogin = async (provider: string, loginType?: string) => {
+    // 微信使用二维码方式
+    if (provider === "wechat") {
+      setShowWechatDialog(true);
+      return;
+    }
+
+    try {
+      setOauthLoading(true);
+
+      // 根据 provider 确定回调 URL
+      let callbackPath: string;
+      if (provider === "qq") {
+        callbackPath = "/callback/qq";
+      } else if (provider === "logto") {
+        callbackPath = "/callback/openid/0";
+      } else if (provider === "rainbow") {
+        callbackPath = "/callback/rainbow";
+      } else {
+        callbackPath = "/callback/openid/2"; // oidc
+      }
+      const callbackUrl = `${window.location.origin}${callbackPath}`;
+
+      const res = await authService.getOAuthAuthorizeUrl({
+        provider,
+        redirect_url: callbackUrl,
+        login_type: loginType,
+      });
+
+      if (res.code === 200 && res.data) {
+        const authorizeUrl = res.data.url || res.data.authorize_url;
+        if (authorizeUrl) {
+          // 保存 state 和 provider 到 sessionStorage
+          if (provider !== "rainbow" && res.data.state) {
+            sessionStorage.setItem("oauth_state", res.data.state);
+          }
+          sessionStorage.setItem("oauth_provider", provider);
+          if (loginType) {
+            sessionStorage.setItem("oauth_login_type", loginType);
+          }
+          sessionStorage.setItem("oauth_source", "page");
+          sessionStorage.setItem("oauth_return_url", redirectUrl);
+
+          // 跳转到第三方授权页面
+          window.location.href = authorizeUrl;
+        } else {
+          addToast({ title: res.message || "获取授权URL失败", color: "danger", timeout: 3000 });
+        }
+      } else {
+        addToast({ title: res.message || "获取授权URL失败", color: "danger", timeout: 3000 });
+      }
+    } catch (err) {
+      addToast({ title: getErrorMessage(err), color: "danger", timeout: 3000 });
+    } finally {
+      setOauthLoading(false);
     }
   };
 
@@ -373,6 +478,101 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
                     立即注册
                   </button>
                 </p>
+
+                {/* 第三方登录 */}
+                {hasOAuthProviders && (
+                  <>
+                    <div className="relative my-2">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full h-px bg-border" />
+                      </div>
+                      <div className="relative flex justify-center text-xs">
+                        <span className="px-3 bg-card text-muted-foreground">或使用以下方式登录</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {/* 微信登录 */}
+                      {oauthConfig?.wechat?.enable && (
+                        <button
+                          type="button"
+                          disabled={oauthLoading}
+                          onClick={() => handleOAuthLogin("wechat")}
+                          className="w-full h-10 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: "#07C160" }}
+                        >
+                          <Icon icon="ri:wechat-fill" width={20} />
+                          微信登录
+                        </button>
+                      )}
+
+                      {/* QQ登录 */}
+                      {oauthConfig?.qq?.enable && (
+                        <button
+                          type="button"
+                          disabled={oauthLoading}
+                          onClick={() => handleOAuthLogin("qq")}
+                          className="w-full h-10 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: "#12B7F5" }}
+                        >
+                          <Icon icon="ri:qq-fill" width={20} />
+                          QQ登录
+                        </button>
+                      )}
+
+                      {/* Logto登录 */}
+                      {oauthConfig?.logto?.enable && (
+                        <button
+                          type="button"
+                          disabled={oauthLoading}
+                          onClick={() => handleOAuthLogin("logto")}
+                          className="w-full h-10 rounded-lg text-sm font-medium border border-border text-foreground bg-card flex items-center justify-center gap-2 transition-all cursor-pointer hover:bg-muted disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                          <Icon icon="ri:shield-keyhole-fill" width={18} />
+                          {oauthConfig.logto.display_name || "SSO登录"}
+                        </button>
+                      )}
+
+                      {/* OIDC登录 */}
+                      {oauthConfig?.oidc?.enable && (
+                        <button
+                          type="button"
+                          disabled={oauthLoading}
+                          onClick={() => handleOAuthLogin("oidc")}
+                          className="w-full h-10 rounded-lg text-sm font-medium border border-border text-foreground bg-card flex items-center justify-center gap-2 transition-all cursor-pointer hover:bg-muted disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                          <Icon icon="ri:openid-fill" width={18} />
+                          {oauthConfig.oidc.display_name || "企业登录"}
+                        </button>
+                      )}
+
+                      {/* 彩虹聚合登录 */}
+                      {rainbowLoginMethods.map(method => {
+                        const cfg = RAINBOW_METHOD_CONFIG[method];
+                        return (
+                          <button
+                            key={method}
+                            type="button"
+                            disabled={oauthLoading}
+                            onClick={() => handleOAuthLogin("rainbow", method)}
+                            className="w-full h-10 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                            style={{ backgroundColor: cfg?.color || "#409EFF" }}
+                          >
+                            <Icon icon={cfg?.icon || "ri:login-circle-fill"} width={18} />
+                            {cfg?.label || method}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {oauthLoading && (
+                      <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        正在跳转...
+                      </div>
+                    )}
+                  </>
+                )}
               </motion.div>
             )}
 
@@ -533,6 +733,9 @@ export function LoginForm({ redirectUrl = "/admin", initialStep }: LoginFormProp
           </p>
         </div>
       </div>
+
+      {/* 微信扫码登录弹窗 */}
+      <WechatLoginDialog open={showWechatDialog} onClose={() => setShowWechatDialog(false)} redirectUrl={redirectUrl} />
     </motion.div>
   );
 }

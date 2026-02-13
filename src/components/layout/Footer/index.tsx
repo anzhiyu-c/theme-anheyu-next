@@ -17,7 +17,13 @@ interface SocialItem {
 
 interface LinkGroup {
   title: string;
-  links: Array<{ title: string; link: string }>;
+  links: Array<{ title: string; link: string; external?: boolean }>;
+}
+
+interface FooterBarLink {
+  text: string;
+  link: string;
+  external?: boolean;
 }
 
 interface FriendLink {
@@ -59,6 +65,45 @@ const isInternalLink = (link: string) => {
   if (isBackendRenderedPath(link)) return false;
   return link.startsWith("/") || link.startsWith("#") || (!link.startsWith("http://") && !link.startsWith("https://"));
 };
+
+/**
+ * 根据配置渲染链接，兼容内部路由、后端渲染页面和 external 开关
+ */
+function FooterLink({
+  href,
+  children,
+  className,
+  title,
+  external,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className: string;
+  title?: string;
+  external?: boolean;
+}) {
+  const openInNewTab = typeof external === "boolean" ? external : !isInternalLink(href);
+
+  if (isInternalLink(href) && !openInNewTab) {
+    return (
+      <Link className={className} href={href} title={title}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      className={className}
+      href={href}
+      title={title}
+      target={openInNewTab ? "_blank" : undefined}
+      rel={openInNewTab ? "noopener external nofollow noreferrer" : undefined}
+    >
+      {children}
+    </a>
+  );
+}
 
 /**
  * 渲染图标
@@ -284,16 +329,15 @@ export function Footer() {
                 <div className={styles.footerTitle}>{group.title}</div>
                 <div className={styles.footerLinks}>
                   {group.links.map(link => (
-                    <a
+                    <FooterLink
                       key={link.link}
-                      className={styles.footerItem}
                       href={link.link}
+                      className={styles.footerItem}
                       title={link.title}
-                      target="_blank"
-                      rel="noopener"
+                      external={link.external}
                     >
                       {link.title}
-                    </a>
+                    </FooterLink>
                   ))}
                 </div>
               </div>
@@ -427,27 +471,11 @@ export function Footer() {
             {/* 右侧：链接列表和 CC 协议 */}
             <div className={styles.barRight}>
               {/* 链接列表 */}
-              {footerConfig.bar.linkList?.map(link => {
-                if (isBackendRenderedPath(link.link)) {
-                  return (
-                    <a key={link.text} className={styles.barLink} href={link.link}>
-                      {link.text}
-                    </a>
-                  );
-                }
-                if (isInternalLink(link.link)) {
-                  return (
-                    <Link key={link.text} className={styles.barLink} href={link.link}>
-                      {link.text}
-                    </Link>
-                  );
-                }
-                return (
-                  <a key={link.text} className={styles.barLink} href={link.link} target="_blank" rel="noopener">
-                    {link.text}
-                  </a>
-                );
-              })}
+              {footerConfig.bar.linkList?.map((link: FooterBarLink) => (
+                <FooterLink key={link.text} href={link.link} className={styles.barLink} external={link.external}>
+                  {link.text}
+                </FooterLink>
+              ))}
 
               {/* CC 协议图标 */}
               {footerConfig.bar.cc?.link && (

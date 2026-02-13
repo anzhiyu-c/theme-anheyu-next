@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useSiteConfigStore } from "@/store/site-config-store";
+import { friendsApi } from "@/lib/api/friends";
 
 import styles from "./styles.module.css";
 import type { NavConfig, MenuItem } from "../../types";
@@ -63,6 +64,17 @@ const mockTags = [
 export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMenuProps) {
   const { theme, setTheme } = useTheme();
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
+  // 菜单中 /travelling 项：跳转随机友链（对齐 anheyu-pro articleStore.navigateToRandomLink）
+  const navigateToRandomLink = useCallback(async () => {
+    try {
+      const links = await friendsApi.getRandomLinks(1);
+      if (links.length > 0) {
+        window.open(links[0].url, "_blank");
+      }
+    } catch (error) {
+      console.error("获取随机友链失败:", error);
+    }
+  }, []);
 
   const isDark = theme === "dark";
 
@@ -263,7 +275,22 @@ export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMen
                 <div className={styles.menuGroupList}>
                   {menu.children && menu.children.length > 0 ? (
                     menu.children.map(child =>
-                      child.isExternal || child.href?.startsWith("http://") || child.href?.startsWith("https://") ? (
+                      child.href === "/travelling" ? (
+                        <a
+                          key={child.name}
+                          href="#"
+                          className={styles.menuGroupItem}
+                          onClick={() => {
+                            navigateToRandomLink();
+                            onClose();
+                          }}
+                        >
+                          <MenuIcon icon={child.icon} />
+                          <span>{child.name}</span>
+                        </a>
+                      ) : child.isExternal ||
+                        child.href?.startsWith("http://") ||
+                        child.href?.startsWith("https://") ? (
                         <a
                           key={child.name}
                           href={child.href}
@@ -287,7 +314,19 @@ export function MobileMenu({ isOpen, onClose, navConfig, menuConfig }: MobileMen
                       )
                     )
                   ) : menu.href ? (
-                    menu.isExternal || menu.href?.startsWith("http://") || menu.href?.startsWith("https://") ? (
+                    menu.href === "/travelling" ? (
+                      <a
+                        href="#"
+                        className={styles.menuGroupItem}
+                        onClick={() => {
+                          navigateToRandomLink();
+                          onClose();
+                        }}
+                      >
+                        <MenuIcon icon={menu.icon} />
+                        <span>{menu.name}</span>
+                      </a>
+                    ) : menu.isExternal || menu.href?.startsWith("http://") || menu.href?.startsWith("https://") ? (
                       <a href={menu.href} target="_blank" rel="noopener noreferrer" className={styles.menuGroupItem}>
                         <MenuIcon icon={menu.icon} />
                         <span>{menu.name}</span>

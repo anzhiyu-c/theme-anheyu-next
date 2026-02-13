@@ -1,5 +1,5 @@
 /**
- * 存储策略类型定义（对齐 anheyu-app 后端）
+ * 存储策略类型定义（对齐 anheyu-pro 后端 PRO 版 API）
  */
 
 // ===================================
@@ -70,6 +70,8 @@ export interface StoragePolicy {
   virtual_path?: string;
   flag?: string;
   settings?: StoragePolicySettings;
+  /** PRO 扩展字段：OSS 图片处理样式 */
+  oss_process_style?: string;
 }
 
 // ===================================
@@ -86,6 +88,21 @@ export interface StoragePolicyListResponse {
   total: number;
 }
 
-export type StoragePolicyCreateRequest = Omit<StoragePolicy, "id" | "created_at" | "updated_at">;
+export type StoragePolicyCreateRequest = Omit<StoragePolicy, "id" | "created_at" | "updated_at"> & {
+  pro_meta?: { oss_process_style?: string };
+};
 
-export type StoragePolicyUpdateRequest = Partial<StoragePolicyCreateRequest>;
+export type StoragePolicyUpdateRequest = Partial<Omit<StoragePolicy, "id" | "created_at" | "updated_at">>;
+
+// ===================================
+//     OneDrive 授权
+// ===================================
+
+export interface OneDriveAuthUrlResponse {
+  url: string;
+}
+
+export interface OneDriveAuthCompleteRequest {
+  code: string;
+  state: string;
+}

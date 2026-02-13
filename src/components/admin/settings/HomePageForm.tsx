@@ -121,7 +121,9 @@ function parseLaunchTime(value: string | undefined): CalendarDateTime | null {
 }
 
 function formatLaunchTime(d: CalendarDateTime): string {
-  return d.toString().replace("T", " ");
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  const second = typeof d.second === "number" ? d.second : 0;
+  return `${d.year}-${pad2(d.month)}-${pad2(d.day)} ${pad2(d.hour)}:${pad2(d.minute)}:${pad2(second)}`;
 }
 
 function LaunchTimePicker({
@@ -138,20 +140,25 @@ function LaunchTimePicker({
   const dateValue = React.useMemo(() => parseLaunchTime(value), [value]);
   return (
     <div className="flex flex-col gap-2">
-      {label && <label className="text-sm font-medium text-foreground/70">{label}</label>}
+      {label && <label className="text-sm font-semibold tracking-tight text-foreground/80">{label}</label>}
       <DatePicker
         label={undefined}
         granularity="minute"
         value={dateValue ?? undefined}
         onChange={d => {
-          if (d) onValueChange(formatLaunchTime(d as CalendarDateTime));
+          if (d) {
+            onValueChange(formatLaunchTime(d as CalendarDateTime));
+          } else {
+            onValueChange("");
+          }
         }}
         labelPlacement="outside"
         classNames={{
-          inputWrapper: "bg-default-100/50 border border-default-200 rounded-lg shadow-none min-h-9",
+          inputWrapper:
+            "h-9 min-h-9 rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none transition-all duration-200",
         }}
       />
-      {description && <p className="text-xs text-default-400">{description}</p>}
+      {description && <p className="text-xs leading-relaxed text-default-400">{description}</p>}
     </div>
   );
 }
@@ -164,6 +171,20 @@ interface HomePageFormProps {
   loading?: boolean;
 }
 
+function hasMeaningfulValue(raw: string | undefined): boolean {
+  const value = (raw ?? "").trim();
+  if (!value) return false;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed)) return parsed.length > 0;
+    if (parsed && typeof parsed === "object") return Object.keys(parsed as Record<string, unknown>).length > 0;
+    if (typeof parsed === "string") return parsed.trim().length > 0;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
   if (loading) {
     return (
@@ -172,6 +193,23 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
       </div>
     );
   }
+
+  const runtimeEnabled = values[KEY_FOOTER_RUNTIME_ENABLE] === "true";
+  const hasRuntimeHistory =
+    !runtimeEnabled &&
+    [
+      KEY_FOOTER_RUNTIME_LAUNCH_TIME,
+      KEY_FOOTER_RUNTIME_WORK_IMG,
+      KEY_FOOTER_RUNTIME_WORK_DESC,
+      KEY_FOOTER_RUNTIME_OFFDUTY_IMG,
+      KEY_FOOTER_RUNTIME_OFFDUTY_DESC,
+    ]
+      .map(key => values[key] ?? "")
+      .some(value => hasMeaningfulValue(value));
+  const badgeEnabled = values[KEY_FOOTER_BADGE_ENABLE] === "true";
+  const hasBadgeHistory = !badgeEnabled && hasMeaningfulValue(values[KEY_FOOTER_BADGE_LIST]);
+  const uptimeEnabled = values[KEY_FOOTER_UPTIME_KUMA_ENABLE] === "true";
+  const hasUptimeHistory = !uptimeEnabled && hasMeaningfulValue(values[KEY_FOOTER_UPTIME_KUMA_PAGE_URL]);
 
   return (
     <div className="space-y-8">
@@ -262,46 +300,56 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
         <FormSwitch
           label="启用运行时间"
           description="在页脚显示站点运行时间"
-          checked={values[KEY_FOOTER_RUNTIME_ENABLE] === "true"}
+          checked={runtimeEnabled}
           onCheckedChange={v => onChange(KEY_FOOTER_RUNTIME_ENABLE, String(v))}
         />
 
-        <LaunchTimePicker
-          label="上线时间"
-          value={values[KEY_FOOTER_RUNTIME_LAUNCH_TIME]}
-          onValueChange={v => onChange(KEY_FOOTER_RUNTIME_LAUNCH_TIME, v)}
-          description="站点上线时间，用于计算运行时长"
-        />
+        {runtimeEnabled ? (
+          <>
+            <LaunchTimePicker
+              label="上线时间"
+              value={values[KEY_FOOTER_RUNTIME_LAUNCH_TIME]}
+              onValueChange={v => onChange(KEY_FOOTER_RUNTIME_LAUNCH_TIME, v)}
+              description="站点上线时间，用于计算运行时长"
+            />
 
-        <SettingsFieldGroup cols={2}>
-          <FormImageUpload
-            label="工作状态图片"
-            value={values[KEY_FOOTER_RUNTIME_WORK_IMG]}
-            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_IMG, v)}
-            description="工作状态时显示的图片"
-          />
-          <FormInput
-            label="工作状态描述"
-            placeholder="例如：努力工作中..."
-            value={values[KEY_FOOTER_RUNTIME_WORK_DESC]}
-            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_DESC, v)}
-          />
-        </SettingsFieldGroup>
+            <SettingsFieldGroup cols={2}>
+              <FormImageUpload
+                label="工作状态图片"
+                value={values[KEY_FOOTER_RUNTIME_WORK_IMG]}
+                onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_IMG, v)}
+                description="工作状态时显示的图片"
+              />
+              <FormInput
+                label="工作状态描述"
+                placeholder="例如：努力工作中..."
+                value={values[KEY_FOOTER_RUNTIME_WORK_DESC]}
+                onValueChange={v => onChange(KEY_FOOTER_RUNTIME_WORK_DESC, v)}
+              />
+            </SettingsFieldGroup>
 
-        <SettingsFieldGroup cols={2}>
-          <FormImageUpload
-            label="休息状态图片"
-            value={values[KEY_FOOTER_RUNTIME_OFFDUTY_IMG]}
-            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_IMG, v)}
-            description="休息状态时显示的图片"
-          />
-          <FormInput
-            label="休息状态描述"
-            placeholder="例如：已下班..."
-            value={values[KEY_FOOTER_RUNTIME_OFFDUTY_DESC]}
-            onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_DESC, v)}
-          />
-        </SettingsFieldGroup>
+            <SettingsFieldGroup cols={2}>
+              <FormImageUpload
+                label="休息状态图片"
+                value={values[KEY_FOOTER_RUNTIME_OFFDUTY_IMG]}
+                onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_IMG, v)}
+                description="休息状态时显示的图片"
+              />
+              <FormInput
+                label="休息状态描述"
+                placeholder="例如：已下班..."
+                value={values[KEY_FOOTER_RUNTIME_OFFDUTY_DESC]}
+                onValueChange={v => onChange(KEY_FOOTER_RUNTIME_OFFDUTY_DESC, v)}
+              />
+            </SettingsFieldGroup>
+          </>
+        ) : (
+          hasRuntimeHistory && (
+            <div className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-700 dark:text-warning-300">
+              运行时间当前关闭，但检测到历史配置已保留；重新开启后将继续生效。
+            </div>
+          )
+        )}
       </SettingsSection>
 
       {/* 社交与链接 */}
@@ -383,11 +431,11 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
         <FormSwitch
           label="启用底部徽章"
           description="在页脚显示自定义徽章"
-          checked={values[KEY_FOOTER_BADGE_ENABLE] === "true"}
+          checked={badgeEnabled}
           onCheckedChange={v => onChange(KEY_FOOTER_BADGE_ENABLE, String(v))}
         />
 
-        {values[KEY_FOOTER_BADGE_ENABLE] === "true" && (
+        {badgeEnabled && (
           <VisualArrayEditor
             label="徽章列表"
             value={values[KEY_FOOTER_BADGE_LIST]}
@@ -399,6 +447,11 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
             description="页脚徽章配置列表"
           />
         )}
+        {!badgeEnabled && hasBadgeHistory && (
+          <div className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-700 dark:text-warning-300">
+            底部徽章当前关闭，但历史徽章列表仍已保留；重新开启后会继续展示。
+          </div>
+        )}
       </SettingsSection>
 
       {/* Uptime Kuma */}
@@ -406,11 +459,11 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
         <FormSwitch
           label="启用 Uptime Kuma"
           description="在页脚显示 Uptime Kuma 状态监控"
-          checked={values[KEY_FOOTER_UPTIME_KUMA_ENABLE] === "true"}
+          checked={uptimeEnabled}
           onCheckedChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_ENABLE, String(v))}
         />
 
-        {values[KEY_FOOTER_UPTIME_KUMA_ENABLE] === "true" && (
+        {uptimeEnabled && (
           <FormInput
             label="Uptime Kuma 页面地址"
             placeholder="https://status.example.com"
@@ -418,6 +471,11 @@ export function HomePageForm({ values, onChange, loading }: HomePageFormProps) {
             onValueChange={v => onChange(KEY_FOOTER_UPTIME_KUMA_PAGE_URL, v)}
             description="Uptime Kuma 状态页面的 URL"
           />
+        )}
+        {!uptimeEnabled && hasUptimeHistory && (
+          <div className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning-700 dark:text-warning-300">
+            Uptime Kuma 当前关闭，但历史页面地址仍已保留；重新开启后会继续使用。
+          </div>
         )}
       </SettingsSection>
     </div>

@@ -2,8 +2,8 @@
 
 import { FormInput } from "@/components/ui/form-input";
 import { FormImageUpload } from "@/components/ui/form-image-upload";
-import { FormJsonEditor } from "@/components/ui/form-json-editor";
-import { SettingsSection } from "./SettingsSection";
+import { EquipmentListEditor } from "./editors/EquipmentListEditor";
+import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
 import { Spinner } from "@/components/ui/spinner";
 import {
   KEY_EQUIPMENT_BANNER_BG,
@@ -29,46 +29,42 @@ export function EquipmentPageForm({ values, onChange, loading }: EquipmentPageFo
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* 横幅配置 */}
-      <SettingsSection title="横幅配置">
-        <FormImageUpload
-          label="背景图"
-          value={values[KEY_EQUIPMENT_BANNER_BG]}
-          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_BG, v)}
-          placeholder="请输入横幅背景图 URL"
-        />
-        <FormInput
-          label="标题"
-          placeholder="请输入页面标题"
-          value={values[KEY_EQUIPMENT_BANNER_TITLE]}
-          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_TITLE, v)}
-        />
-        <FormInput
-          label="描述"
-          placeholder="请输入页面描述"
-          value={values[KEY_EQUIPMENT_BANNER_DESC]}
-          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_DESC, v)}
-        />
-        <FormInput
-          label="提示文字"
-          placeholder="请输入提示文字"
-          value={values[KEY_EQUIPMENT_BANNER_TIP]}
-          onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_TIP, v)}
-        />
+      <SettingsSection title="横幅" description="页面顶部展示区域">
+        <div className="rounded-xl border border-default-200/80 bg-default-50/20 p-5 shadow-[0_0_0_0.5px_rgba(0,0,0,0.04)] dark:shadow-[0_0_0_0.5px_rgba(255,255,255,0.04)]">
+          <SettingsFieldGroup cols={2}>
+            <FormImageUpload
+              label="背景图"
+              value={values[KEY_EQUIPMENT_BANNER_BG]}
+              onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_BG, v)}
+              placeholder="图片 URL"
+            />
+            <FormInput
+              label="标题"
+              placeholder="页面标题"
+              value={values[KEY_EQUIPMENT_BANNER_TITLE]}
+              onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_TITLE, v)}
+            />
+            <FormInput
+              label="描述"
+              placeholder="页面描述"
+              value={values[KEY_EQUIPMENT_BANNER_DESC]}
+              onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_DESC, v)}
+            />
+            <FormInput
+              label="提示"
+              placeholder="提示文字"
+              value={values[KEY_EQUIPMENT_BANNER_TIP]}
+              onValueChange={v => onChange(KEY_EQUIPMENT_BANNER_TIP, v)}
+            />
+          </SettingsFieldGroup>
+        </div>
       </SettingsSection>
 
       {/* 装备列表 */}
-      <SettingsSection title="装备列表">
-        <FormJsonEditor
-          label="装备配置"
-          description={
-            "JSON 数组，每项为分类对象，含 name 与 items。items 为装备项数组，每项可含 name、image、link、description 等字段。示例见后端文档或保留原 JSON 结构。"
-          }
-          value={values[KEY_EQUIPMENT_LIST]}
-          onValueChange={v => onChange(KEY_EQUIPMENT_LIST, v)}
-          minRows={10}
-        />
+      <SettingsSection title="装备列表" description="分类管理，支持拖拽排序">
+        <EquipmentListEditor value={values[KEY_EQUIPMENT_LIST]} onValueChange={v => onChange(KEY_EQUIPMENT_LIST, v)} />
       </SettingsSection>
     </div>
   );

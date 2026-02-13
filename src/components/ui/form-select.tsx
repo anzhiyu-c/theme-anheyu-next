@@ -65,7 +65,7 @@ function FormSelect({
     <div className={cn("flex flex-col gap-1.5", className)}>
       {/* 外部 Label */}
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-foreground/70">
+        <label htmlFor={id} className="text-sm font-medium text-foreground/80">
           {label}
           {isRequired && <span className="text-danger ml-0.5">*</span>}
         </label>
@@ -81,15 +81,15 @@ function FormSelect({
         aria-describedby={description || error ? descId : undefined}
         classNames={{
           trigger: cn(
-            "bg-default-100/50 border border-default-200 rounded-xl !shadow-none",
-            "data-[open=true]:!bg-white data-[open=true]:dark:!bg-default-50 data-[open=true]:border-primary data-[open=true]:ring-1 data-[open=true]:ring-primary/20",
-            "data-[focus=true]:!bg-white data-[focus=true]:dark:!bg-default-50 data-[focus=true]:border-primary data-[focus=true]:ring-1 data-[focus=true]:ring-primary/20",
-            "data-[hover=true]:border-default-300",
+            "rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none!",
+            "data-[open=true]:bg-white! dark:data-[open=true]:bg-default-100/60 data-[open=true]:border-primary/65 data-[open=true]:ring-2 data-[open=true]:ring-primary/15",
+            "data-[focus=true]:bg-white! dark:data-[focus=true]:bg-default-100/60 data-[focus=true]:border-primary/65 data-[focus=true]:ring-2 data-[focus=true]:ring-primary/15",
+            "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
             size === "sm" ? "h-9 min-h-9" : "h-10 min-h-10",
             "transition-all duration-200",
             error && "border-danger bg-danger-50/50 data-[open=true]:border-danger data-[open=true]:ring-danger/20"
           ),
-          value: "text-sm text-foreground",
+          value: "text-sm text-foreground/90",
           selectorIcon: "text-default-400",
           popoverContent: "rounded-xl",
           innerWrapper: "pl-0.5",
@@ -103,7 +103,7 @@ function FormSelect({
         <p
           id={descId}
           role={error ? "alert" : undefined}
-          className={cn("text-xs", error ? "text-danger" : "text-default-400")}
+          className={cn("text-xs leading-relaxed", error ? "text-danger" : "text-default-400")}
         >
           {error || description}
         </p>

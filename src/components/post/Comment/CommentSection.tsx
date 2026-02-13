@@ -84,7 +84,7 @@ export function CommentSection({ targetTitle, targetPath, className }: CommentSe
 
   const formConfig = useMemo(
     () => ({
-      limitLength: Number(commentConfig?.limit_length ?? 1000) || 1000,
+      limitLength: Number(commentConfig?.limit_length ?? 500) || 500,
       loginRequired: commentConfig?.login_required === true || commentConfig?.login_required === "true",
       anonymousEmail: commentConfig?.anonymous_email || siteConfig?.frontDesk?.siteOwner?.email || "",
       allowImageUpload:

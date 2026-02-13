@@ -98,7 +98,7 @@ const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
       <div className={cn("flex flex-col gap-1.5", className)}>
         {/* Label */}
         {label && (
-          <label htmlFor={id} className="text-sm font-medium text-foreground/70">
+          <label htmlFor={id} className="text-sm font-medium text-foreground/80">
             {label}
             {isRequired && <span className="text-danger ml-0.5">*</span>}
           </label>
@@ -117,13 +117,13 @@ const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
           aria-describedby={description || error ? descId : undefined}
           onChange={handleChange}
           className={cn(
-            "w-full rounded-xl border px-3.5 py-2.5 text-sm text-foreground resize-none",
+            "w-full rounded-xl border px-3.5 py-2.5 text-sm text-foreground/90 resize-none",
             "outline-none transition-all duration-200",
-            "placeholder:text-default-400",
+            "placeholder:text-default-400/80",
             "disabled:cursor-not-allowed disabled:opacity-50",
             error
               ? "border-danger bg-danger-50/50 focus:border-danger focus:ring-1 focus:ring-danger/20"
-              : "border-default-200 bg-default-100/50 hover:border-default-300 focus:bg-white focus:dark:bg-default-50 focus:border-primary focus:ring-1 focus:ring-primary/20",
+              : "border-default-200/80 bg-white dark:bg-default-100/50 hover:border-default-300/90 focus:bg-white dark:focus:bg-default-100/60 focus:border-primary/65 focus:ring-2 focus:ring-primary/15",
             textareaClassName
           )}
         />
@@ -133,7 +133,7 @@ const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaProps>(
           <p
             id={descId}
             role={error ? "alert" : undefined}
-            className={cn("text-xs", error ? "text-danger" : "text-default-400")}
+            className={cn("text-xs leading-relaxed", error ? "text-danger" : "text-default-400")}
           >
             {error || description}
           </p>

@@ -324,7 +324,16 @@ export function EditorToolbar({ editor, onAIWriting }: EditorToolbarProps) {
   const handleImageConfirm = useCallback(
     (url: string, alt?: string) => {
       if (!editor) return;
-      editor.chain().focus().setImage({ src: url, alt }).run();
+      // 使用 insertContent 以支持 caption 等自定义属性
+      // 如果填写了图片描述，同时设置 caption 自动显示描述区域
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "image",
+          attrs: { src: url, alt: alt || null, caption: alt || null },
+        })
+        .run();
     },
     [editor]
   );

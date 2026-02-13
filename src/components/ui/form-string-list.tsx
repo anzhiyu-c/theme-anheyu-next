@@ -119,11 +119,11 @@ const FormStringList = React.forwardRef<HTMLDivElement, FormStringListProps>(
 
     return (
       <div ref={ref} className={cn("flex flex-col gap-1.5", className)}>
-        {label && <label className="text-sm font-medium text-foreground/70">{label}</label>}
+        {label && <label className="text-sm font-medium text-foreground/80">{label}</label>}
 
         <div
           className={cn(
-            "rounded-xl border border-default-200 bg-default-50/30 overflow-hidden",
+            "rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 overflow-hidden",
             "shadow-[0_0_0_0.5px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)]",
             "dark:shadow-[0_0_0_0.5px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3)]"
           )}
@@ -154,7 +154,7 @@ const FormStringList = React.forwardRef<HTMLDivElement, FormStringListProps>(
             className={cn(
               "flex items-center justify-center gap-1.5 w-full py-2.5",
               "text-xs font-medium text-primary",
-              "border-t border-default-100 bg-default-50/50",
+              "border-t border-default-100 bg-default-100/5!",
               "hover:bg-primary/5 transition-colors",
               "disabled:opacity-40 disabled:cursor-not-allowed"
             )}
@@ -164,7 +164,7 @@ const FormStringList = React.forwardRef<HTMLDivElement, FormStringListProps>(
           </button>
         </div>
 
-        {description && <p className="text-xs text-default-400">{description}</p>}
+        {description && <p className="text-xs leading-relaxed text-default-400">{description}</p>}
       </div>
     );
   }
@@ -197,7 +197,7 @@ function StringListItem({
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.15 }}
     >
-      <motion.div className="flex items-center gap-2 px-3 py-2 bg-background">
+      <motion.div className="flex items-center gap-2 px-3 py-2 bg-transparent">
         {/* 拖拽手柄 */}
         <button
           type="button"
@@ -208,7 +208,7 @@ function StringListItem({
           <GripVertical className="w-4 h-4" />
         </button>
 
-        {/* 输入框 */}
+        {/* 输入框 - 与 FormInput 保持一致 */}
         <Input
           size="sm"
           placeholder={placeholder}
@@ -216,13 +216,13 @@ function StringListItem({
           onValueChange={v => onChange(item._id, v)}
           classNames={{
             inputWrapper: cn(
-              "bg-default-100/50 border border-default-200 rounded-lg !shadow-none h-8 min-h-8",
-              "data-[hover=true]:border-default-300",
-              "group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50",
-              "group-data-[focus=true]:border-primary group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
+              "rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none! h-9 min-h-9",
+              "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
+              "group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-100/60 group-data-[focus=true]:border-primary/65",
+              "group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-primary/15",
               "transition-all duration-200"
             ),
-            input: "text-sm",
+            input: "text-sm text-foreground/90 placeholder:text-default-400/80",
           }}
         />
 

@@ -6,11 +6,26 @@
 
 import { useState, useCallback } from "react";
 import type { Editor } from "@tiptap/core";
-import { Tooltip, Popover, PopoverTrigger, PopoverContent, Input, Button, ButtonGroup } from "@heroui/react";
+import {
+  Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Input,
+  Button,
+  ButtonGroup,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Checkbox,
+} from "@heroui/react";
 import {
   RotateCw,
   Crop,
   Scaling,
+  Pencil,
   Link2,
   Type,
   AlignLeft,
@@ -75,13 +90,14 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
   const imageStyle = (attrs.imageStyle as string) || "none";
   const rotation = (attrs.rotation as number) || 0;
   const link = (attrs.link as string) || "";
-  const linkTarget = (attrs.linkTarget as string) || "_blank";
   const width = attrs.width as number | null;
   const height = attrs.height as number | null;
 
+  const src = (attrs.src as string) || "";
+  const alt = (attrs.alt as string) || "";
+
   // ---- Popover 状态 ----
   const [sizeOpen, setSizeOpen] = useState(false);
-  const [linkOpen, setLinkOpen] = useState(false);
   const [alignOpen, setAlignOpen] = useState(false);
   const [styleOpen, setStyleOpen] = useState(false);
   const [batchOpen, setBatchOpen] = useState(false);
@@ -90,9 +106,17 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
   const [sizeW, setSizeW] = useState<string>(width ? String(width) : "");
   const [sizeH, setSizeH] = useState<string>(height ? String(height) : "");
 
+  // ---- 编辑图片对话框 ----
+  const [editOpen, setEditOpen] = useState(false);
+  const [editSrc, setEditSrc] = useState(src);
+  const [editAlt, setEditAlt] = useState(alt);
+  const [editW, setEditW] = useState<string>(width ? String(width) : "");
+  const [editH, setEditH] = useState<string>(height ? String(height) : "");
+  const [keepAspectRatio, setKeepAspectRatio] = useState(true);
+
   // ---- 链接 ----
+  const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState(link);
-  const [linkInCurrent, setLinkInCurrent] = useState(linkTarget === "_self");
 
   // ---- 旋转 ----
   const handleRotate = useCallback(() => {
@@ -126,15 +150,58 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
     [editor, width, height, updateAttributes]
   );
 
+  // ---- 编辑图片确认 ----
+  const handleEditConfirm = useCallback(() => {
+    const newSrc = editSrc.trim();
+    const newAlt = editAlt.trim();
+    const w = editW ? parseInt(editW, 10) : null;
+    const h = editH ? parseInt(editH, 10) : null;
+    updateAttributes({
+      ...(newSrc ? { src: newSrc } : {}),
+      alt: newAlt || null,
+      width: w && w > 0 ? w : null,
+      height: h && h > 0 ? h : null,
+    });
+    setEditOpen(false);
+  }, [editSrc, editAlt, editW, editH, updateAttributes]);
+
+  // ---- 编辑对话框中宽度变化（保持长宽比） ----
+  const handleEditWidthChange = useCallback(
+    (val: string) => {
+      setEditW(val);
+      if (keepAspectRatio && width && height && val) {
+        const newW = parseInt(val, 10);
+        if (newW > 0) {
+          setEditH(String(Math.round((newW * height) / width)));
+        }
+      }
+    },
+    [keepAspectRatio, width, height]
+  );
+
+  // ---- 编辑对话框中高度变化（保持长宽比） ----
+  const handleEditHeightChange = useCallback(
+    (val: string) => {
+      setEditH(val);
+      if (keepAspectRatio && width && height && val) {
+        const newH = parseInt(val, 10);
+        if (newH > 0) {
+          setEditW(String(Math.round((newH * width) / height)));
+        }
+      }
+    },
+    [keepAspectRatio, width, height]
+  );
+
   // ---- 链接确认 ----
   const handleLinkConfirm = useCallback(() => {
     const url = linkUrl.trim();
     updateAttributes({
       link: url || null,
-      linkTarget: url ? (linkInCurrent ? "_self" : "_blank") : null,
+      linkTarget: url ? "_blank" : null,
     });
     setLinkOpen(false);
-  }, [linkUrl, linkInCurrent, updateAttributes]);
+  }, [linkUrl, updateAttributes]);
 
   // ---- 对齐 ----
   const handleAlign = useCallback(
@@ -274,6 +341,99 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
 
       <TDivider />
 
+      {/* 编辑图片 */}
+      <TBtn
+        onClick={() => {
+          setEditSrc(src);
+          setEditAlt(alt);
+          setEditW(width ? String(width) : "");
+          setEditH(height ? String(height) : "");
+          setEditOpen(true);
+        }}
+        tip="编辑图片"
+      >
+        <Pencil />
+        <span>编辑</span>
+      </TBtn>
+
+      {/* 编辑图片 Modal */}
+      <Modal
+        isOpen={editOpen}
+        onOpenChange={setEditOpen}
+        size="md"
+        classNames={{ wrapper: "z-[200]", backdrop: "z-[199]" }}
+        onMouseDown={e => e.stopPropagation()}
+      >
+        <ModalContent>
+          {onClose => (
+            <>
+              <ModalHeader className="flex items-center gap-2 text-base">
+                <ImageIcon className="w-4 h-4" />
+                <span>编辑图片</span>
+              </ModalHeader>
+              <ModalBody className="gap-3">
+                <Input
+                  label="源"
+                  placeholder="图片地址"
+                  value={editSrc}
+                  onValueChange={setEditSrc}
+                  variant="bordered"
+                  size="sm"
+                  description="图片的 URL 地址"
+                />
+                <Input
+                  label="图片说明"
+                  placeholder="用于无障碍访问的图片描述"
+                  value={editAlt}
+                  onValueChange={setEditAlt}
+                  variant="bordered"
+                  size="sm"
+                />
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-medium">尺寸</span>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      placeholder="宽度"
+                      value={editW}
+                      onValueChange={handleEditWidthChange}
+                      variant="bordered"
+                      size="sm"
+                      min={1}
+                      classNames={{ base: "flex-1" }}
+                      startContent={<span className="text-default-400 text-xs">W</span>}
+                    />
+                    <span className="text-default-300">×</span>
+                    <Input
+                      type="number"
+                      placeholder="高度"
+                      value={editH}
+                      onValueChange={handleEditHeightChange}
+                      variant="bordered"
+                      size="sm"
+                      min={1}
+                      classNames={{ base: "flex-1" }}
+                      startContent={<span className="text-default-400 text-xs">H</span>}
+                    />
+                  </div>
+                  <Checkbox size="sm" isSelected={keepAspectRatio} onValueChange={setKeepAspectRatio}>
+                    保持长宽比
+                  </Checkbox>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose} size="sm">
+                  取消
+                </Button>
+                <Button color="primary" onPress={handleEditConfirm} size="sm">
+                  确定
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
       {/* 链接 */}
       <Popover
         placement="bottom"
@@ -282,7 +442,6 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
           setLinkOpen(open);
           if (open) {
             setLinkUrl(link);
-            setLinkInCurrent(linkTarget === "_self");
           }
         }}
       >
@@ -300,7 +459,6 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
                 onMouseDown={e => e.preventDefault()}
               >
                 <Link2 />
-                <span>链接</span>
               </button>
             </Tooltip>
           </div>
@@ -309,7 +467,7 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
           <div className="flex flex-col gap-2 p-2 min-w-[220px]">
             <Input
               size="sm"
-              placeholder="请输入网址"
+              placeholder="请输入跳转链接"
               value={linkUrl}
               onValueChange={setLinkUrl}
               onKeyDown={e => {
@@ -317,15 +475,6 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
               }}
               autoFocus
             />
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={linkInCurrent}
-                onChange={e => setLinkInCurrent(e.target.checked)}
-                className="accent-primary w-4 h-4"
-              />
-              在当前页面打开
-            </label>
             <div className="flex justify-end gap-2">
               {link && (
                 <Button

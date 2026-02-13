@@ -1018,6 +1018,8 @@ html.dark [data-slot="content"][role="tooltip"] {
   --anzhiyu-red: var(--red);
   --anzhiyu-theme: var(--primary);
   --anzhiyu-code-stress: var(--primary);
+  --anzhiyu-maskbgdeep: rgb(255 255 255 / 85%);
+  --anzhiyu-card-border: var(--border);
   --anzhiyu-shadow-border: 0 8px 16px -4px rgba(44, 45, 48, 0.05);
   --anzhiyu-shadow-lightblack: 0 5px 12px -5px rgba(102, 68, 68, 0.05);
   --anzhiyu-lighttext: var(--primary);
@@ -1043,6 +1045,8 @@ html.dark [data-slot="content"][role="tooltip"] {
 .dark {
   --anzhiyu-white: #f7f7fa;
   --anzhiyu-white-op: rgba(247, 247, 250, 0.2);
+  --anzhiyu-maskbgdeep: rgb(0 0 0 / 85%);
+  --anzhiyu-shadow-border: 0 8px 16px -4px #00000050;
 
   /* 暗色代码块变量 */
   --hltools-bg: var(--muted);
@@ -1180,6 +1184,21 @@ html.dark [data-toast] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease !important;
 }
 
+/* 深色模式：输入框背景色修正 - 使用 content2 保持与暗色主题一致 */
+html.dark [data-slot="input-wrapper"],
+.dark [data-slot="input-wrapper"] {
+  background-color: hsl(var(--heroui-content2)) !important;
+}
+
+html.dark [data-slot="input-wrapper"][data-focus="true"],
+html.dark [data-slot="input-wrapper"][data-focus-within="true"],
+html.dark [data-slot="input-wrapper"]:focus-within,
+.dark [data-slot="input-wrapper"][data-focus="true"],
+.dark [data-slot="input-wrapper"][data-focus-within="true"],
+.dark [data-slot="input-wrapper"]:focus-within {
+  background-color: hsl(var(--heroui-content1)) !important;
+}
+
 /* Hover - 边框柔和过渡到主色 */
 [data-slot="input-wrapper"][data-hover="true"] {
   border-color: color-mix(in srgb, var(--primary) 40%, var(--border) 60%) !important;
@@ -1248,6 +1267,19 @@ html.dark [data-toast] {
   border-radius: 0.625rem !important;
   box-shadow: none !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease !important;
+}
+
+/* 深色模式：Select 触发器背景色 */
+html.dark [data-slot="trigger"],
+.dark [data-slot="trigger"] {
+  background-color: hsl(var(--heroui-content2)) !important;
+}
+
+html.dark [data-slot="trigger"][data-focus="true"],
+html.dark [data-slot="trigger"][data-open="true"],
+.dark [data-slot="trigger"][data-focus="true"],
+.dark [data-slot="trigger"][data-open="true"] {
+  background-color: hsl(var(--heroui-content1)) !important;
 }
 
 [data-slot="trigger"][data-hover="true"] {
@@ -1319,6 +1351,40 @@ html.with-fancybox body.hide-scrollbar {
   --f-zoomInUp-scale: 0.92;
   --f-zoomInUp-y: 24px;
   --f-zoomInUp-opacity: 0;
+}
+
+/* ===================== 自定义内容块 — 全局样式 ===================== */
+/* 后端 custom_code_html 使用 anheyu-pro 原生标签/类，需全局定义 */
+
+/* psw 标签 — 隐藏文字，hover 显示 */
+[data-custom-block] psw {
+  color: transparent;
+  background: #a1a1a1;
+  border-radius: 2px;
+  transition: all 0.28s ease;
+}
+[data-custom-block] psw:hover {
+  color: var(--foreground);
+  background: transparent;
+}
+
+/* del 标签 — 删除线 */
+[data-custom-block] del {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+}
+
+/* checkbox — 保留原生外观，用 accent-color 匹配主题色 */
+[data-custom-block] input[type="checkbox"] {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  pointer-events: none;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+  transform: translateY(2px);
+  vertical-align: middle;
 }
 
 /* 图片关闭动画：缩放 + 下移淡出 */

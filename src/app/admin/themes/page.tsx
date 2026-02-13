@@ -1,286 +1,558 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin";
-import { Button } from "@/components/ui";
-import { Palette, Download, Check, Eye, Star, ExternalLink, Crown } from "lucide-react";
+import { Button, Tabs, Tab, Pagination, Spinner } from "@heroui/react";
+import {
+  Palette,
+  Download,
+  Check,
+  Eye,
+  Star,
+  ExternalLink,
+  Crown,
+  RotateCw,
+  Trash2,
+  Zap,
+  ShieldAlert,
+  CircleCheckBig,
+  Store,
+  FolderOpen,
+  Upload,
+  Settings,
+  BookOpen,
+  Github,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { UploadThemeDialog } from "@/components/admin/themes/UploadThemeDialog";
+import { ThemeConfigDialog } from "@/components/admin/themes/ThemeConfigDialog";
+import { useThemePage, type TabKey } from "./_hooks/use-theme-page";
+import type { Theme } from "@/types/theme-mall";
 
-// 模拟主题数据
-const mockThemes = [
-  {
-    id: 1,
-    name: "默认主题",
-    author: "AnHeYu",
-    description: "简洁优雅的默认主题，适合技术博客",
-    preview: "/theme1.jpg",
-    version: "1.0.0",
-    downloads: 12500,
-    rating: 4.8,
-    isInstalled: true,
-    isActive: true,
-    isPro: false,
-    price: 0,
-  },
-  {
-    id: 2,
-    name: "暗夜模式",
-    author: "AnHeYu",
-    description: "深邃的暗色主题，保护眼睛",
-    preview: "/theme2.jpg",
-    version: "1.2.0",
-    downloads: 8900,
-    rating: 4.9,
-    isInstalled: true,
-    isActive: false,
-    isPro: false,
-    price: 0,
-  },
-  {
-    id: 3,
-    name: "极简白",
-    author: "社区贡献",
-    description: "极简主义设计，专注内容",
-    preview: "/theme3.jpg",
-    version: "2.0.1",
-    downloads: 5600,
-    rating: 4.7,
-    isInstalled: false,
-    isActive: false,
-    isPro: false,
-    price: 0,
-  },
-  {
-    id: 4,
-    name: "科技感",
-    author: "AnHeYu",
-    description: "炫酷的科技风格，适合技术极客",
-    preview: "/theme4.jpg",
-    version: "1.5.0",
-    downloads: 3200,
-    rating: 4.6,
-    isInstalled: false,
-    isActive: false,
-    isPro: true,
-    price: 49,
-  },
-  {
-    id: 5,
-    name: "文艺范",
-    author: "社区贡献",
-    description: "优雅的文艺风格，适合生活类博客",
-    preview: "/theme5.jpg",
-    version: "1.1.0",
-    downloads: 2100,
-    rating: 4.5,
-    isInstalled: false,
-    isActive: false,
-    isPro: true,
-    price: 39,
-  },
-  {
-    id: 6,
-    name: "渐变梦幻",
-    author: "AnHeYu",
-    description: "绚丽的渐变效果，视觉冲击力强",
-    preview: "/theme6.jpg",
-    version: "1.0.0",
-    downloads: 1800,
-    rating: 4.8,
-    isInstalled: false,
-    isActive: false,
-    isPro: true,
-    price: 59,
-  },
-];
+// ===================================
+//     价格格式化
+// ===================================
 
-type ThemeItem = (typeof mockThemes)[number];
+function formatPrice(priceCents: number): string {
+  return (priceCents / 100).toFixed(2);
+}
 
-export default function ThemesPage() {
-  const [themes] = useState(mockThemes);
-  const [filter, setFilter] = useState<"all" | "installed" | "free" | "pro">("all");
+// ===================================
+//     主题卡片
+// ===================================
 
-  const filteredThemes = themes.filter(theme => {
-    if (filter === "all") return true;
-    if (filter === "installed") return theme.isInstalled;
-    if (filter === "free") return !theme.isPro;
-    if (filter === "pro") return theme.isPro;
-    return true;
-  });
+function ThemeCard({
+  theme,
+  tab,
+  onInstall,
+  onSwitch,
+  onUninstall,
+  onInstallSSR,
+  onStartSSR,
+  onConfig,
+  installedSSRNames,
+}: {
+  theme: Theme;
+  tab: TabKey;
+  onInstall: (t: Theme) => void;
+  onSwitch: (t: Theme) => void;
+  onUninstall: (t: Theme) => void;
+  onInstallSSR: (t: Theme) => void;
+  onStartSSR: (t: Theme) => void;
+  onConfig: (t: Theme) => void;
+  installedSSRNames: Set<string>;
+}) {
+  const isCurrent = theme.is_current;
+  const isPro = theme.themeType === "pro";
+  const isSSR = theme.deployType === "ssr";
 
-  const ThemeCard = ({ theme, index }: { theme: ThemeItem; index: number }) => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
+  return (
+    <div
       className={cn(
-        "group bg-card border border-border/50 rounded-xl overflow-hidden hover:shadow-lg transition-all",
-        theme.isActive && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+        "rounded-2xl overflow-hidden",
+        "bg-white dark:bg-white/[0.04]",
+        "border border-border/50 dark:border-white/[0.06]",
+        "hover:border-border dark:hover:border-white/[0.12]",
+        "hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
+        "transition-all duration-200 ease-out group",
+        isCurrent && "ring-2 ring-primary/60 ring-offset-2 ring-offset-background"
       )}
     >
-      {/* 预览图 */}
-      <div className="relative aspect-[16/10] bg-linear-to-br from-muted to-muted/50">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Palette className="w-16 h-16 text-muted-foreground/30" />
-        </div>
+      {/* 预览区 */}
+      <div className="relative aspect-[16/9] bg-gradient-to-br from-default-100 to-default-50 dark:from-default-100/20 dark:to-default-50/10">
+        {theme.previewUrl ? (
+          <img src={theme.previewUrl} alt={theme.name} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Palette className="w-12 h-12 text-muted-foreground/15" />
+          </div>
+        )}
 
-        {/* 悬停遮罩 */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-          <Button size="sm" variant="secondary" className="gap-1.5">
-            <Eye className="w-4 h-4" />
-            预览
-          </Button>
-        </div>
+        {/* 悬停预览按钮 */}
+        {theme.demoUrl && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <Button
+              size="sm"
+              variant="flat"
+              className="bg-white/90 dark:bg-white/20 backdrop-blur-sm shadow-sm"
+              onPress={() => window.open(theme.demoUrl, "_blank")}
+            >
+              <Eye className="w-3.5 h-3.5 mr-1.5" />
+              预览
+            </Button>
+          </div>
+        )}
 
         {/* 标签 */}
-        <div className="absolute top-2 left-2 flex items-center gap-2">
-          {theme.isActive && (
-            <span className="px-2 py-1 rounded-md bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1">
+        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+          {isCurrent && (
+            <span className="px-2 py-0.5 rounded-lg bg-primary text-primary-foreground text-[10px] font-semibold flex items-center gap-1 shadow-sm">
               <Check className="w-3 h-3" />
-              当前使用
+              使用中
             </span>
           )}
-          {theme.isPro && (
-            <span className="px-2 py-1 rounded-md bg-yellow/80 text-white text-xs font-medium flex items-center gap-1">
+          {theme.isOfficial && (
+            <span className="px-2 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+              <CircleCheckBig className="w-3 h-3" />
+              官方
+            </span>
+          )}
+          {isPro && (
+            <span className="px-2 py-0.5 rounded-lg bg-amber-500 text-white text-[10px] font-semibold flex items-center gap-1 shadow-sm">
               <Crown className="w-3 h-3" />
               PRO
+            </span>
+          )}
+          {isSSR && (
+            <span className="px-2 py-0.5 rounded-lg bg-indigo-500 text-white text-[10px] font-semibold shadow-sm">
+              SSR
             </span>
           )}
         </div>
 
         {/* 价格 */}
-        {theme.isPro && !theme.isInstalled && (
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/60 text-white text-sm font-bold">
-            ¥{theme.price}
-          </div>
+        {isPro && theme.price > 0 && !theme.is_installed && (
+          <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-lg bg-black/50 backdrop-blur-sm text-white text-xs font-bold">
+            ¥{formatPrice(theme.price)}
+          </span>
         )}
       </div>
 
-      {/* 信息 */}
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h3 className="font-semibold">{theme.name}</h3>
-            <p className="text-xs text-muted-foreground">
-              by {theme.author} · v{theme.version}
+      {/* 信息区 */}
+      <div className="px-4 pt-3.5 pb-4">
+        <div className="flex items-start justify-between mb-1.5">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold leading-tight">{theme.name}</h3>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">
+              {theme.author} · v{theme.version}
             </p>
           </div>
-          <div className="flex items-center gap-1 text-yellow">
-            <Star className="w-4 h-4 fill-current" />
-            <span className="text-sm font-medium">{theme.rating}</span>
+          {theme.rating > 0 && (
+            <div className="flex items-center gap-0.5 text-amber-500 shrink-0 ml-2">
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span className="text-xs font-semibold">{theme.rating}</span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground/70 mb-3 line-clamp-2 leading-relaxed">
+          {theme.description || "暂无描述"}
+        </p>
+
+        {/* 标签 */}
+        {theme.tags?.length > 0 && (
+          <div className="flex items-center gap-1 mb-3 flex-wrap">
+            {theme.tags.slice(0, 3).map(tag => (
+              <span
+                key={tag}
+                className="text-[10px] px-1.5 py-px rounded-md bg-foreground/[0.04] text-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+            {theme.tags.length > 3 && (
+              <span className="text-[10px] text-muted-foreground/40">+{theme.tags.length - 3}</span>
+            )}
+          </div>
+        )}
+
+        {/* 统计 + 操作 */}
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground/50">
+            <Download className="w-3 h-3" />
+            {(theme.downloadCount ?? 0).toLocaleString()}
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            {tab === "installed" ? (
+              // ---- 已安装 Tab 操作 ----
+              isSSR ? (
+                // SSR 主题
+                isCurrent ? (
+                  <>
+                    <Button size="sm" variant="flat" isDisabled className="h-7 text-xs">
+                      <Check className="w-3 h-3 mr-1" />
+                      当前主题
+                    </Button>
+                    {theme.ssrStatus === "running" && theme.ssrPort && (
+                      <span className="text-[10px] text-muted-foreground/60 bg-default-100 dark:bg-white/[0.06] px-1.5 py-0.5 rounded">
+                        端口: {theme.ssrPort}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="flat"
+                      className="h-7 text-xs"
+                      onPress={() => onStartSSR(theme)}
+                    >
+                      <Zap className="w-3 h-3 mr-1" />
+                      切换
+                    </Button>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      radius="full"
+                      className="text-default-400 hover:text-danger h-7 w-7"
+                      onPress={() => onUninstall(theme)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </>
+                )
+              ) : // 普通主题
+              isCurrent ? (
+                <Button size="sm" variant="flat" isDisabled className="h-7 text-xs">
+                  <Check className="w-3 h-3 mr-1" />
+                  当前主题
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    color="primary"
+                    variant="flat"
+                    className="h-7 text-xs"
+                    onPress={() => onSwitch(theme)}
+                  >
+                    <Zap className="w-3 h-3 mr-1" />
+                    切换
+                  </Button>
+                  {!theme.isOfficial && (
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      radius="full"
+                      className="text-default-400 hover:text-danger h-7 w-7"
+                      onPress={() => onUninstall(theme)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
+                </>
+              )
+            ) : // ---- 商城 Tab 操作 ----
+            isSSR ? (
+              // SSR 主题
+              <>
+                {installedSSRNames.has(theme.name) ? (
+                  <Button size="sm" variant="flat" isDisabled className="h-7 text-xs">
+                    <CircleCheckBig className="w-3 h-3 mr-1" />
+                    已安装
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="flat" className="h-7 text-xs" onPress={() => onInstallSSR(theme)}>
+                    <Download className="w-3 h-3 mr-1" />
+                    安装
+                  </Button>
+                )}
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  radius="full"
+                  className="text-default-400 hover:text-foreground h-7 w-7"
+                  onPress={() =>
+                    window.open(theme.instructionUrl || "https://dev.anheyu.com/docs/ssr-theme-deploy", "_blank")
+                  }
+                >
+                  <BookOpen className="w-3 h-3" />
+                </Button>
+                {theme.repoUrl && (
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    radius="full"
+                    className="text-default-400 hover:text-foreground h-7 w-7"
+                    onPress={() => window.open(theme.repoUrl, "_blank")}
+                  >
+                    <Github className="w-3 h-3" />
+                  </Button>
+                )}
+              </>
+            ) : theme.is_installed ? (
+              <Button size="sm" variant="flat" isDisabled className="h-7 text-xs">
+                <CircleCheckBig className="w-3 h-3 mr-1" />
+                已安装
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="flat"
+                className={cn("h-7 text-xs", isPro && "bg-amber-500 text-white hover:bg-amber-600")}
+                onPress={() => onInstall(theme)}
+              >
+                <Download className="w-3 h-3 mr-1" />
+                安装
+              </Button>
+            )}
+            {/* 配置按钮（已安装非官方主题） */}
+            {tab === "installed" && !theme.isOfficial && !isSSR && (
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                radius="full"
+                className="text-default-400 hover:text-foreground h-7 w-7"
+                onPress={() => onConfig(theme)}
+              >
+                <Settings className="w-3 h-3" />
+              </Button>
+            )}
+            {/* 演示链接 */}
+            {theme.demoUrl && (
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                radius="full"
+                className="text-default-400 hover:text-foreground h-7 w-7"
+                onPress={() => window.open(theme.demoUrl, "_blank")}
+              >
+                <ExternalLink className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===================================
+//     骨架屏
+// ===================================
+
+function ThemeSkeleton() {
+  return (
+    <div className="relative h-full flex flex-col overflow-hidden -m-4 lg:-m-8">
+      <div className="flex-1 min-h-0 flex flex-col mx-6 mt-5 mb-2 bg-card border border-border/60 rounded-xl overflow-hidden">
+        <div className="shrink-0 px-5 pt-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-6 w-24 rounded-md bg-muted/40 animate-pulse" />
+              <div className="h-3 w-48 rounded-md bg-muted/30 animate-pulse" />
+            </div>
+            <div className="h-8 w-16 rounded-lg bg-muted/30 animate-pulse" />
+          </div>
+        </div>
+        <div className="px-5 py-3 border-b border-border/50">
+          <div className="flex gap-6">
+            <div className="h-6 w-20 rounded bg-muted/30 animate-pulse" />
+            <div className="h-6 w-16 rounded bg-muted/30 animate-pulse" />
+          </div>
+        </div>
+        <div className="p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden bg-muted/10 animate-pulse">
+                <div className="aspect-[16/9] bg-muted/20" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 w-24 rounded bg-muted/30" />
+                  <div className="h-3 w-32 rounded bg-muted/20" />
+                  <div className="h-3 w-full rounded bg-muted/15" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===================================
+//     主页面
+// ===================================
+
+export default function ThemesPage() {
+  const tp = useThemePage();
+
+  if (tp.isLoading && tp.currentThemeList.length === 0) {
+    return <ThemeSkeleton />;
+  }
+
+  return (
+    <motion.div
+      className="relative h-full flex flex-col overflow-hidden -m-4 lg:-m-8"
+      variants={adminContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        variants={adminItemVariants}
+        className="flex-1 min-h-0 flex flex-col mx-6 mt-5 mb-2 bg-card border border-border/60 rounded-xl overflow-hidden"
+      >
+        {/* 标题区 */}
+        <div className="shrink-0 px-5 pt-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight text-foreground">主题商城</h1>
+              <p className="text-xs text-muted-foreground mt-1">发现精美主题，打造个性化站点</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="flat"
+                startContent={<Upload className="w-3.5 h-3.5" />}
+                onPress={() => tp.setUploadOpen(true)}
+                className="text-default-600"
+              >
+                上传主题
+              </Button>
+              <Button
+                size="sm"
+                variant="flat"
+                startContent={<RotateCw className="w-3.5 h-3.5" />}
+                onPress={tp.handleRefresh}
+                isLoading={tp.isFetching}
+                className="text-default-600"
+              >
+                刷新
+              </Button>
+            </div>
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{theme.description}</p>
-
-        {/* 统计 */}
-        <div className="flex items-center gap-3 mb-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Download className="w-3.5 h-3.5" />
-            {theme.downloads.toLocaleString()}
-          </span>
-        </div>
-
-        {/* 操作按钮 */}
-        <div className="flex items-center gap-2">
-          {theme.isInstalled ? (
-            theme.isActive ? (
-              <Button variant="outline" size="sm" className="flex-1" disabled>
-                <Check className="w-4 h-4 mr-1.5" />
-                使用中
-              </Button>
-            ) : (
-              <Button size="sm" className="flex-1">
-                <Check className="w-4 h-4 mr-1.5" />
-                启用
-              </Button>
-            )
-          ) : theme.isPro ? (
-            <Button size="sm" className="flex-1 bg-yellow hover:bg-yellow/90 text-white">
-              <Crown className="w-4 h-4 mr-1.5" />
-              购买 ¥{theme.price}
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" className="flex-1">
-              <Download className="w-4 h-4 mr-1.5" />
-              安装
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-            <ExternalLink className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </motion.div>
-  );
-
-  const filterTabs = [
-    { key: "all", label: "全部", count: themes.length },
-    { key: "installed", label: "已安装", count: themes.filter(t => t.isInstalled).length },
-    { key: "free", label: "免费", count: themes.filter(t => !t.isPro).length },
-    { key: "pro", label: "PRO", count: themes.filter(t => t.isPro).length },
-  ] as const;
-
-  return (
-    <div className="space-y-6">
-      <AdminPageHeader title="主题商城" description="浏览和安装博客主题" icon={Palette} />
-
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <AdminCard>
-          <p className="text-3xl font-bold">{themes.length}</p>
-          <p className="text-sm text-muted-foreground mt-1">可用主题</p>
-        </AdminCard>
-        <AdminCard delay={0.05}>
-          <p className="text-3xl font-bold text-primary">{themes.filter(t => t.isInstalled).length}</p>
-          <p className="text-sm text-muted-foreground mt-1">已安装</p>
-        </AdminCard>
-        <AdminCard delay={0.1}>
-          <p className="text-3xl font-bold text-green">{themes.filter(t => !t.isPro).length}</p>
-          <p className="text-sm text-muted-foreground mt-1">免费主题</p>
-        </AdminCard>
-        <AdminCard delay={0.15}>
-          <p className="text-3xl font-bold text-yellow">{themes.filter(t => t.isPro).length}</p>
-          <p className="text-sm text-muted-foreground mt-1">PRO 主题</p>
-        </AdminCard>
-      </div>
-
-      {/* 筛选标签 */}
-      <div className="flex items-center gap-2">
-        {filterTabs.map(tab => (
-          <Button
-            key={tab.key}
-            variant={filter === tab.key ? "default" : "outline"}
+        {/* Tabs: 商城 / 已安装 */}
+        <div className="px-5 border-b border-border/50">
+          <Tabs
+            aria-label="主题分类"
+            variant="underlined"
             size="sm"
-            onClick={() => setFilter(tab.key)}
-            className="gap-1.5"
+            color="primary"
+            selectedKey={tp.activeTab}
+            onSelectionChange={key => tp.handleTabChange(key as TabKey)}
+            classNames={{
+              tabList: "gap-6",
+              tab: "px-0 h-9",
+              cursor: "w-full",
+            }}
           >
-            {tab.label}
-            <span
-              className={cn(
-                "px-1.5 py-0.5 rounded text-[10px]",
-                filter === tab.key ? "bg-primary-foreground/20" : "bg-muted"
-              )}
-            >
-              {tab.count}
-            </span>
-          </Button>
-        ))}
-      </div>
-
-      {/* 主题列表 */}
-      {filteredThemes.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredThemes.map((theme, index) => (
-            <ThemeCard key={theme.id} theme={theme} index={index} />
-          ))}
+            <Tab
+              key="market"
+              title={
+                <span className="flex items-center gap-1.5">
+                  <Store className="w-3.5 h-3.5" />
+                  主题商城
+                </span>
+              }
+            />
+            <Tab
+              key="installed"
+              title={
+                <span className="flex items-center gap-1.5">
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  已安装
+                </span>
+              }
+            />
+          </Tabs>
         </div>
-      ) : (
-        <AdminCard>
-          <EmptyState icon={Palette} title="暂无主题" description="没有符合筛选条件的主题" />
-        </AdminCard>
-      )}
-    </div>
+
+        {/* 主题列表 */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-5">
+          {tp.isFetching && tp.currentThemeList.length === 0 ? (
+            <div className="flex items-center justify-center py-16">
+              <Spinner size="sm" label="加载中..." />
+            </div>
+          ) : tp.currentThemeList.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tp.currentThemeList.map(theme => (
+                <ThemeCard
+                  key={theme.id || theme.name}
+                  theme={theme}
+                  tab={tp.activeTab}
+                  onInstall={tp.handleInstall}
+                  onSwitch={tp.handleSwitch}
+                  onUninstall={tp.setUninstallTarget}
+                  onInstallSSR={tp.handleInstallSSR}
+                  onStartSSR={tp.handleStartSSR}
+                  onConfig={tp.openThemeConfig}
+                  installedSSRNames={tp.installedSSRNames}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <Palette className="w-10 h-10 mb-3 opacity-30" />
+              <p className="text-sm font-medium">{tp.activeTab === "installed" ? "暂无已安装主题" : "暂无主题数据"}</p>
+              <Button size="sm" variant="flat" className="mt-3" onPress={tp.handleRefresh}>
+                重新加载
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* 分页（仅商城 Tab） */}
+        {tp.activeTab === "market" && tp.marketTotalPages > 1 && (
+          <div className="px-5 pb-4 flex justify-center">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="primary"
+              page={tp.page}
+              total={tp.marketTotalPages}
+              onChange={tp.setPage}
+            />
+          </div>
+        )}
+      </motion.div>
+
+      {/* 卸载确认 */}
+      <ConfirmDialog
+        isOpen={!!tp.uninstallTarget}
+        onOpenChange={open => {
+          if (!open) tp.setUninstallTarget(null);
+        }}
+        title="卸载主题"
+        description={`确定要卸载主题「${tp.uninstallTarget?.name}」吗？此操作不可撤销。`}
+        confirmText="卸载"
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={tp.uninstallTheme.isPending || tp.uninstallSSR.isPending}
+        onConfirm={tp.confirmUninstall}
+      />
+
+      {/* 上传主题 */}
+      <UploadThemeDialog
+        isOpen={tp.uploadOpen}
+        onOpenChange={tp.setUploadOpen}
+        onUpload={tp.handleUpload}
+        isUploading={tp.uploadTheme.isPending}
+      />
+
+      {/* 主题配置 */}
+      <ThemeConfigDialog themeName={tp.configThemeName} onClose={() => tp.setConfigThemeName(null)} />
+    </motion.div>
   );
 }

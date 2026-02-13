@@ -1,15 +1,11 @@
 /**
  * 存储策略 Query Hooks
- * 对接 /api/policies 端点，提供分页查询和 CRUD mutation
+ * 对接 /api/pro/policies PRO 版端点，提供全量查询和 CRUD mutation
  */
 
-import { useQuery, useMutation, useQueryClient, queryOptions, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { storagePolicyApi } from "@/lib/api/storage-policy";
-import type {
-  StoragePolicyListParams,
-  StoragePolicyCreateRequest,
-  StoragePolicyUpdateRequest,
-} from "@/types/storage-policy";
+import type { StoragePolicyCreateRequest, StoragePolicyUpdateRequest } from "@/types/storage-policy";
 
 // ===================================
 //          Query Keys
@@ -18,7 +14,6 @@ import type {
 export const storagePolicyKeys = {
   all: ["storage-policy"] as const,
   lists: () => [...storagePolicyKeys.all, "list"] as const,
-  list: (params: StoragePolicyListParams) => [...storagePolicyKeys.lists(), params] as const,
   detail: (id: string) => [...storagePolicyKeys.all, "detail", id] as const,
 };
 
@@ -26,11 +21,10 @@ export const storagePolicyKeys = {
 //          Query Options
 // ===================================
 
-export const storagePoliciesQueryOptions = (params: StoragePolicyListParams = {}) =>
+export const storagePoliciesQueryOptions = () =>
   queryOptions({
-    queryKey: storagePolicyKeys.list(params),
-    queryFn: () => storagePolicyApi.list(params),
-    placeholderData: keepPreviousData,
+    queryKey: storagePolicyKeys.lists(),
+    queryFn: () => storagePolicyApi.listAll(),
     staleTime: 1000 * 60 * 2,
   });
 
@@ -46,9 +40,9 @@ export const storagePolicyDetailOptions = (id: string) =>
 //          Query Hooks
 // ===================================
 
-/** 存储策略列表（分页） */
-export function useStoragePolicies(params: StoragePolicyListParams = {}) {
-  return useQuery(storagePoliciesQueryOptions(params));
+/** 存储策略列表（全量，前端分页） */
+export function useStoragePolicies() {
+  return useQuery(storagePoliciesQueryOptions());
 }
 
 /** 单条存储策略详情 */

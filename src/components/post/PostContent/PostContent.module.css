@@ -26,7 +26,6 @@
 .postContent :global(h2) {
   font-size: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
 }
 
 .postContent :global(h3) {

@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Switch } from "@heroui/react";
-import { Link2, ImageIcon, Unlink, ExternalLink } from "lucide-react";
+import { Link2, ImageIcon, Unlink, ExternalLink, Upload, ImagePlus } from "lucide-react";
+import { postManagementApi } from "@/lib/api/post-management";
 
 /** 校验是否为合法 URL（支持 http/https/mailto/tel 等协议） */
 function isValidUrl(value: string): boolean {
@@ -166,17 +167,30 @@ interface ImageDialogProps {
 }
 
 export function ImageDialog({ isOpen, onOpenChange, onConfirm }: ImageDialogProps) {
+  const [mode, setMode] = useState<string>("url");
   const [url, setUrl] = useState("");
   const [alt, setAlt] = useState("");
   const [previewError, setPreviewError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [prevIsOpen, setPrevIsOpen] = useState(false);
+
+  // 上传相关状态
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // 打开时重置状态（渲染阶段调整状态）
   if (isOpen && !prevIsOpen) {
+    setMode("url");
     setUrl("");
     setAlt("");
     setPreviewError(false);
+    setSelectedFile(null);
+    setFilePreviewUrl("");
+    setIsUploading(false);
+    setIsDragOver(false);
     setPrevIsOpen(true);
   } else if (!isOpen && prevIsOpen) {
     setPrevIsOpen(false);
@@ -184,11 +198,18 @@ export function ImageDialog({ isOpen, onOpenChange, onConfirm }: ImageDialogProp
 
   // 打开时聚焦
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && mode === "url") {
       const timer = setTimeout(() => inputRef.current?.focus(), 100);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, mode]);
+
+  // 清理 blob URL
+  useEffect(() => {
+    return () => {
+      if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
+    };
+  }, [filePreviewUrl]);
 
   // 图片地址校验
   const imgUrlTrimmed = url.trim();
@@ -196,13 +217,74 @@ export function ImageDialog({ isOpen, onOpenChange, onConfirm }: ImageDialogProp
     if (!imgUrlTrimmed) return "";
     return isValidUrl(imgUrlTrimmed) ? "" : "请输入有效的图片地址";
   }, [imgUrlTrimmed]);
-  const canInsertImage = imgUrlTrimmed.length > 0 && !imgUrlError;
+  const canInsertByUrl = imgUrlTrimmed.length > 0 && !imgUrlError;
+  const canInsertByUpload = selectedFile !== null && !isUploading;
+  const canInsert = mode === "url" ? canInsertByUrl : canInsertByUpload;
 
-  const handleConfirm = useCallback(() => {
-    if (!canInsertImage) return;
-    onConfirm(imgUrlTrimmed, alt.trim() || undefined);
-    onOpenChange(false);
-  }, [canInsertImage, imgUrlTrimmed, alt, onConfirm, onOpenChange]);
+  // 选择文件
+  const handleFileSelect = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    setSelectedFile(file);
+    const blobUrl = URL.createObjectURL(file);
+    setFilePreviewUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return blobUrl;
+    });
+  }, []);
+
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) handleFileSelect(file);
+      e.target.value = "";
+    },
+    [handleFileSelect]
+  );
+
+  // 拖拽
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileSelect(file);
+    },
+    [handleFileSelect]
+  );
+
+  // 确认插入
+  const handleConfirm = useCallback(async () => {
+    if (mode === "url") {
+      if (!canInsertByUrl) return;
+      onConfirm(imgUrlTrimmed, alt.trim() || undefined);
+      onOpenChange(false);
+    } else {
+      if (!selectedFile) return;
+      setIsUploading(true);
+      try {
+        const remoteUrl = await postManagementApi.uploadArticleImage(selectedFile);
+        onConfirm(remoteUrl, alt.trim() || undefined);
+        onOpenChange(false);
+      } catch (err) {
+        console.error("图片上传失败:", err);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  }, [mode, canInsertByUrl, imgUrlTrimmed, alt, selectedFile, onConfirm, onOpenChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -225,56 +307,144 @@ export function ImageDialog({ isOpen, onOpenChange, onConfirm }: ImageDialogProp
         {onClose => (
           <>
             <ModalHeader className="flex items-center gap-2 text-base">
-              <ImageIcon className="w-4 h-4" />
+              <ImagePlus className="w-4 h-4" />
               <span>插入图片</span>
             </ModalHeader>
 
             <ModalBody className="gap-3">
-              <Input
-                ref={inputRef}
-                label="图片地址"
-                placeholder="https://example.com/image.png"
-                value={url}
-                onValueChange={v => {
-                  setUrl(v);
-                  setPreviewError(false);
-                }}
-                onKeyDown={handleKeyDown}
-                variant="bordered"
-                autoComplete="url"
-                isInvalid={!!imgUrlError}
-                errorMessage={imgUrlError}
-                startContent={<ImageIcon className="w-4 h-4 text-default-400 shrink-0" />}
-              />
+              <div className="flex p-1 rounded-xl bg-default-100 gap-1">
+                <button
+                  type="button"
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    mode === "url"
+                      ? "bg-white text-foreground shadow-sm dark:bg-default-200"
+                      : "text-default-500 hover:text-default-700"
+                  }`}
+                  onClick={() => setMode("url")}
+                >
+                  <Link2 className="w-3.5 h-3.5" />
+                  图片链接
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    mode === "upload"
+                      ? "bg-white text-foreground shadow-sm dark:bg-default-200"
+                      : "text-default-500 hover:text-default-700"
+                  }`}
+                  onClick={() => setMode("upload")}
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  上传图片
+                </button>
+              </div>
 
-              <Input
-                label="替代文本（可选）"
-                placeholder="图片描述，用于无障碍访问"
-                value={alt}
-                onValueChange={setAlt}
-                onKeyDown={handleKeyDown}
-                variant="bordered"
-                size="sm"
-              />
+              {mode === "url" ? (
+                <>
+                  <Input
+                    ref={inputRef}
+                    label="图片地址"
+                    placeholder="https://example.com/image.png"
+                    value={url}
+                    onValueChange={v => {
+                      setUrl(v);
+                      setPreviewError(false);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    variant="bordered"
+                    autoComplete="url"
+                    isInvalid={!!imgUrlError}
+                    errorMessage={imgUrlError}
+                    startContent={<ImageIcon className="w-4 h-4 text-default-400 shrink-0" />}
+                  />
 
-              {/* 图片预览 */}
-              {canInsertImage && (
-                <div className="border border-default-200 rounded-lg overflow-hidden bg-default-50">
-                  <div className="px-3 py-1.5 text-xs text-default-400 border-b border-default-200">预览</div>
-                  <div className="p-3 flex items-center justify-center min-h-[120px]">
-                    {previewError ? (
-                      <span className="text-xs text-default-300">无法加载预览</span>
+                  <Input
+                    label="替代文本（可选）"
+                    placeholder="图片描述，用于无障碍访问"
+                    value={alt}
+                    onValueChange={setAlt}
+                    onKeyDown={handleKeyDown}
+                    variant="bordered"
+                    size="sm"
+                  />
+
+                  {/* 图片预览 */}
+                  {canInsertByUrl && (
+                    <div className="border border-default-200 rounded-lg overflow-hidden bg-default-50">
+                      <div className="px-3 py-1.5 text-xs text-default-400 border-b border-default-200">预览</div>
+                      <div className="p-3 flex items-center justify-center min-h-[120px]">
+                        {previewError ? (
+                          <span className="text-xs text-default-300">无法加载预览</span>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={url}
+                            alt={alt || "预览"}
+                            className="max-h-[200px] max-w-full object-contain rounded"
+                            onError={() => setPreviewError(true)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* 上传区域 */}
+                  <div
+                    className={`flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                      isDragOver
+                        ? "border-primary bg-primary/5"
+                        : "border-default-300 hover:border-primary/50 hover:bg-default-50"
+                    }`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
+                    {selectedFile ? (
+                      <>
+                        {/* 已选择文件：显示预览 */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={filePreviewUrl}
+                          alt="预览"
+                          className="max-h-[180px] max-w-full object-contain rounded"
+                        />
+                        <div className="text-sm text-default-500 text-center">
+                          <span className="font-medium">{selectedFile.name}</span>
+                          <span className="text-default-400 ml-2">({(selectedFile.size / 1024).toFixed(1)} KB)</span>
+                        </div>
+                        <Button size="sm" variant="flat" onPress={() => fileInputRef.current?.click()}>
+                          重新选择
+                        </Button>
+                      </>
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={url}
-                        alt={alt || "预览"}
-                        className="max-h-[200px] max-w-full object-contain rounded"
-                        onError={() => setPreviewError(true)}
-                      />
+                      <>
+                        <Upload className="w-10 h-10 text-default-300" />
+                        <div className="text-sm text-default-500">点击或拖拽图片到此处上传</div>
+                        <div className="text-xs text-default-400">支持 JPG、PNG、GIF、WebP 格式</div>
+                      </>
                     )}
                   </div>
-                </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileInputChange}
+                  />
+
+                  <Input
+                    label="替代文本（可选）"
+                    placeholder="图片描述，用于无障碍访问"
+                    value={alt}
+                    onValueChange={setAlt}
+                    variant="bordered"
+                    size="sm"
+                  />
+                </>
               )}
             </ModalBody>
 
@@ -282,8 +452,8 @@ export function ImageDialog({ isOpen, onOpenChange, onConfirm }: ImageDialogProp
               <Button variant="flat" onPress={onClose} size="sm">
                 取消
               </Button>
-              <Button color="primary" onPress={handleConfirm} isDisabled={!canInsertImage} size="sm">
-                插入图片
+              <Button color="primary" onPress={handleConfirm} isDisabled={!canInsert} isLoading={isUploading} size="sm">
+                {isUploading ? "上传中..." : "插入图片"}
               </Button>
             </ModalFooter>
           </>

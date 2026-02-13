@@ -83,7 +83,7 @@ export function OneImageConfigEditor({
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      {label && <label className="text-sm font-medium text-foreground/70">{label}</label>}
+      {label && <label className="text-sm font-semibold tracking-tight text-foreground/80">{label}</label>}
       {ROUTE_KEYS.map(route => (
         <RouteCard
           key={route}
@@ -93,16 +93,16 @@ export function OneImageConfigEditor({
           onUpdate={item => updateRoute(route, item)}
         />
       ))}
-      {description && <p className="text-xs text-default-400">{description}</p>}
+      {description && <p className="text-xs leading-relaxed text-default-400">{description}</p>}
     </div>
   );
 }
 
 const inputWrapper = cn(
-  "bg-default-100/50 border border-default-200 rounded-lg shadow-none min-h-9",
-  "data-[hover=true]:border-default-300",
-  "group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50",
-  "group-data-[focus=true]:border-primary group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20"
+  "h-9 min-h-9 rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none!",
+  "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
+  "group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-100/60 group-data-[focus=true]:border-primary/65",
+  "group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-primary/15 transition-all duration-200"
 );
 
 function RouteCard({
@@ -119,14 +119,14 @@ function RouteCard({
   const update = (patch: Partial<PageOneImageItem>) => onUpdate({ ...item, ...patch });
 
   return (
-    <div className="rounded-xl border border-default-200 bg-background overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-default-200/75 bg-background/95 shadow-[0_8px_24px_-20px_rgba(15,23,42,0.6)] transition-all duration-200 hover:border-default-300/85">
       <button
         type="button"
-        className="flex items-center gap-2 w-full px-3 py-2.5 text-left hover:bg-default-50 transition-colors"
+        className="flex w-full items-center gap-2.5 bg-linear-to-r from-default-50/60 via-default-50/20 to-transparent px-3.5 py-2.5 text-left transition-colors hover:from-default-100/55"
         onClick={() => setExpanded(e => !e)}
       >
         <svg
-          className={cn("w-4 h-4 text-default-400 transition-transform", expanded && "rotate-90")}
+          className={cn("w-4 h-4 text-default-400 transition-transform duration-200 shrink-0", expanded && "rotate-90")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -134,8 +134,10 @@ function RouteCard({
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
-        <span className="text-sm font-medium text-foreground/80">{label}</span>
-        <span className="text-xs text-default-400">一图流</span>
+        <span className="text-sm font-medium text-foreground/85">{label}</span>
+        <span className="rounded-full bg-default-100/70 px-2 py-0.5 text-[11px] font-normal text-default-500">
+          一图流
+        </span>
         <div className="ml-auto flex items-center gap-2">
           <Switch
             size="sm"
@@ -148,7 +150,7 @@ function RouteCard({
         </div>
       </button>
       {expanded && (
-        <div className="border-t border-default-100 px-3 py-3 space-y-4">
+        <div className="space-y-4 border-t border-default-200/70 bg-default-50/18 px-3.5 py-3.5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Input
               label="主标题"

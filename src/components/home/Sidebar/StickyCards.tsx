@@ -141,21 +141,44 @@ ArchivesCard.displayName = "ArchivesCard";
 /**
  * 网站信息组件
  * 使用 memo 优化性能
+ * 文章总数和全站字数从统计 API 获取真实数据，设置值仅控制是否显示
  */
 const WebInfoCard = memo(function WebInfoCard() {
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
+  const [stats, setStats] = useState<{ total_posts: number; total_words: number } | null>(null);
 
   const webInfoConfig = useMemo(() => {
     const siteinfo = siteConfig?.sidebar?.siteinfo;
     const launchTime = siteConfig?.footer?.runtime?.launch_time;
+    const rawPostCount = siteinfo?.totalPostCount;
+    const rawWordCount = siteinfo?.totalWordCount;
 
     return {
-      totalPostCount: siteinfo?.totalPostCount ?? -1,
+      showPostCount: rawPostCount != null && Number(rawPostCount) !== -1,
+      showWordCount: rawWordCount != null && Number(rawWordCount) !== -1,
       runtimeEnable: siteinfo?.runtimeEnable ?? false,
-      totalWordCount: siteinfo?.totalWordCount ?? -1,
       launchTime,
     };
   }, [siteConfig]);
+
+  useEffect(() => {
+    if (!webInfoConfig.showPostCount && !webInfoConfig.showWordCount) return;
+
+    let cancelled = false;
+    const fetchStats = async () => {
+      try {
+        const { articleApi } = await import("@/lib/api/article");
+        const data = await articleApi.getStatistics();
+        if (!cancelled) setStats(data);
+      } catch {
+        // 静默失败，保持不显示
+      }
+    };
+    fetchStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [webInfoConfig.showPostCount, webInfoConfig.showWordCount]);
 
   const runningDays = useMemo(() => {
     if (!webInfoConfig.launchTime) return 0;
@@ -170,27 +193,26 @@ const WebInfoCard = memo(function WebInfoCard() {
   }, [webInfoConfig.launchTime]);
 
   const formattedWordCount = useMemo(() => {
-    const count = webInfoConfig.totalWordCount;
-    if (count === -1 || count === 0) return "0";
+    const count = stats?.total_words ?? 0;
+    if (count === 0) return "0";
     if (count < 1000) return count.toString();
     return (count / 1000).toFixed(1) + "k";
-  }, [webInfoConfig.totalWordCount]);
+  }, [stats?.total_words]);
 
-  const hasContent =
-    webInfoConfig.totalPostCount !== -1 || webInfoConfig.runtimeEnable || webInfoConfig.totalWordCount !== -1;
+  const hasContent = webInfoConfig.showPostCount || webInfoConfig.runtimeEnable || webInfoConfig.showWordCount;
 
   if (!hasContent) return null;
 
   return (
     <div className={styles.cardWebinfo}>
       <div className={styles.webinfo}>
-        {webInfoConfig.totalPostCount !== -1 && (
+        {webInfoConfig.showPostCount && (
           <div className={styles.webinfoItem}>
             <div className={styles.webinfoItemTitle}>
               <Icon icon="fa6-solid:file-lines" />
               <div className={styles.itemName}>文章总数 :</div>
             </div>
-            <div className={styles.itemCount}>{webInfoConfig.totalPostCount}</div>
+            <div className={styles.itemCount}>{stats?.total_posts ?? 0}</div>
           </div>
         )}
 
@@ -204,7 +226,7 @@ const WebInfoCard = memo(function WebInfoCard() {
           </div>
         )}
 
-        {webInfoConfig.totalWordCount !== -1 && (
+        {webInfoConfig.showWordCount && (
           <div className={styles.webinfoItem}>
             <div className={styles.webinfoItemTitle}>
               <Icon icon="fa6-solid:font" />

@@ -4,6 +4,10 @@ import { FormInput } from "@/components/ui/form-input";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { FormSwitch } from "@/components/ui/form-switch";
 import { FormCodeEditor } from "@/components/ui/form-code-editor";
+import { FormMonacoEditor } from "@/components/ui/form-monaco-editor";
+import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
+import { PlaceholderHelpPanel } from "@/components/ui/placeholder-help-panel";
+import { SettingsHelpPanel } from "./SettingsHelpPanel";
 import { SettingsSection, SettingsFieldGroup } from "./SettingsSection";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -61,6 +65,31 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
       </div>
     );
   }
+
+  const aiDetectEnabled = values[KEY_COMMENT_AI_DETECT_ENABLE] === "true";
+  const riskLevel = (values[KEY_COMMENT_AI_DETECT_RISK_LEVEL] || "").trim();
+  const riskLevelOptions = ["low", "medium", "high"];
+  const isCustomRiskLevel = riskLevel !== "" && !riskLevelOptions.includes(riskLevel);
+  const riskLevelSelectOptions = [
+    ...(isCustomRiskLevel ? [{ key: riskLevel, label: `当前值（${riskLevel}）` }] : []),
+    { key: "low", label: "low（低）" },
+    { key: "medium", label: "medium（中）" },
+    { key: "high", label: "high（高）" },
+  ];
+  const actionValue = (values[KEY_COMMENT_AI_DETECT_ACTION] || "").trim();
+  const actionOptions = ["pending", "block", "delete"];
+  const isCustomAction = actionValue !== "" && !actionOptions.includes(actionValue);
+  const actionSelectOptions = [
+    ...(isCustomAction ? [{ key: actionValue, label: `当前值（${actionValue}）` }] : []),
+    { key: "pending", label: "pending（待审核，推荐先用此观察）" },
+    { key: "block", label: "block（拦截）" },
+    { key: "delete", label: "delete（删除）" },
+  ];
+  const hasAiDetectHistory =
+    !aiDetectEnabled &&
+    [KEY_COMMENT_AI_DETECT_API_URL, KEY_COMMENT_AI_DETECT_ACTION, KEY_COMMENT_AI_DETECT_RISK_LEVEL]
+      .map(key => values[key] || "")
+      .some(v => v.trim() !== "");
 
   return (
     <div className="space-y-8">
@@ -174,35 +203,58 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
       </SettingsSection>
 
       {/* AI 检测 */}
-      <SettingsSection title="AI 检测">
+      <SettingsSection
+        title="AI 检测"
+        description="识别垃圾评论和恶意内容。建议先选用 pending 观察一段时间，再考虑 block/delete。"
+      >
         <FormSwitch
           label="启用 AI 检测"
           description="使用 AI 检测垃圾评论和恶意内容"
           checked={values[KEY_COMMENT_AI_DETECT_ENABLE] === "true"}
           onCheckedChange={v => onChange(KEY_COMMENT_AI_DETECT_ENABLE, String(v))}
         />
-        <FormInput
-          label="AI 检测 API 地址"
-          placeholder="https://api.example.com/detect"
-          value={values[KEY_COMMENT_AI_DETECT_API_URL]}
-          onValueChange={v => onChange(KEY_COMMENT_AI_DETECT_API_URL, v)}
-        />
-        <SettingsFieldGroup cols={2}>
-          <FormInput
-            label="检测动作"
-            placeholder="mark / block / delete"
-            value={values[KEY_COMMENT_AI_DETECT_ACTION]}
-            onValueChange={v => onChange(KEY_COMMENT_AI_DETECT_ACTION, v)}
-            description="检测到风险时执行的动作"
-          />
-          <FormInput
-            label="风险等级阈值"
-            placeholder="0.8"
-            value={values[KEY_COMMENT_AI_DETECT_RISK_LEVEL]}
-            onValueChange={v => onChange(KEY_COMMENT_AI_DETECT_RISK_LEVEL, v)}
-            description="超过该阈值视为风险评论"
-          />
-        </SettingsFieldGroup>
+
+        {aiDetectEnabled ? (
+          <div className="space-y-5 rounded-xl border border-default-200 bg-default-50/30 p-4 shadow-[0_0_0_0.5px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_0_0_0.5px_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3)]">
+            <FormInput
+              label="API 地址"
+              placeholder="https://api.example.com/detect"
+              value={values[KEY_COMMENT_AI_DETECT_API_URL]}
+              onValueChange={v => onChange(KEY_COMMENT_AI_DETECT_API_URL, v)}
+              description="AI 检测服务接口地址"
+            />
+            <SettingsFieldGroup cols={2}>
+              <FormSelect
+                label="风险命中动作"
+                value={values[KEY_COMMENT_AI_DETECT_ACTION]}
+                onValueChange={v => onChange(KEY_COMMENT_AI_DETECT_ACTION, v)}
+                placeholder="请选择动作"
+                description="pending：待审核；block：拦截；delete：删除"
+              >
+                {actionSelectOptions.map(opt => (
+                  <FormSelectItem key={opt.key}>{opt.label}</FormSelectItem>
+                ))}
+              </FormSelect>
+              <FormSelect
+                label="风险阈值"
+                value={values[KEY_COMMENT_AI_DETECT_RISK_LEVEL]}
+                onValueChange={v => onChange(KEY_COMMENT_AI_DETECT_RISK_LEVEL, v)}
+                placeholder="medium（推荐）"
+                description="超过该阈值视为风险评论"
+              >
+                {riskLevelSelectOptions.map(option => (
+                  <FormSelectItem key={option.key}>{option.label}</FormSelectItem>
+                ))}
+              </FormSelect>
+            </SettingsFieldGroup>
+          </div>
+        ) : (
+          hasAiDetectHistory && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/80 dark:border-amber-800/50 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+              AI 检测当前关闭，但已存在历史配置，重新启用后将继续生效。
+            </div>
+          )
+        )}
       </SettingsSection>
 
       {/* QQ 头像 */}
@@ -225,7 +277,35 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
       </SettingsSection>
 
       {/* 通知配置 */}
-      <SettingsSection title="通知配置">
+      <SettingsSection
+        title="通知配置"
+        description="评论通知支持 Pushoo、Webhook、邮件三种链路，可按需组合。建议先只开一种链路验证成功后再逐步叠加。"
+      >
+        <SettingsHelpPanel
+          title="通知链路配置说明"
+          steps={[
+            { title: "先选通道", description: "先启用一种通道并确认可达，再逐步叠加其他通道。" },
+            { title: "再配模板", description: "Webhook/邮件模板建议先用默认变量，确保后端替换正常。" },
+            { title: "最后联调", description: "发布一条测试评论，确认管理员和被回复者都收到通知。" },
+          ]}
+          sections={[
+            {
+              title: "Pushoo 参数",
+              params: [
+                { name: "pushoo.channel", meaning: "推送通道标识", example: "wechat / telegram / dingtalk" },
+                { name: "pushoo.url", meaning: "推送接口地址", required: true },
+              ],
+            },
+            {
+              title: "Webhook 参数",
+              params: [
+                { name: "webhook.request_body", meaning: "请求体模板（支持变量）", required: true },
+                { name: "webhook.headers", meaning: "请求头 JSON（鉴权等）" },
+              ],
+            },
+          ]}
+          className="mb-1"
+        />
         <SettingsFieldGroup cols={2}>
           <FormSwitch
             label="通知管理员"
@@ -249,12 +329,15 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
         />
 
         <SettingsFieldGroup cols={2}>
-          <FormInput
+          <FormSelect
             label="Pushoo 渠道"
-            placeholder="wechat / telegram / dingtalk"
-            value={values[KEY_PUSHOO_CHANNEL]}
+            placeholder="请选择推送渠道"
+            value={values[KEY_PUSHOO_CHANNEL] ?? ""}
             onValueChange={v => onChange(KEY_PUSHOO_CHANNEL, v)}
-          />
+          >
+            <FormSelectItem key="bark">bark</FormSelectItem>
+            <FormSelectItem key="webhook">webhook</FormSelectItem>
+          </FormSelect>
           <FormInput
             label="Pushoo URL"
             placeholder="https://pushoo.example.com/send"
@@ -270,6 +353,16 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
           onValueChange={v => onChange(KEY_WEBHOOK_REQUEST_BODY, v)}
           minRows={6}
           description="支持变量：{{title}}, {{content}}, {{url}}"
+        />
+        <PlaceholderHelpPanel
+          title="Webhook 可用占位符"
+          subtitle="点击可复制"
+          items={[
+            { variable: "{{title}}", description: "通知标题" },
+            { variable: "{{content}}", description: "通知正文" },
+            { variable: "{{url}}", description: "评论链接" },
+          ]}
+          className="mt-2"
         />
         <FormCodeEditor
           label="Webhook 请求头"
@@ -354,21 +447,46 @@ export function CommentSettingsForm({ values, onChange, loading }: CommentSettin
           />
         </SettingsFieldGroup>
 
-        <FormCodeEditor
+        <FormMonacoEditor
           label="回复通知邮件模板"
           language="html"
           value={values[KEY_COMMENT_MAIL_TEMPLATE]}
           onValueChange={v => onChange(KEY_COMMENT_MAIL_TEMPLATE, v)}
-          minRows={10}
+          height={220}
+          wordWrap
           description="支持变量：{{nick}}, {{reply_nick}}, {{content}}, {{url}}, {{site_name}}"
         />
-        <FormCodeEditor
+        <PlaceholderHelpPanel
+          title="回复通知模板占位符"
+          subtitle="点击可复制"
+          items={[
+            { variable: "{{nick}}", description: "当前评论昵称" },
+            { variable: "{{reply_nick}}", description: "被回复昵称" },
+            { variable: "{{content}}", description: "评论内容" },
+            { variable: "{{url}}", description: "评论链接" },
+            { variable: "{{site_name}}", description: "站点名称" },
+          ]}
+          className="mt-2"
+        />
+        <FormMonacoEditor
           label="管理员通知邮件模板"
           language="html"
           value={values[KEY_COMMENT_MAIL_TEMPLATE_ADMIN]}
           onValueChange={v => onChange(KEY_COMMENT_MAIL_TEMPLATE_ADMIN, v)}
-          minRows={10}
+          height={220}
+          wordWrap
           description="支持变量：{{nick}}, {{content}}, {{url}}, {{site_name}}"
+        />
+        <PlaceholderHelpPanel
+          title="管理员通知模板占位符"
+          subtitle="点击可复制"
+          items={[
+            { variable: "{{nick}}", description: "评论昵称" },
+            { variable: "{{content}}", description: "评论内容" },
+            { variable: "{{url}}", description: "评论链接" },
+            { variable: "{{site_name}}", description: "站点名称" },
+          ]}
+          className="mt-2"
         />
       </SettingsSection>
     </div>

@@ -111,7 +111,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
       <div className={cn("flex flex-col gap-1.5", className)}>
         {/* 手动放置 Label，不依赖 HeroUI 的 labelPlacement */}
         {label && (
-          <label htmlFor={id} className="text-sm font-medium text-foreground/70">
+          <label htmlFor={id} className="text-sm font-medium text-foreground/80">
             {label}
             {isRequired && <span className="text-danger ml-0.5">*</span>}
           </label>
@@ -136,16 +136,16 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           aria-describedby={description || error ? descId : undefined}
           classNames={{
             inputWrapper: cn(
-              "bg-default-100/50 border border-default-200 rounded-xl !shadow-none",
-              "data-[hover=true]:border-default-300",
-              "group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50 group-data-[focus=true]:border-primary group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
+              "rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none!",
+              "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
+              "group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-100/60 group-data-[focus=true]:border-primary/65 group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-primary/15",
               size === "sm" ? "h-9 min-h-9" : "h-10 min-h-10",
               "transition-all duration-200",
               error &&
                 "border-danger bg-danger-50/50 group-data-[focus=true]:border-danger group-data-[focus=true]:ring-danger/20",
               inputClassName
             ),
-            input: "text-sm text-foreground placeholder:text-default-400",
+            input: "text-sm text-foreground/90 placeholder:text-default-400/80",
           }}
         />
 
@@ -154,7 +154,7 @@ const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
           <p
             id={descId}
             role={error ? "alert" : undefined}
-            className={cn("text-xs", error ? "text-danger" : "text-default-400")}
+            className={cn("text-xs leading-relaxed", error ? "text-danger" : "text-default-400")}
           >
             {error || description}
           </p>

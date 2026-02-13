@@ -108,6 +108,17 @@ export interface SiteConfigData {
     home_enable?: boolean;
   };
 
+  // 朋友圈配置
+  moments?: {
+    title?: string;
+    subtitle?: string;
+    tips?: string;
+    button_text?: string;
+    button_link?: string;
+    top_background?: string;
+    display_limit?: number;
+  };
+
   // 首页顶部配置
   HOME_TOP?: {
     title?: string;
@@ -127,6 +138,9 @@ export interface SiteConfigData {
       link?: string;
     };
   };
+
+  // 外部链接跳转提醒
+  ENABLE_EXTERNAL_LINK_WARNING?: boolean;
 
   // 创意图标配置
   CREATIVITY?: {
@@ -155,7 +169,7 @@ export interface SiteConfigData {
     project?: {
       list?: Array<{
         title: string;
-        links: Array<{ title: string; link: string }>;
+        links: Array<{ title: string; link: string; external?: boolean }>;
       }>;
     };
     list?: {
@@ -167,7 +181,7 @@ export interface SiteConfigData {
     };
     bar?: {
       authorLink?: string;
-      linkList?: Array<{ text: string; link: string }>;
+      linkList?: Array<{ text: string; link: string; external?: boolean }>;
       cc?: {
         link?: string;
       };
@@ -178,9 +192,9 @@ export interface SiteConfigData {
   oauth?: {
     qq?: { enable?: boolean };
     wechat?: { enable?: boolean };
-    github?: { enable?: boolean };
     logto?: { enable?: boolean; display_name?: string };
     oidc?: { enable?: boolean; display_name?: string };
+    rainbow?: { enable?: boolean; api_url?: string; app_id?: string; login_methods?: string; callback_url?: string };
   };
 
   // 侧边栏配置
@@ -208,6 +222,16 @@ export interface SiteConfigData {
       runtimeEnable?: boolean;
       totalWordCount?: number;
     };
+    weather?: {
+      enable?: boolean;
+      enable_page?: string;
+      qweather_key?: string;
+      qweather_api_host?: string;
+      ip_api_key?: string;
+      loading?: string;
+      default_rectangle?: boolean;
+      rectangle?: string;
+    };
   };
 
   // 文章配置
@@ -217,6 +241,16 @@ export interface SiteConfigData {
       default_cover?: string;
       double_column?: boolean | string;
       page_size?: number;
+    };
+    // 复制版权配置
+    copy?: {
+      enable?: boolean;
+      copyrightEnable?: boolean;
+      copyright_enable?: boolean;
+      copyrightOriginal?: string;
+      copyright_original?: string;
+      copyrightReprint?: string;
+      copyright_reprint?: string;
     };
     code_block?: {
       /** 代码块最大显示行数，超过则折叠。-1 表示不折叠 */
@@ -280,6 +314,26 @@ export interface SiteConfigData {
     master_tag?: string;
     show_ua?: boolean | string;
     show_region?: boolean | string;
+  };
+
+  // 最近评论页面配置
+  recent_comments?: {
+    banner?: {
+      background?: string;
+      title?: string;
+      description?: string;
+      tip?: string;
+    };
+  };
+
+  // 友链页面配置
+  friend_link?: {
+    banner?: {
+      background?: string;
+      title?: string;
+      description?: string;
+      tip?: string;
+    };
   };
 
   // 版权配置

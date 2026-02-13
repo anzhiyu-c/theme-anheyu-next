@@ -8,7 +8,9 @@ import { Icon } from "@iconify/react";
 import { Tooltip } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { addToast } from "@heroui/react";
 import { useSiteConfigStore } from "@/store/site-config-store";
+import { useUiStore } from "@/store/ui-store";
 import { useTags, useArchives, useLatestComments } from "@/hooks/queries";
 import { sanitizeCommentHtml } from "@/components/post/Comment/comment-utils";
 import type { Comment } from "@/lib/api/comment";
@@ -24,6 +26,8 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
+  const isShortcutsEnabled = useUiStore(state => state.isShortcutsEnabled);
+  const toggleShortcuts = useUiStore(state => state.toggleShortcuts);
 
   const isDark = theme === "dark";
 
@@ -271,14 +275,26 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
           </Tooltip>
 
           <Tooltip
-            content="快捷键开关"
+            content={isShortcutsEnabled ? "关闭快捷键" : "开启快捷键"}
             placement="top"
             delay={300}
             closeDelay={0}
             classNames={{ content: "custom-tooltip-content" }}
           >
-            <div className={styles.consoleBtnItem}>
-              <button className={styles.keyboardSwitch} aria-label="快捷键开关">
+            <div className={cn(styles.consoleBtnItem, isShortcutsEnabled && styles.on)}>
+              <button
+                className={styles.keyboardSwitch}
+                aria-label="快捷键开关"
+                onClick={() => {
+                  const wasEnabled = isShortcutsEnabled;
+                  toggleShortcuts();
+                  addToast({
+                    title: `快捷键功能已${wasEnabled ? "关闭" : "开启"}`,
+                    color: wasEnabled ? "default" : "success",
+                    timeout: 2000,
+                  });
+                }}
+              >
                 <Icon icon="solar:keyboard-bold" width={24} height={24} />
               </button>
             </div>
@@ -292,7 +308,18 @@ export function Console({ isOpen, onClose }: ConsoleProps) {
             classNames={{ content: "custom-tooltip-content" }}
           >
             <div className={styles.consoleBtnItem}>
-              <button className={styles.musicSwitch} aria-label="音乐胶囊开关">
+              <button
+                className={styles.musicSwitch}
+                aria-label="音乐胶囊开关"
+                onClick={() => {
+                  const store = useUiStore.getState();
+                  store.toggleMusicPlayer();
+                  addToast({
+                    title: store.isMusicPlayerVisible ? "音乐胶囊已开启" : "音乐胶囊已关闭",
+                    color: store.isMusicPlayerVisible ? "success" : "default",
+                  });
+                }}
+              >
                 <Icon icon="solar:music-note-3-bold" width={24} height={24} />
               </button>
             </div>

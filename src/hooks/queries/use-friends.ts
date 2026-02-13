@@ -3,13 +3,7 @@
  * 对接友链管理 API，提供服务端分页查询和各类 mutation
  */
 
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  queryOptions,
-  keepPreviousData,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, queryOptions, keepPreviousData } from "@tanstack/react-query";
 import { friendsApi } from "@/lib/api/friends";
 import type {
   AdminLinksParams,
@@ -23,6 +17,9 @@ import type {
   ImportLinksRequest,
   ExportLinksParams,
   BatchUpdateLinkSortRequest,
+  PublicLinksParams,
+  ApplyLinkRequest,
+  LinkApplicationsParams,
 } from "@/types/friends";
 
 // ===================================
@@ -36,6 +33,10 @@ export const friendsKeys = {
   categories: () => [...friendsKeys.all, "categories"] as const,
   tags: () => [...friendsKeys.all, "tags"] as const,
   healthCheck: () => [...friendsKeys.all, "health-check"] as const,
+  // 公开接口 keys
+  publicCategories: () => [...friendsKeys.all, "public-categories"] as const,
+  publicLinks: (params: PublicLinksParams) => [...friendsKeys.all, "public-links", params] as const,
+  applications: (params: LinkApplicationsParams) => [...friendsKeys.all, "applications", params] as const,
 };
 
 // ===================================
@@ -117,8 +118,7 @@ export function useUpdateLink() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateLinkRequest }) =>
-      friendsApi.updateLink(id, data),
+    mutationFn: ({ id, data }: { id: number; data: UpdateLinkRequest }) => friendsApi.updateLink(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.lists() });
     },
@@ -142,8 +142,7 @@ export function useReviewLink() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ReviewLinkRequest }) =>
-      friendsApi.reviewLink(id, data),
+    mutationFn: ({ id, data }: { id: number; data: ReviewLinkRequest }) => friendsApi.reviewLink(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.lists() });
     },
@@ -171,8 +170,7 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateCategoryRequest }) =>
-      friendsApi.updateCategory(id, data),
+    mutationFn: ({ id, data }: { id: number; data: UpdateCategoryRequest }) => friendsApi.updateCategory(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.categories() });
     },
@@ -213,8 +211,7 @@ export function useUpdateTag() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateTagRequest }) =>
-      friendsApi.updateTag(id, data),
+    mutationFn: ({ id, data }: { id: number; data: UpdateTagRequest }) => friendsApi.updateTag(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.tags() });
     },
@@ -256,7 +253,7 @@ export function useImportLinks() {
 export function useExportLinks() {
   return useMutation({
     mutationFn: (params?: ExportLinksParams) => friendsApi.exportLinks(params),
-    onSuccess: (data) => {
+    onSuccess: data => {
       // 触发浏览器下载 JSON 文件
       const jsonStr = JSON.stringify(data.links, null, 2);
       const blob = new Blob([jsonStr], { type: "application/json" });
@@ -292,6 +289,52 @@ export function useBatchUpdateSort() {
     mutationFn: (data: BatchUpdateLinkSortRequest) => friendsApi.batchUpdateSort(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.lists() });
+    },
+  });
+}
+
+// ===================================
+//     公开接口 Query / Mutation Hooks
+// ===================================
+
+/** 公开友链分类列表 */
+export function usePublicCategories() {
+  return useQuery({
+    queryKey: friendsKeys.publicCategories(),
+    queryFn: () => friendsApi.getPublicCategories(),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** 公开友链列表（按分类） */
+export function usePublicLinks(params: PublicLinksParams = {}, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: friendsKeys.publicLinks(params),
+    queryFn: () => friendsApi.getPublicLinks(params),
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 60 * 2,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** 友链申请列表（公开） */
+export function useApplications(params: LinkApplicationsParams = {}) {
+  return useQuery({
+    queryKey: friendsKeys.applications(params),
+    queryFn: () => friendsApi.getApplications(params),
+    staleTime: 1000 * 60 * 2,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** 申请友链 */
+export function useApplyLink() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ApplyLinkRequest) => friendsApi.applyLink(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: friendsKeys.all });
     },
   });
 }

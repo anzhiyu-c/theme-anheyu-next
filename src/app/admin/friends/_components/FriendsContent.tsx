@@ -19,16 +19,7 @@ import {
   DropdownItem,
   Pagination,
 } from "@heroui/react";
-import {
-  Link2,
-  Plus,
-  ExternalLink,
-  CheckCircle,
-  XCircle,
-  Edit,
-  Trash2,
-  ChevronDown,
-} from "lucide-react";
+import { Link2, Plus, ExternalLink, CheckCircle, XCircle, Edit, Trash2, ChevronDown } from "lucide-react";
 import { PAGE_SIZES } from "@/lib/constants/admin";
 import type { LinkItem, LinkStatus } from "@/types/friends";
 import type { FriendsPageState } from "../_hooks/use-friends-page";
@@ -131,9 +122,7 @@ export function FriendsContent({ cm }: FriendsContentProps) {
           );
         }
         case "description": {
-          return (
-            <p className="text-xs text-default-500 line-clamp-2 max-w-[160px]">{link.description || "-"}</p>
-          );
+          return <p className="text-xs text-default-500 line-clamp-2 max-w-[160px]">{link.description || "-"}</p>;
         }
         case "category": {
           return (
@@ -149,10 +138,7 @@ export function FriendsContent({ cm }: FriendsContentProps) {
                   variant="flat"
                   className="text-[11px] h-5"
                   startContent={
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: link.tag.color || "#999" }}
-                    />
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: link.tag.color || "#999" }} />
                   }
                 >
                   {link.tag.name}
@@ -322,12 +308,12 @@ export function FriendsContent({ cm }: FriendsContentProps) {
         bottomContentPlacement="outside"
         classNames={{
           base: "flex-1 min-h-0 flex flex-col",
-          wrapper: "flex-1 min-h-0 !px-3 !py-0 !shadow-none !rounded-none !border-none",
+          wrapper: "flex-1 min-h-0 px-3! py-0! shadow-none! rounded-none! border-none!",
           table: "border-separate border-spacing-y-1.5 -mt-1.5",
-          thead: "[&>tr]:first:!shadow-none after:!hidden",
-          th: "bg-[#F6F7FA] dark:bg-default-50 first:!rounded-tl-lg last:!rounded-tr-lg",
-          tr: "!rounded-xl",
-          td: "first:before:!rounded-s-xl last:before:!rounded-e-xl",
+          thead: "[&>tr]:first:shadow-none! after:hidden!",
+          th: "bg-[#F6F7FA] dark:bg-default-50 first:rounded-tl-lg! last:rounded-tr-lg!",
+          tr: "rounded-xl!",
+          td: "first:before:rounded-s-xl! last:before:rounded-e-xl!",
         }}
       >
         <TableHeader columns={TABLE_COLUMNS}>

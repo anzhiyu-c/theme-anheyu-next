@@ -15,7 +15,20 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, type, label, error, helperText, startAdornment, endAdornment, value, defaultValue, inputId, ...props },
+    {
+      className,
+      type,
+      label,
+      error,
+      helperText,
+      startAdornment,
+      endAdornment,
+      value,
+      defaultValue,
+      inputId,
+      placeholder,
+      ...props
+    },
     ref
   ) => {
     const [isFocused, setIsFocused] = React.useState(false);
@@ -52,6 +65,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     // 标签浮动条件：聚焦 或 有内容
     const isFloating = isFocused || hasValue;
 
+    // 当有浮动 label 时，只在 label 浮起后才显示 placeholder，避免重叠
+    const effectivePlaceholder = label && !isFloating ? " " : placeholder;
+
     return (
       <div className="relative w-full">
         <div className="relative flex items-center w-full group">
@@ -75,6 +91,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             defaultValue={defaultValue}
             aria-invalid={error}
             aria-describedby={helperText ? helperId : undefined}
+            placeholder={effectivePlaceholder}
             className={cn(
               "peer flex h-11 w-full rounded-lg border px-3 py-2.5 text-sm",
               "transition-all duration-200 ease-out",

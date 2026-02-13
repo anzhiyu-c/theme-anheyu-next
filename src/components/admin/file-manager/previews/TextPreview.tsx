@@ -206,6 +206,12 @@ export const TextPreview = forwardRef<TextPreviewRef>((_, ref) => {
         minimap: { enabled: true },
         wordWrap: "on",
         scrollBeyondLastLine: false,
+        scrollbar: {
+          alwaysConsumeMouseWheel: false,
+          verticalScrollbarSize: 8,
+          horizontalScrollbarSize: 8,
+          useShadows: false,
+        },
         fontSize: 14,
         tabSize: 2,
         renderWhitespace: "selection",

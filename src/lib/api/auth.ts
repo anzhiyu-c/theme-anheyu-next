@@ -15,6 +15,8 @@ import type {
   OAuthLoginRequest,
   OAuthLoginResponseData,
   OAuthCallbackResponseData,
+  WechatQRCodeData,
+  WechatQRCodeStatusData,
 } from "@/types/auth";
 
 export const authApi = {
@@ -72,9 +74,21 @@ export const authApi = {
     state: string,
     type?: string
   ): Promise<ApiResponse<OAuthCallbackResponseData>> {
-    const params = new URLSearchParams({ code, state });
+    const params = new URLSearchParams();
+    params.append("code", code);
+    if (state) params.append("state", state);
     if (type) params.append("type", type);
     return apiClient.get<OAuthCallbackResponseData>(`/api/pro/oauth/${provider}/callback?${params}`);
+  },
+
+  /** 生成微信登录二维码 */
+  createWechatLoginQRCode(): Promise<ApiResponse<WechatQRCodeData>> {
+    return apiClient.post<WechatQRCodeData>("/api/pro/wechat/qrcode/login");
+  },
+
+  /** 查询微信二维码状态 */
+  getWechatQRCodeStatus(sceneId: string): Promise<ApiResponse<WechatQRCodeStatusData>> {
+    return apiClient.get<WechatQRCodeStatusData>(`/api/pro/wechat/qrcode/${sceneId}/status`);
   },
 };
 

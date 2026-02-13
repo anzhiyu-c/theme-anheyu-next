@@ -3,7 +3,7 @@
 import { Button, Tooltip } from "@heroui/react";
 import { ArrowLeft, PanelRight, SmilePlus, X, Lock, Cloud, Loader2, ExternalLink } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { AutoSaveStatus } from "./use-auto-save";
 
 // ---- Emoji 数据（带搜索关键词） ----
@@ -379,7 +379,7 @@ export function EditorHeader({
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="w-full text-left text-base font-semibold truncate h-9 flex items-center px-3 rounded-lg hover:bg-default-100/50 transition-colors"
+            className="w-full text-left text-base font-semibold truncate h-9 flex items-center px-3 rounded-lg hover:bg-default-100/5 transition-colors"
             title="点击编辑标题"
           >
             {title || <span className="text-default-300">无标题文章</span>}

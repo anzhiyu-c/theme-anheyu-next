@@ -18,12 +18,14 @@ export interface FormJsonEditorProps {
   minRows?: number;
   /** 禁用状态 */
   disabled?: boolean;
+  /** 占位文本 */
+  placeholder?: string;
   /** 容器额外 className */
   className?: string;
 }
 
 const FormJsonEditor = React.forwardRef<HTMLTextAreaElement, FormJsonEditorProps>(
-  ({ label, value, onValueChange, description, error, minRows = 6, disabled, className }, ref) => {
+  ({ label, value, onValueChange, description, error, minRows = 6, disabled, placeholder, className }, ref) => {
     const id = React.useId();
     const descId = `${id}-desc`;
     const [jsonError, setJsonError] = React.useState<string>("");
@@ -63,7 +65,7 @@ const FormJsonEditor = React.forwardRef<HTMLTextAreaElement, FormJsonEditorProps
       <div className={cn("flex flex-col gap-1.5", className)}>
         {label && (
           <div className="flex items-center justify-between">
-            <label htmlFor={id} className="text-sm font-medium text-foreground/70">
+            <label htmlFor={id} className="text-sm font-medium text-foreground/80">
               {label}
             </label>
             <button
@@ -92,16 +94,16 @@ const FormJsonEditor = React.forwardRef<HTMLTextAreaElement, FormJsonEditorProps
             "disabled:cursor-not-allowed disabled:opacity-50",
             displayError
               ? "border-danger bg-danger-50/50 focus:border-danger focus:ring-1 focus:ring-danger/20"
-              : "border-default-200 bg-default-100/50 hover:border-default-300 focus:bg-white focus:dark:bg-default-50 focus:border-primary focus:ring-1 focus:ring-primary/20"
+              : "border-default-200/80 bg-white dark:bg-default-100/50 hover:border-default-300/90 focus:bg-white dark:focus:bg-default-100/60 focus:border-primary/65 focus:ring-2 focus:ring-primary/15"
           )}
-          placeholder='{"key": "value"}'
+          placeholder={placeholder || '{"key": "value"}'}
         />
 
         {(description || displayError) && (
           <p
             id={descId}
             role={displayError ? "alert" : undefined}
-            className={cn("text-xs", displayError ? "text-danger" : "text-default-400")}
+            className={cn("text-xs leading-relaxed", displayError ? "text-danger" : "text-default-400")}
           >
             {displayError || description}
           </p>

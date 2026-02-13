@@ -91,6 +91,23 @@ export interface CheckEmailResponseData {
   exists: boolean;
 }
 
+// 微信二维码数据
+export interface WechatQRCodeData {
+  scene_id: string;
+  qrcode_url: string;
+  expire_at: number;
+}
+
+// 微信二维码状态
+export interface WechatQRCodeStatusData {
+  status: string; // pending, scanned, confirmed, expired
+  // 登录成功（confirmed）时返回
+  token?: string;
+  refresh_token?: string;
+  user_info?: Record<string, unknown>;
+  roles?: string[];
+}
+
 // OAuth 登录请求
 export interface OAuthLoginRequest {
   provider: string;

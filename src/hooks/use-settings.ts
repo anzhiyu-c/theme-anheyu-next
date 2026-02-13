@@ -14,6 +14,7 @@ import {
 } from "@/lib/settings/setting-descriptors";
 import { addToast } from "@heroui/react";
 import { useAuthStore } from "@/store/auth-store";
+import { useSiteConfigStore } from "@/store/site-config-store";
 
 interface UseSettingsReturn {
   /** 当前表单值 */
@@ -122,6 +123,8 @@ export function useSettings(categoryId: SettingCategoryId): UseSettingsReturn {
     try {
       await settingsApi.update(changed);
       setOriginalValues({ ...values });
+      // 清除前台站点配置缓存，确保前台能拿到最新配置
+      useSiteConfigStore.getState().clearCache();
       addToast({ title: "保存成功", color: "success" });
       return true;
     } catch (err) {
@@ -235,10 +238,13 @@ export function useMultiSettings(categoryIds: SettingCategoryId[]) {
       addToast({ title: "没有需要保存的更改", color: "warning" });
       return false;
     }
+
     setSaving(true);
     try {
       await settingsApi.update(changed);
       setAllOriginal({ ...allValues });
+      // 清除前台站点配置缓存，确保前台能拿到最新配置
+      useSiteConfigStore.getState().clearCache();
       addToast({ title: "保存成功", color: "success" });
       return true;
     } catch (err) {
@@ -276,11 +282,7 @@ export function useMultiSettings(categoryIds: SettingCategoryId[]) {
   const isCategoryDirty = useCallback(
     (catIds: SettingCategoryId[]): boolean => {
       const catDescriptors = catIds.flatMap(id => getKeysByCategory(id));
-      const catKeys = getAllBackendKeys(catDescriptors);
-      for (const key of catKeys) {
-        if (allValues[key] !== allOriginal[key]) return true;
-      }
-      return false;
+      return Object.keys(getChangedValues(allOriginal, allValues, catDescriptors)).length > 0;
     },
     [allValues, allOriginal]
   );

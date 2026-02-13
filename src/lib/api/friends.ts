@@ -23,6 +23,15 @@ import type {
   ExportLinksResponse,
   LinkHealthCheckResponse,
   BatchUpdateLinkSortRequest,
+  PublicLinksParams,
+  PublicLinkListResponse,
+  ApplyLinkRequest,
+  CheckLinkExistsResponse,
+  LinkApplicationsParams,
+  RandomPostData,
+  MomentsListData,
+  LinkMomentsData,
+  MomentsSortType,
 } from "@/types/friends";
 
 export const friendsApi = {
@@ -46,9 +55,7 @@ export const friendsApi = {
     if (category_id) queryParams.append("category_id", String(category_id));
     if (tag_id) queryParams.append("tag_id", String(tag_id));
 
-    const response = await apiClient.get<LinkListResponse>(
-      `/api/links?${queryParams.toString()}`
-    );
+    const response = await apiClient.get<LinkListResponse>(`/api/links?${queryParams.toString()}`);
 
     if (response.code === 200 && response.data) {
       return response.data;
@@ -308,5 +315,163 @@ export const friendsApi = {
     if (response.code !== 200) {
       throw new Error(response.message || "更新排序失败");
     }
+  },
+
+  // ============================================
+  //  公开接口（无需登录）
+  // ============================================
+
+  /**
+   * 获取公开友链列表（已审核通过）
+   * GET /api/public/links
+   */
+  async getPublicLinks(params: PublicLinksParams = {}): Promise<PublicLinkListResponse> {
+    const { page = 1, pageSize = 100, category_id } = params;
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", String(page));
+    queryParams.append("pageSize", String(pageSize));
+    if (category_id) queryParams.append("category_id", String(category_id));
+
+    const response = await apiClient.get<PublicLinkListResponse>(`/api/public/links?${queryParams.toString()}`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取友链列表失败");
+  },
+
+  /**
+   * 申请友链（公开）
+   * POST /api/public/links
+   */
+  async applyLink(data: ApplyLinkRequest): Promise<void> {
+    const response = await apiClient.post<null>("/api/public/links", data);
+
+    if (response.code === 200) {
+      return;
+    }
+
+    throw new Error(response.message || "申请友链失败");
+  },
+
+  /**
+   * 检查友链 URL 是否已存在
+   * GET /api/public/links/check-exists
+   */
+  async checkLinkExists(url: string): Promise<CheckLinkExistsResponse> {
+    const response = await apiClient.get<CheckLinkExistsResponse>(
+      `/api/public/links/check-exists?url=${encodeURIComponent(url)}`
+    );
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "检查友链失败");
+  },
+
+  /**
+   * 获取朋友圈列表
+   * GET /api/pro/moments
+   */
+  async getMomentsList(
+    page: number = 1,
+    pageSize: number = 50,
+    sortType: MomentsSortType = "published_at"
+  ): Promise<MomentsListData> {
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", String(page));
+    queryParams.append("page_size", String(pageSize));
+    queryParams.append("sort_type", sortType);
+
+    const response = await apiClient.get<MomentsListData>(`/api/pro/moments?${queryParams.toString()}`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取朋友圈列表失败");
+  },
+
+  /**
+   * 获取指定友链的朋友圈文章列表
+   * GET /api/pro/moments/link/:id
+   */
+  async getLinkMoments(linkId: number, page: number = 1, pageSize: number = 20): Promise<LinkMomentsData> {
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", String(page));
+    queryParams.append("page_size", String(pageSize));
+
+    const response = await apiClient.get<LinkMomentsData>(`/api/pro/moments/link/${linkId}?${queryParams.toString()}`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取友链文章列表失败");
+  },
+
+  /**
+   * 获取友链随机文章（钓鱼）
+   * GET /api/pro/moments/randompost
+   */
+  async getRandomPost(): Promise<RandomPostData> {
+    const response = await apiClient.get<RandomPostData>("/api/pro/moments/randompost");
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取友链随机文章失败");
+  },
+
+  /**
+   * 随机获取指定数量的友链
+   * GET /api/public/links/random
+   */
+  async getRandomLinks(num: number = 1): Promise<LinkItem[]> {
+    const response = await apiClient.get<LinkItem[]>(`/api/public/links/random?num=${num}`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取随机友链失败");
+  },
+
+  /**
+   * 获取公开友链分类列表
+   * GET /api/public/link-categories
+   */
+  async getPublicCategories(): Promise<LinkCategory[]> {
+    const response = await apiClient.get<LinkCategory[]>("/api/public/link-categories");
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取分类列表失败");
+  },
+
+  /**
+   * 获取所有友链申请列表（公开）
+   * GET /api/public/links/applications
+   */
+  async getApplications(params: LinkApplicationsParams = {}): Promise<LinkListResponse> {
+    const { page = 1, pageSize = 20, status, name } = params;
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", String(page));
+    queryParams.append("pageSize", String(pageSize));
+    if (status) queryParams.append("status", status);
+    if (name) queryParams.append("name", name);
+
+    const response = await apiClient.get<LinkListResponse>(`/api/public/links/applications?${queryParams.toString()}`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取申请列表失败");
   },
 };

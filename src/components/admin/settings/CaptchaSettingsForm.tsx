@@ -31,14 +31,26 @@ export function CaptchaSettingsForm({ values, onChange, loading }: CaptchaSettin
     );
   }
 
+  const selectedProvider = values[KEY_CAPTCHA_PROVIDER] || "none";
+  const isLegacyTurnstileMode = selectedProvider === "none" && values[KEY_TURNSTILE_ENABLE] === "true";
+  const activeProvider = isLegacyTurnstileMode ? "turnstile" : selectedProvider;
+  const providerLabel =
+    activeProvider === "turnstile"
+      ? "Cloudflare Turnstile"
+      : activeProvider === "geetest"
+        ? "极验 GeeTest"
+        : activeProvider === "image"
+          ? "系统图形验证码"
+          : "未启用";
+
   return (
     <div className="space-y-8">
       {/* 验证方式 */}
-      <SettingsSection title="验证方式">
+      <SettingsSection title="验证方式" description="仅显示当前启用方案的配置项；未启用方案会自动隐藏。">
         <FormSelect
           label="验证码提供商"
           placeholder="请选择验证方式"
-          value={values[KEY_CAPTCHA_PROVIDER]}
+          value={activeProvider}
           onValueChange={v => onChange(KEY_CAPTCHA_PROVIDER, v)}
         >
           <FormSelectItem key="none">无</FormSelectItem>
@@ -46,9 +58,14 @@ export function CaptchaSettingsForm({ values, onChange, loading }: CaptchaSettin
           <FormSelectItem key="geetest">极验 GeeTest</FormSelectItem>
           <FormSelectItem key="image">系统图形验证码</FormSelectItem>
         </FormSelect>
+
+        <div className="rounded-xl border border-default-200 bg-default-50/70 px-3 py-2 text-xs text-default-700 dark:bg-default-100/20 dark:text-default-300">
+          当前启用：<span className="font-medium text-foreground">{providerLabel}</span>
+          {isLegacyTurnstileMode ? "（兼容旧配置 turnstile.enable=true）" : ""}
+        </div>
       </SettingsSection>
 
-      {values[KEY_CAPTCHA_PROVIDER] === "turnstile" && (
+      {activeProvider === "turnstile" && (
         <SettingsSection title="Turnstile 配置">
           <FormSwitch
             label="启用 Turnstile"
@@ -76,7 +93,7 @@ export function CaptchaSettingsForm({ values, onChange, loading }: CaptchaSettin
         </SettingsSection>
       )}
 
-      {values[KEY_CAPTCHA_PROVIDER] === "geetest" && (
+      {activeProvider === "geetest" && (
         <SettingsSection title="GeeTest 配置">
           <SettingsFieldGroup cols={2}>
             <FormInput
@@ -98,7 +115,7 @@ export function CaptchaSettingsForm({ values, onChange, loading }: CaptchaSettin
         </SettingsSection>
       )}
 
-      {values[KEY_CAPTCHA_PROVIDER] === "image" && (
+      {activeProvider === "image" && (
         <SettingsSection title="图形验证码">
           <SettingsFieldGroup cols={2}>
             <FormInput
@@ -117,6 +134,10 @@ export function CaptchaSettingsForm({ values, onChange, loading }: CaptchaSettin
           </SettingsFieldGroup>
         </SettingsSection>
       )}
+
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-default-600">
+        建议先在测试环境验证验证码可用性，再发布到生产环境；若切换方案，请同步更新对应服务商后台白名单域名。
+      </div>
     </div>
   );
 }

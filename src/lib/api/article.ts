@@ -94,6 +94,52 @@ export const articleApi = {
   },
 
   /**
+   * 创建分类
+   */
+  async createCategory(data: {
+    name: string;
+    description?: string;
+    is_series?: boolean;
+    sort_order?: number;
+  }): Promise<PostCategory> {
+    const response = await apiClient.post<PostCategory>(`/api/post-categories`, data);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "创建分类失败");
+  },
+
+  /**
+   * 创建标签
+   */
+  async createTag(name: string): Promise<PostTag> {
+    const response = await apiClient.post<PostTag>(`/api/post-tags`, { name });
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "创建标签失败");
+  },
+
+  /**
+   * 获取文章统计数据
+   */
+  async getStatistics(): Promise<{ total_posts: number; total_words: number }> {
+    const response = await apiClient.get<{ total_posts: number; total_words: number }>(
+      `/api/public/articles/statistics`
+    );
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取文章统计失败");
+  },
+
+  /**
    * 获取归档列表
    */
   async getArchiveList(): Promise<Archive[]> {

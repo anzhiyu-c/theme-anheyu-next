@@ -302,10 +302,10 @@ function ImageNodeView({ node, updateAttributes, selected, editor, deleteNode }:
   }, [caption, updateAttributes]);
 
   // ---- Caption 编辑 ----
-  const handleCaptionInput = useCallback(
-    (e: React.FormEvent<HTMLDivElement>) => {
+  const handleCaptionBlur = useCallback(
+    (e: React.FocusEvent<HTMLDivElement>) => {
       const text = (e.currentTarget.textContent || "").trim();
-      // 保持空字符串而非 null，避免编辑时描述区域突然消失
+      // 仅在失焦时同步到节点属性，避免输入过程中因重渲染丢失光标
       // 隐藏操作统一由工具栏按钮的 handleCaptionToggle 控制
       updateAttributes({ caption: text });
     },
@@ -313,6 +313,8 @@ function ImageNodeView({ node, updateAttributes, selected, editor, deleteNode }:
   );
 
   const handleCaptionKeyDown = useCallback((e: React.KeyboardEvent) => {
+    // 阻止所有键盘事件向 ProseMirror 冒泡，避免编辑器拦截按键
+    e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
       (e.target as HTMLElement).blur();
@@ -601,7 +603,7 @@ function ImageNodeView({ node, updateAttributes, selected, editor, deleteNode }:
           className={`image-caption-area${!caption ? " is-empty" : ""}`}
           contentEditable={!uploading}
           suppressContentEditableWarning
-          onInput={handleCaptionInput}
+          onBlur={handleCaptionBlur}
           onKeyDown={handleCaptionKeyDown}
           onClick={e => e.stopPropagation()}
           onMouseDown={e => e.stopPropagation()}

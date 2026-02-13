@@ -9,6 +9,8 @@ import { Search, Link2, Image as ImageIcon, Grid3X3, Check, X } from "lucide-rea
 // ─── 常量 ─────────────────────────────────────────────────────────
 
 const ICONS_PER_PAGE = 100;
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_LIMIT = 100;
 const CACHE_KEY = "iconify-ri-icons";
 const CACHE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -171,11 +173,13 @@ export function FormIconSelector({
   const [imageUrl, setImageUrl] = React.useState("");
 
   const [allIcons, setAllIcons] = React.useState<string[]>(DEFAULT_REMIX_ICONS);
+  const [searchResults, setSearchResults] = React.useState<string[]>([]);
   const [displayCount, setDisplayCount] = React.useState(ICONS_PER_PAGE);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSearching, setIsSearching] = React.useState(false);
   const gridRef = React.useRef<HTMLDivElement>(null);
 
-  // 获取图标列表
+  // 获取图标列表（Remix 图标，用于浏览）
   const fetchIcons = React.useCallback(async () => {
     if (isLoading) return;
     const cached = getCachedIcons();
@@ -215,6 +219,7 @@ export function FormIconSelector({
       fetchIcons();
       setDisplayCount(ICONS_PER_PAGE);
       setSearchText("");
+      setSearchResults([]);
       if (isImageUrl(value)) {
         setImageUrl(value);
         setActiveTab("url");
@@ -224,11 +229,35 @@ export function FormIconSelector({
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 搜索：使用 Iconify 搜索 API 跨所有图标集查询
+  React.useEffect(() => {
+    const q = searchText.trim();
+    if (q.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `https://api.iconify.design/search?query=${encodeURIComponent(q)}&limit=${SEARCH_LIMIT}`
+        );
+        if (!res.ok) throw new Error("search failed");
+        const data = (await res.json()) as { icons?: string[] };
+        setSearchResults(data.icons ?? []);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchText]);
+
   const filteredIcons = React.useMemo(() => {
     if (!searchText.trim()) return allIcons;
-    const kw = searchText.toLowerCase();
-    return allIcons.filter(icon => icon.toLowerCase().includes(kw));
-  }, [allIcons, searchText]);
+    return searchResults;
+  }, [allIcons, searchText, searchResults]);
 
   const visibleIcons = React.useMemo(
     () => (searchText ? filteredIcons : filteredIcons.slice(0, displayCount)),
@@ -308,7 +337,7 @@ export function FormIconSelector({
         </button>
         {activeTab === "iconify" && !isLoading && (
           <span className="ml-auto text-[10px] text-default-400 tabular-nums pr-1 w-16 text-right shrink-0">
-            {searchText ? `${filteredIcons.length} 结果` : `${allIcons.length} 个`}
+            {isSearching ? "搜索中…" : searchText ? `${filteredIcons.length} 结果` : `${allIcons.length} 个`}
           </span>
         )}
       </div>
@@ -321,14 +350,14 @@ export function FormIconSelector({
               size="sm"
               value={searchText}
               onValueChange={setSearchText}
-              placeholder="搜索图标..."
+              placeholder="搜索图标（含 fa、ri 等）"
               autoFocus
               startContent={<Search className="w-3.5 h-3.5 text-default-400" />}
               isClearable
               onClear={() => setSearchText("")}
               classNames={{
                 inputWrapper:
-                  "bg-default-50 border border-default-200 rounded-lg !shadow-none h-8 min-h-8 group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50 group-data-[focus=true]:border-primary/50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/10",
+                  "bg-default-50 border border-default-200 rounded-lg shadow-none! h-8 min-h-8 group-data-[focus=true]:bg-white! group-data-[focus=true]:dark:bg-default-50! group-data-[focus=true]:border-primary/50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/10",
                 input: "text-xs placeholder:text-default-400",
                 clearButton: "text-default-400",
               }}
@@ -374,7 +403,7 @@ export function FormIconSelector({
               );
             })}
 
-            {isLoading && (
+            {(isLoading || isSearching) && (
               <div className="col-span-6 flex items-center justify-center py-8 text-xs text-default-400">
                 <span className="w-4 h-4 border-2 border-default-300 border-t-primary rounded-full animate-spin mr-2" />
                 正在加载图标...
@@ -411,7 +440,7 @@ export function FormIconSelector({
               onKeyDown={e => e.key === "Enter" && handleUrlConfirm()}
               classNames={{
                 inputWrapper:
-                  "bg-default-50 border border-default-200 rounded-lg !shadow-none h-9 min-h-9 flex-1 group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50 group-data-[focus=true]:border-primary/50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/10",
+                  "bg-default-100/5! border border-default-200 rounded-lg shadow-none! h-9 min-h-9 flex-1 data-[hover=true]:bg-default-100/5! group-data-[focus=true]:bg-white! group-data-[focus=true]:dark:bg-default-50! group-data-[focus=true]:border-primary/50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/10",
                 input: "text-xs placeholder:text-default-400",
               }}
             />
@@ -452,37 +481,67 @@ export function FormIconSelector({
       onOpenChange={setIsOpen}
       placement="bottom-start"
       offset={6}
+      triggerScaleOnOpen={false}
       classNames={{
-        content: "p-0 w-[360px] max-w-[calc(100vw-2rem)] rounded-xl shadow-lg border border-default-200",
+        content:
+          "p-0 w-[360px] max-w-[calc(100vw-2rem)] rounded-xl shadow-lg border border-default-200 bg-white dark:bg-card",
       }}
     >
       <PopoverTrigger>
-        {/* 整体是一个看起来像输入框的按钮 */}
-        <button
-          type="button"
+        {/* 整体是一个看起来像输入框的容器，支持直接输入 */}
+        <div
           className={cn(
-            "w-full flex items-center gap-2 rounded-lg border bg-default-100/50 transition-all duration-150 text-left",
-            "border-default-200 hover:border-default-300",
-            "outline-none focus-visible:bg-white! focus-visible:dark:bg-default-50! focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20",
+            "w-full min-w-0 flex items-center gap-2 rounded-xl border bg-white dark:bg-default-100/50 transition-all duration-200 text-left cursor-text",
+            "border-default-200/80 hover:border-default-300/90",
+            "outline-none focus-within:bg-white! dark:focus-within:bg-default-100/60 focus-within:border-primary/65 focus-within:ring-2 focus-within:ring-primary/15",
             size === "sm" ? "h-9 px-2.5" : "h-10 px-3",
             className
           )}
+          role="group"
           aria-label="选择图标"
+          onClick={e => {
+            // 如果点击的不是 input 或 clear 按钮，打开弹窗
+            const target = e.target as HTMLElement;
+            if (target.tagName !== "INPUT" && !target.closest("[data-clear-btn]")) {
+              setIsOpen(true);
+            }
+          }}
         >
-          {/* 图标预览 */}
-          <div className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md bg-default-100 border border-default-200/50">
+          {/* 图标预览 - 点击打开弹窗 */}
+          <div
+            className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md bg-default-100 border border-default-200/50 cursor-pointer"
+            onClick={e => {
+              e.stopPropagation();
+              setIsOpen(prev => !prev);
+            }}
+          >
             {renderInlinePreview()}
           </div>
-          {/* 值文本 */}
-          <span className={cn("flex-1 truncate text-[13px]", value ? "text-foreground" : "text-default-400")}>
-            {value || placeholder}
-          </span>
+          {/* 可编辑输入框 */}
+          <input
+            type="text"
+            value={value}
+            onChange={e => onValueChange?.(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setIsOpen(false);
+              }
+            }}
+            placeholder={placeholder}
+            className={cn(
+              "flex-1 min-w-0 bg-transparent border-none outline-none text-[13px]",
+              value ? "text-foreground" : "text-default-400",
+              "placeholder:text-default-400"
+            )}
+          />
           {/* 清除按钮 */}
           {value && (
             <div
               role="button"
               tabIndex={-1}
-              className="shrink-0 text-default-400 hover:text-danger transition-colors"
+              data-clear-btn
+              className="shrink-0 text-default-400 hover:text-danger transition-colors cursor-pointer"
               onClick={e => {
                 e.stopPropagation();
                 onValueChange?.("");
@@ -497,7 +556,7 @@ export function FormIconSelector({
               <X className="w-3.5 h-3.5" />
             </div>
           )}
-        </button>
+        </div>
       </PopoverTrigger>
 
       <PopoverContent>{popoverContent}</PopoverContent>

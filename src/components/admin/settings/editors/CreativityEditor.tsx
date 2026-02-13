@@ -120,18 +120,18 @@ const expandTransition = {
 
 const fieldInputClasses = {
   inputWrapper: cn(
-    "bg-default-100/50 border border-default-200 rounded-lg !shadow-none h-9 min-h-9",
-    "data-[hover=true]:border-default-300",
-    "group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50",
-    "group-data-[focus=true]:border-primary group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
-    "transition-all duration-150"
+    "h-9 min-h-9 rounded-xl border border-default-200/80 bg-white dark:bg-default-100/50 shadow-none!",
+    "data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/90",
+    "group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-100/60 group-data-[focus=true]:border-primary/65",
+    "group-data-[focus=true]:ring-2 group-data-[focus=true]:ring-primary/15",
+    "transition-all duration-200"
   ),
-  input: "text-[13px] text-foreground placeholder:text-default-400",
+  input: "text-sm text-foreground/90 placeholder:text-default-400/80",
 };
 
 const fieldInputMonoClasses = {
   ...fieldInputClasses,
-  input: "text-[13px] font-mono text-foreground placeholder:text-default-300 tracking-wide",
+  input: "text-sm font-mono text-foreground/90 placeholder:text-default-400/80 tracking-wide",
 };
 
 // ─── 子组件：列表项行（支持拖拽排序） ─────────────────────────────
@@ -268,7 +268,7 @@ function CreativityRow({
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-1">
-              <div className="rounded-xl border border-default-200/60 bg-white dark:bg-default-50 p-4">
+              <div className="rounded-xl border border-default-200/60 bg-white dark:bg-card p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   {/* 名称 */}
                   <div className="flex flex-col gap-[5px]">
@@ -521,7 +521,7 @@ export function CreativityEditor({ label, description, value, onValueChange, cla
       </button>
 
       {/* ── 描述 ──────────────────────────────── */}
-      {description && <p className="text-[12px] text-default-300 leading-relaxed px-1">{description}</p>}
+      {description && <p className="text-xs leading-relaxed text-default-400">{description}</p>}
     </div>
   );
 }

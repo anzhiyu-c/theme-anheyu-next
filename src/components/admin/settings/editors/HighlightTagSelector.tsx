@@ -247,8 +247,8 @@ function TransferPanel({
           startContent={<Search className="w-3 h-3 text-default-400" />}
           classNames={{
             inputWrapper: cn(
-              "bg-default-50 border border-default-200/70 rounded-lg !shadow-none h-8 min-h-8",
-              "data-[hover=true]:border-default-300",
+              "bg-default-100/5 border border-default-200/70 rounded-lg shadow-none! h-8 min-h-8",
+              "data-[hover=true]:bg-default-100/5! data-[hover=true]:border-default-300",
               "group-data-[focus=true]:border-primary/50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20"
             ),
             input: "text-xs placeholder:text-default-400",

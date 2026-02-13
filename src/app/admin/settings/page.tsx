@@ -481,20 +481,18 @@ export default function SettingsPage() {
                   onClick={() => selectSection(category.id, sub.id)}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "group w-full flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-all duration-150",
+                    "group w-full flex items-center gap-2.5 px-3 py-[7px] rounded-full text-[13px] transition-all duration-150",
                     isActive
-                      ? "bg-default-100 text-foreground font-medium"
-                      : "text-default-500 hover:text-foreground hover:bg-default-50"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-default-500 hover:text-foreground hover:bg-default-100/60"
                   )}
                 >
-                  {/* 激活指示条 */}
-                  <div
+                  <SubIcon
                     className={cn(
-                      "w-[3px] h-4 rounded-full shrink-0 transition-all duration-200",
-                      isActive ? "bg-primary" : "bg-transparent group-hover:bg-default-300"
+                      "w-4 h-4 shrink-0",
+                      isActive ? "text-primary" : "text-default-400 group-hover:text-default-500"
                     )}
                   />
-                  <SubIcon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-default-400")} />
                   <span className="truncate">{sub.label}</span>
                 </button>
               );
@@ -520,9 +518,9 @@ export default function SettingsPage() {
         startContent={<Search className="w-3.5 h-3.5 text-default-400" />}
         classNames={{
           inputWrapper: cn(
-            "bg-default-50 border border-default-200/70 rounded-lg !shadow-none h-9 min-h-9",
-            "data-[hover=true]:bg-default-100 data-[hover=true]:border-default-300",
-            "group-data-[focus=true]:border-primary/50 group-data-[focus=true]:!bg-white group-data-[focus=true]:dark:!bg-default-50 group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/20",
+            "bg-default-100/40 border border-default-200/50 rounded-full shadow-none! h-9 min-h-9",
+            "data-[hover=true]:bg-default-100/60 data-[hover=true]:border-default-300/60",
+            "group-data-[focus=true]:border-primary/40 group-data-[focus=true]:bg-white! group-data-[focus=true]:dark:bg-default-50! group-data-[focus=true]:ring-1 group-data-[focus=true]:ring-primary/15",
             "transition-all duration-200"
           ),
           input: "text-[13px] placeholder:text-default-400",
@@ -537,7 +535,7 @@ export default function SettingsPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="absolute top-full mt-1.5 left-0 right-0 bg-background border border-default-200 rounded-lg shadow-lg z-50 overflow-hidden"
+            className="absolute top-full mt-1.5 left-0 right-0 bg-background border border-default-200/60 rounded-xl shadow-sm z-50 overflow-hidden"
           >
             {searchResults.length > 0 ? (
               <div className="max-h-[320px] overflow-y-auto p-1">
@@ -568,9 +566,9 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="flex h-full bg-card rounded-xl border border-border/50 shadow-sm overflow-hidden">
+    <div className="flex h-full bg-card rounded-xl border border-default-200/60 overflow-hidden">
       {/* ==================== 左侧导航面板 - 桌面端 ==================== */}
-      <aside className="w-[260px] shrink-0 border-r border-default-100 bg-default-50/50 flex flex-col max-lg:hidden">
+      <aside className="w-[260px] shrink-0 border-r border-default-200/60 bg-default-50/30 flex flex-col max-lg:hidden">
         {/* 搜索框 */}
         <div className="p-3 pb-2">{renderSearch()}</div>
 
@@ -579,7 +577,10 @@ export default function SettingsPage() {
       </aside>
 
       {/* ==================== 右侧内容区 ==================== */}
-      <div ref={contentRef} className="flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+      <div
+        ref={contentRef}
+        className="flex-1 overflow-y-auto [scrollbar-gutter:stable] bg-default-50/40 dark:bg-transparent"
+      >
         <div className="max-w-3xl mx-auto px-8 py-6 max-md:px-4 max-md:py-4">
           {/* 内容区头部 */}
           <motion.div
@@ -610,30 +611,48 @@ export default function SettingsPage() {
             </div>
 
             {/* 重置按钮 */}
-            <div className="flex items-center gap-1 mt-1">
-              <Tooltip content="重置当前分类" placement="bottom">
+            <div className="flex items-center gap-2 mt-1">
+              <Tooltip
+                content={
+                  <div className="px-1 py-0.5">
+                    <p className="text-xs font-medium">重置当前分类</p>
+                    <p className="text-[11px] text-default-400">撤销当前页面的未保存更改</p>
+                  </div>
+                }
+                placement="bottom"
+                delay={400}
+              >
                 <Button
-                  isIconOnly
-                  variant="light"
                   size="sm"
+                  variant="flat"
                   isDisabled={!isCurrentDirty}
                   onPress={handleResetCurrent}
-                  className="text-default-400 data-[hover=true]:text-default-600 data-[hover=true]:bg-default-100 w-8 h-8 min-w-8"
+                  startContent={<RotateCcw className="w-3.5 h-3.5" />}
+                  className="h-8 px-3 min-w-0 bg-default-100 text-default-600 hover:bg-default-200 hover:text-default-700 text-xs font-medium"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  重置当前
                 </Button>
               </Tooltip>
 
-              <Tooltip content="重置全部更改" placement="bottom">
+              <Tooltip
+                content={
+                  <div className="px-1 py-0.5">
+                    <p className="text-xs font-medium">重置全部更改</p>
+                    <p className="text-[11px] text-default-400">撤销所有分类的未保存更改</p>
+                  </div>
+                }
+                placement="bottom"
+                delay={400}
+              >
                 <Button
-                  isIconOnly
-                  variant="light"
                   size="sm"
+                  variant="flat"
                   isDisabled={!isDirty}
                   onPress={handleResetAll}
-                  className="text-default-400 data-[hover=true]:text-danger data-[hover=true]:bg-danger/10 w-8 h-8 min-w-8"
+                  startContent={<RotateCcw className="w-3.5 h-3.5" />}
+                  className="h-8 px-3 min-w-0 bg-danger-50 text-danger hover:bg-danger-100 hover:text-danger-600 text-xs font-medium"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  重置全部
                 </Button>
               </Tooltip>
             </div>
@@ -663,7 +682,7 @@ export default function SettingsPage() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
-              className="fixed inset-y-0 left-0 z-50 w-[280px] bg-background border-r border-default-100 shadow-2xl flex flex-col"
+              className="fixed inset-y-0 left-0 z-50 w-[280px] bg-background border-r border-default-200/60 shadow-lg flex flex-col"
             >
               {/* 抽屉头部 */}
               <div className="flex items-center justify-between px-4 h-14 border-b border-default-100">

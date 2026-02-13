@@ -206,20 +206,25 @@ export const postManagementApi = {
 
     // 必须显式设置 Content-Type 覆盖 Axios 实例默认的 application/json
     // Axios 1.x 会自动为 multipart/form-data 追加 boundary 参数
-    const response = await apiClient.post<{ url: string }>("/api/pro/articles/upload", formData, {
+    const response = await apiClient.post<{ url: string; file_id: string }>("/api/pro/articles/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
-    if (response.code === 200 && response.data?.url) {
-      // 后端返回的可能是绝对 URL（如 https://anheyu.com/api/f/xxx/file.png）
-      // 转为相对路径 /api/f/xxx/file.png，确保开发环境通过 Next.js 代理到本地后端
-      const rawUrl = response.data.url;
-      try {
-        const urlObj = new URL(rawUrl);
-        return urlObj.pathname;
-      } catch {
-        // 已经是相对路径，直接返回
-        return rawUrl;
+    if (response.code === 200 && response.data) {
+      const { url } = response.data;
+
+      if (url) {
+        // 后端返回的 url 可能是绝对 URL（如 https://blog.anheyu.com/api/f/8dRW/xxx.webp）
+        // 提取路径部分（如 /api/f/8dRW/xxx.webp），通过 Next.js rewrites 代理到本地后端
+        // 不使用 /api/pro/images/{file_id}，因为该 endpoint 会 302 重定向到绝对 URL，
+        // 开发环境下会指向生产域名导致加载错误图片
+        try {
+          const urlObj = new URL(url);
+          return urlObj.pathname;
+        } catch {
+          // url 已经是相对路径
+          return url;
+        }
       }
     }
 

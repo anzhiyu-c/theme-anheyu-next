@@ -40,7 +40,7 @@ export function PageStyleForm({ values, onChange, loading }: PageStyleFormProps)
       <SettingsSection title="页面功能">
         <FormSwitch
           label="外部链接跳转提醒"
-          description="点击外部链接时弹出安全提醒"
+          description="开启后，点击外部链接时会显示中间提示页面，提醒用户即将跳转到外部网站，倒计时 5 秒后自动跳转。支持「本次会话不再提示」选项。"
           checked={values[KEY_ENABLE_EXTERNAL_LINK_WARNING] === "true"}
           onCheckedChange={v => onChange(KEY_ENABLE_EXTERNAL_LINK_WARNING, String(v))}
         />

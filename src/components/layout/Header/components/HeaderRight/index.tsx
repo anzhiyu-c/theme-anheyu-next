@@ -3,12 +3,13 @@
 import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Tooltip, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { useTravellingLink } from "@/hooks/use-travelling-link";
 
 import styles from "./styles.module.css";
 import type { NavConfig } from "../../types";
@@ -25,6 +26,7 @@ interface HeaderRightProps {
 }
 
 export function HeaderRight({
+  navConfig,
   isTransparent,
   isTextWhite = false,
   scrollPercent,
@@ -33,8 +35,13 @@ export function HeaderRight({
   onToggleConsole,
 }: HeaderRightProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, logout, roles } = useAuthStore();
   const isMobile = useIsMobile();
+  const { handleTravelClick } = useTravellingLink();
+
+  // 是否在首页
+  const isHomePage = pathname === "/";
 
   // 判断是否显示回到顶部按钮
   const showToTopButton = useMemo(() => !isTransparent, [isTransparent]);
@@ -90,6 +97,21 @@ export function HeaderRight({
 
   return (
     <div className={cn(styles.headerRight, isTextWhite && styles.textIsWhite)}>
+      {/* 开往（仅首页 + 桌面端 + 开启时显示） */}
+      {navConfig?.travelling === true && isHomePage && !isMobile && (
+        <Tooltip
+          content="随机前往一个开往项目网站"
+          placement="bottom"
+          delay={300}
+          closeDelay={0}
+          classNames={{ content: "custom-tooltip-content" }}
+        >
+          <button className={styles.navButton} onClick={handleTravelClick} aria-label="开往-随机前往一个开往项目网站">
+            <Icon icon="fa6-solid:train" width="1.2rem" height="1.2rem" />
+          </button>
+        </Tooltip>
+      )}
+
       {/* 用户中心/登录注册 */}
       {!isAuthenticated ? (
         <Popover

@@ -8,7 +8,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Download, Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { floatingBarVariants } from "@/lib/motion";
 
 export interface FloatingSelectionBarAction {

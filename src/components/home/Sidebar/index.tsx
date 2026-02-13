@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { useSiteConfigStore } from "@/store/site-config-store";
 import { AuthorInfoCard } from "./AuthorInfoCard";
 import { CardWechat } from "./CardWechat";
+import { CardClock } from "./CardClock";
+import { CustomSidebarBlocks } from "./CustomSidebarBlocks";
 import { StickyCards } from "./StickyCards";
 import styles from "./Sidebar.module.css";
 
@@ -35,10 +37,26 @@ export function Sidebar() {
     };
   }, [siteConfig]);
 
+  // 天气时钟配置
+  const clockConfig = useMemo(() => {
+    const w = siteConfig?.sidebar?.weather;
+    if (!w?.enable || !w.qweather_key) return null;
+    return {
+      qweatherKey: w.qweather_key,
+      qweatherAPIHost: w.qweather_api_host || "devapi.qweather.com",
+      ipAPIKey: w.ip_api_key || "",
+      loading: w.loading || "",
+      defaultRectangle: w.default_rectangle === true || (w.default_rectangle as unknown) === "true",
+      rectangle: w.rectangle || "112.6534116,27.96920845",
+    };
+  }, [siteConfig]);
+
   return (
     <aside className={styles.asideContent}>
       {authorInfoConfig && <AuthorInfoCard config={authorInfoConfig} />}
       {wechatConfig && <CardWechat config={wechatConfig} />}
+      <CustomSidebarBlocks />
+      {clockConfig && <CardClock config={clockConfig} />}
       <StickyCards />
     </aside>
   );

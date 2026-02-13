@@ -1,3 +1,10 @@
+/*
+ * @Author: 安知鱼
+ * @Date: 2026-02-11 10:34:32
+ * @Description:
+ * @LastEditTime: 2026-02-12 12:07:46
+ * @LastEditors: 安知鱼
+ */
 "use client";
 
 import { useEffect, useMemo, useCallback } from "react";
@@ -40,7 +47,7 @@ export function FloatingSaveButton({ hasChanges, loading, onSave }: FloatingSave
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-4 px-5 py-3 bg-background/95 backdrop-blur-md rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] border border-default-200 max-md:bottom-4 max-md:right-4 max-md:left-4 max-md:gap-3 max-md:px-4 max-sm:bottom-3 max-sm:right-3 max-sm:left-3"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-4 px-5 py-3 bg-background/90 backdrop-blur-lg rounded-full shadow-sm border border-default-200/60 max-md:bottom-4 max-md:right-4 max-md:left-4 max-md:gap-3 max-md:px-4 max-md:rounded-xl max-sm:bottom-3 max-sm:right-3 max-sm:left-3"
         >
           {/* 保存内容 */}
           <div className="flex items-center gap-3 flex-1">

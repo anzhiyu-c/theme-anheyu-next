@@ -97,7 +97,14 @@ export function PostDetailContent({ article, recentArticles = [] }: PostDetailCo
         <main className={styles.postContentInner}>
           <div className={styles.postDetailContent}>
             {/* 文章内容 */}
-            <PostContent content={article.content_html} />
+            <PostContent
+              content={article.content_html}
+              articleInfo={{
+                isReprint: article.is_reprint,
+                copyrightAuthor: article.copyright_author,
+                copyrightUrl: article.copyright_url,
+              }}
+            />
 
             {/* 版权信息 */}
             <PostCopyright article={article} />

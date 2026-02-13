@@ -74,8 +74,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* 主内容区 - 添加左边距为侧边栏留出空间 */}
-        <main className="flex-1 min-h-0 overflow-auto p-4 lg:p-8 lg:ml-64">
+        {/* 主内容区 - scrollbar-gutter:stable 避免弹窗展开时滚动条出现导致布局右移 */}
+        <main className="flex-1 min-h-0 overflow-auto p-4 lg:p-8 lg:ml-64 [scrollbar-gutter:stable]">
           {_hasHydrated && isAuthenticated ? (
             children
           ) : (

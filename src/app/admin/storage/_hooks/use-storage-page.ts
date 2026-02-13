@@ -1,162 +1,177 @@
+"use client";
+
 import { useState, useCallback, useMemo } from "react";
-import { addToast, useDisclosure } from "@heroui/react";
-import { useStoragePolicies, useCreateStoragePolicy, useUpdateStoragePolicy, useDeleteStoragePolicy } from "@/hooks/queries/use-storage-policy";
+import { useRouter } from "next/navigation";
+import { addToast } from "@heroui/react";
+import { useStoragePolicies, useCreateStoragePolicy, useDeleteStoragePolicy } from "@/hooks/queries/use-storage-policy";
 import type { StoragePolicy, StoragePolicyType } from "@/types/storage-policy";
+import { getErrorMessage } from "@/lib/api/client";
 
-/** 文件大小单位乘数 */
-const SIZE_MULTIPLIERS: Record<string, number> = {
-  B: 1,
-  KB: 1024,
-  MB: 1024 * 1024,
-  GB: 1024 * 1024 * 1024,
-};
+// ===================================
+//     存储类型配置（对齐 anheyu-pro）
+// ===================================
 
-function bytesToDisplay(bytes: number): { value: string; unit: string } {
-  if (bytes <= 0) return { value: "0", unit: "MB" };
-  if (bytes >= 1024 * 1024 * 1024) return { value: String(Math.round(bytes / (1024 * 1024 * 1024))), unit: "GB" };
-  if (bytes >= 1024 * 1024) return { value: String(Math.round(bytes / (1024 * 1024))), unit: "MB" };
-  if (bytes >= 1024) return { value: String(Math.round(bytes / 1024)), unit: "KB" };
-  return { value: String(bytes), unit: "B" };
+export interface StorageTypeConfig {
+  type: StoragePolicyType;
+  name: string;
+  dialogTitle: string;
 }
 
+export const STORAGE_TYPE_CONFIGS: StorageTypeConfig[] = [
+  { type: "local", name: "本机存储", dialogTitle: "添加本地存储策略" },
+  { type: "onedrive", name: "OneDrive", dialogTitle: "添加 OneDrive 存储策略" },
+  { type: "tencent_cos", name: "腾讯云COS", dialogTitle: "添加腾讯云COS存储策略" },
+  { type: "aliyun_oss", name: "阿里云OSS", dialogTitle: "添加阿里云OSS存储策略" },
+  { type: "aws_s3", name: "AWS S3", dialogTitle: "添加AWS S3存储策略" },
+  { type: "qiniu_kodo", name: "七牛云存储", dialogTitle: "添加七牛云存储策略" },
+];
+
+/** 云存储类型（创建后显示 CORS 成功弹窗） */
+const CLOUD_STORAGE_TYPES: StoragePolicyType[] = ["tencent_cos", "aliyun_oss", "aws_s3", "qiniu_kodo"];
+
 export function useStoragePage() {
-  // ---- 分页 ----
+  const router = useRouter();
+
+  // ---- 分页（前端分页，后端返回全量） ----
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
 
   // ---- 数据 ----
-  const queryParams = useMemo(() => ({ page, pageSize }), [page, pageSize]);
-  const { data, isLoading, isFetching, refetch } = useStoragePolicies(queryParams);
-  const policies = useMemo(() => data?.list ?? [], [data?.list]);
-  const totalItems = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const { data, isLoading, refetch } = useStoragePolicies();
+  const allPolicies = useMemo(() => data?.list ?? [], [data?.list]);
+  const total = allPolicies.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  /** 前端分页 */
+  const policies = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return allPolicies.slice(start, start + pageSize);
+  }, [allPolicies, page, pageSize]);
 
   // ---- Mutations ----
-  const createPolicy = useCreateStoragePolicy();
-  const updatePolicy = useUpdateStoragePolicy();
-  const deletePolicy = useDeleteStoragePolicy();
+  const createMutation = useCreateStoragePolicy();
+  const deleteMutation = useDeleteStoragePolicy();
 
-  // ---- Modal 控制 ----
-  const typeSelectorModal = useDisclosure();
-  const formModal = useDisclosure();
-  const deleteConfirm = useDisclosure();
-
-  // ---- 表单状态 ----
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [selectedType, setSelectedType] = useState<StoragePolicyType>("local");
-  const [editTarget, setEditTarget] = useState<StoragePolicy | null>(null);
-  const [form, setForm] = useState<Partial<StoragePolicy>>({});
+  // ---- 模态框状态 ----
+  const [typeSelectorOpen, setTypeSelectorOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StoragePolicy | null>(null);
 
-  // 文件大小显示
-  const [sizeValue, setSizeValue] = useState("0");
-  const [sizeUnit, setSizeUnit] = useState("MB");
+  // ---- CORS 成功弹窗 ----
+  const [corsSuccessOpen, setCorsSuccessOpen] = useState(false);
+  const [createdPolicyName, setCreatedPolicyName] = useState("");
+  const [createdPolicyType, setCreatedPolicyType] = useState("");
 
   // ---- 创建流程 ----
-  const handleSelectType = useCallback((type: StoragePolicyType) => {
-    setSelectedType(type);
-    setFormMode("create");
-    setEditTarget(null);
-    setForm({
-      type,
-      name: "",
-      flag: "",
-      is_private: false,
-      max_size: 0,
-      settings: { chunk_size: 25 * 1024 * 1024 },
-    });
-    setSizeValue("0");
-    setSizeUnit("MB");
-    formModal.onOpen();
-  }, [formModal]);
+  const [currentStorageType, setCurrentStorageType] = useState<StoragePolicyType | null>(null);
 
-  const handleAddClick = useCallback(() => {
-    typeSelectorModal.onOpen();
-  }, [typeSelectorModal]);
+  const currentStorageConfig = useMemo(
+    () => STORAGE_TYPE_CONFIGS.find(c => c.type === currentStorageType) ?? null,
+    [currentStorageType]
+  );
 
-  // ---- 编辑流程 ----
-  const handleEdit = useCallback((policy: StoragePolicy) => {
-    setFormMode("edit");
-    setSelectedType(policy.type);
-    setEditTarget(policy);
-    setForm({ ...policy });
-    const display = bytesToDisplay(policy.max_size ?? 0);
-    setSizeValue(display.value);
-    setSizeUnit(display.unit);
-    formModal.onOpen();
-  }, [formModal]);
+  /** 选择类型后打开创建弹窗 */
+  const triggerCreateFlow = useCallback((type: StoragePolicyType) => {
+    setTypeSelectorOpen(false);
+    setCurrentStorageType(type);
+    setCreateDialogOpen(true);
+  }, []);
 
-  // ---- 删除流程 ----
-  const handleDeleteClick = useCallback((policy: StoragePolicy) => {
-    setDeleteTarget(policy);
-    deleteConfirm.onOpen();
-  }, [deleteConfirm]);
+  /** 处理创建表单提交（对齐 anheyu-pro handleCreateSubmit） */
+  const handleCreateSubmit = useCallback(
+    async (payload: Partial<StoragePolicy>) => {
+      try {
+        await createMutation.mutateAsync(payload);
 
-  const handleDeleteConfirm = useCallback(async () => {
+        setCreateDialogOpen(false);
+        const storageTypeName = currentStorageConfig?.name ?? "存储策略";
+
+        if (currentStorageType === "onedrive") {
+          addToast({ title: `策略 ${payload.name} 创建成功，请继续配置。`, color: "success" });
+          // OneDrive 创建后需要跳转编辑页进行授权
+          // 需要 refetch 获取新策略 ID
+          const freshData = await refetch();
+          const newPolicy = freshData.data?.list?.find(p => p.name === payload.name);
+          if (newPolicy) {
+            router.push(`/admin/storage/${newPolicy.id}`);
+          }
+        } else if (CLOUD_STORAGE_TYPES.includes(currentStorageType!)) {
+          // 云存储显示 CORS 成功弹窗
+          setCreatedPolicyName(payload.name ?? storageTypeName);
+          setCreatedPolicyType(storageTypeName);
+          setCorsSuccessOpen(true);
+        } else {
+          // 本地存储直接刷新列表
+          addToast({ title: `策略 ${payload.name} 创建成功！`, color: "success" });
+        }
+      } catch (e: unknown) {
+        addToast({ title: getErrorMessage(e), color: "danger" });
+      }
+    },
+    [createMutation, currentStorageConfig, currentStorageType, refetch, router]
+  );
+
+  /** 跳转编辑页 */
+  const handleEdit = useCallback(
+    (policy: StoragePolicy) => {
+      router.push(`/admin/storage/${policy.id}`);
+    },
+    [router]
+  );
+
+  /** 确认删除 */
+  const confirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
     try {
-      await deletePolicy.mutateAsync(deleteTarget.id);
-      addToast({ title: "存储策略已删除", color: "success", timeout: 3000 });
-    } catch (error) {
-      addToast({ title: error instanceof Error ? error.message : "删除失败", color: "danger", timeout: 3000 });
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      addToast({ title: "删除成功", color: "success" });
+      setDeleteTarget(null);
+    } catch (e: unknown) {
+      addToast({ title: getErrorMessage(e), color: "danger" });
     }
-    deleteConfirm.onClose();
-    setDeleteTarget(null);
-  }, [deleteTarget, deletePolicy, deleteConfirm]);
+  }, [deleteTarget, deleteMutation]);
 
-  // ---- 表单提交 ----
-  const handleFormConfirm = useCallback(async () => {
-    if (!form.name?.trim()) {
-      addToast({ title: "请填写策略名称", color: "warning", timeout: 3000 });
-      return;
-    }
-
-    // 将 sizeValue + sizeUnit 转回 bytes
-    const maxSizeBytes = (Number(sizeValue) || 0) * (SIZE_MULTIPLIERS[sizeUnit] ?? 1024 * 1024);
-    const payload = { ...form, max_size: maxSizeBytes };
-
-    try {
-      if (formMode === "create") {
-        await createPolicy.mutateAsync(payload);
-        addToast({ title: `存储策略「${form.name}」创建成功`, color: "success", timeout: 3000 });
-      } else if (editTarget) {
-        await updatePolicy.mutateAsync({ id: editTarget.id, data: payload });
-        addToast({ title: `存储策略「${form.name}」已更新`, color: "success", timeout: 3000 });
-      }
-      formModal.onClose();
-    } catch (error) {
-      addToast({
-        title: error instanceof Error ? error.message : (formMode === "create" ? "创建失败" : "更新失败"),
-        color: "danger",
-        timeout: 3000,
-      });
-    }
-  }, [form, formMode, editTarget, sizeValue, sizeUnit, createPolicy, updatePolicy, formModal]);
-
-  // ---- Size unit/value 变更 ----
-  const handleSizeValueChange = useCallback((v: string) => {
-    setSizeValue(v);
-  }, []);
-
-  const handleSizeUnitChange = useCallback((unit: string) => {
-    setSizeUnit(unit);
-  }, []);
+  /** 刷新 */
+  const onRefresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   return {
-    // 分页
-    page, setPage, pageSize, setPageSize, totalItems, totalPages,
     // 数据
-    policies, isLoading, isFetching, refetch,
-    // Modal
-    typeSelectorModal, formModal, deleteConfirm,
-    // 表单
-    formMode, selectedType, form, setForm, editTarget, deleteTarget,
-    sizeValue, sizeUnit, handleSizeValueChange, handleSizeUnitChange,
+    policies,
+    allPolicies,
+    total,
+    isLoading,
+    // 分页
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    // 模态框
+    typeSelectorOpen,
+    setTypeSelectorOpen,
+    createDialogOpen,
+    setCreateDialogOpen,
+    deleteTarget,
+    setDeleteTarget,
+    // CORS 成功弹窗
+    corsSuccessOpen,
+    setCorsSuccessOpen,
+    createdPolicyName,
+    createdPolicyType,
+    // 创建流程
+    currentStorageType,
+    currentStorageConfig,
+    triggerCreateFlow,
+    handleCreateSubmit,
+    isCreating: createMutation.isPending,
     // 操作
-    handleAddClick, handleSelectType, handleEdit,
-    handleDeleteClick, handleDeleteConfirm,
-    handleFormConfirm,
-    // Mutation states
-    createPolicy, updatePolicy, deletePolicy,
+    handleEdit,
+    confirmDelete,
+    isDeleting: deleteMutation.isPending,
+    onRefresh,
+    // 导航
+    router,
   };
 }

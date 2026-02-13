@@ -31,7 +31,7 @@ export function HomeTop() {
   const [isTopGroupExpanded, setIsTopGroupExpanded] = useState(false);
   const [isRandomLoading, setIsRandomLoading] = useState(false);
 
-  // TODO: 从 API 获取推荐文章
+  // 推荐文章当前未配置独立接口，先保持为空并自动隐藏右侧推荐卡片区域
   const recommendedArticles: RecommendedArticle[] = [];
 
   // 创意图标列表（重复一次用于无限滚动）
@@ -73,7 +73,7 @@ export function HomeTop() {
     if (isRandomLoading) return;
     setIsRandomLoading(true);
     try {
-      // TODO: 调用随机文章 API
+      // 当前使用文章列表页作为“随便逛逛”的兜底入口
       router.push("/posts");
     } finally {
       setIsRandomLoading(false);

@@ -231,3 +231,101 @@ export interface LinkSortItem {
 export interface BatchUpdateLinkSortRequest {
   items: LinkSortItem[];
 }
+
+// ===================================
+//        公开接口类型
+// ===================================
+
+/** 公开友链查询参数 */
+export interface PublicLinksParams {
+  page?: number;
+  pageSize?: number;
+  category_id?: number;
+}
+
+/** 公开友链列表响应 */
+export interface PublicLinkListResponse {
+  list: LinkItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** 友链申请请求（公开） */
+export interface ApplyLinkRequest {
+  type: LinkApplyType;
+  name: string;
+  url: string;
+  logo: string;
+  description: string;
+  siteshot?: string;
+  email: string;
+  original_url?: string;
+  update_reason?: string;
+}
+
+/** 检查友链 URL 是否存在响应 */
+export interface CheckLinkExistsResponse {
+  exists: boolean;
+  url: string;
+}
+
+/** 友链随机文章数据（钓鱼功能）*/
+export interface RandomPostData {
+  author: string;
+  avatar: string;
+  created: string;
+  link: string;
+  title: string;
+  updated: string;
+}
+
+/** 朋友圈排序类型 */
+export type MomentsSortType = "published_at" | "fetched_at";
+
+/** 朋友圈文章项 */
+export interface Moment {
+  id: number;
+  link_id: number;
+  link_name: string;
+  link_logo: string;
+  link_url: string;
+  post_title: string;
+  post_url: string;
+  post_summary: string;
+  published_at: string;
+  created_at: string;
+}
+
+/** 朋友圈统计信息 */
+export interface MomentsStatistics {
+  total_links: number;
+  active_links: number;
+  total_moments: number;
+  last_updated_time: string;
+}
+
+/** 朋友圈列表数据 */
+export interface MomentsListData {
+  list: Moment[];
+  total: number;
+  page: number;
+  page_size: number;
+  statistics: MomentsStatistics;
+}
+
+/** 指定友链的朋友圈文章列表数据 */
+export interface LinkMomentsData {
+  list: Moment[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+/** 友链申请列表查询参数 */
+export interface LinkApplicationsParams {
+  page?: number;
+  pageSize?: number;
+  status?: LinkStatus | "";
+  name?: string;
+}

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import Image from "next/image";
-import { User, Chip, Button, Tooltip } from "@heroui/react";
+import { User, Chip, Button } from "@heroui/react";
 import { FileText, Eye, Trash2 } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { formatDateTimeParts } from "@/utils/date";
@@ -153,43 +153,37 @@ export function usePostRenderCell({ defaultCover, gravatarBaseUrl, onAction }: U
         }
         case "actions":
           return (
-            <div className="flex items-center justify-center gap-1">
-              <Tooltip content="预览" placement="top" size="sm">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  radius="full"
-                  className="w-7 h-7 min-w-0 text-primary bg-primary/10 hover:bg-primary/20"
-                  onPress={() => onAction(article, "preview")}
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                </Button>
-              </Tooltip>
-              <Tooltip content="编辑" placement="top" size="sm">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  radius="full"
-                  className="w-7 h-7 min-w-0 text-warning-600 bg-warning/10 hover:bg-warning/20"
-                  onPress={() => onAction(article, "edit")}
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                </Button>
-              </Tooltip>
-              <Tooltip content="删除" placement="top" size="sm" color="danger">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  radius="full"
-                  className="w-7 h-7 min-w-0 text-danger bg-danger/10 hover:bg-danger/20"
-                  onPress={() => onAction(article, "delete")}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </Tooltip>
+            <div className="flex items-center justify-center gap-1.5">
+              <Button
+                size="sm"
+                variant="flat"
+                color="primary"
+                startContent={<Eye className="w-3.5 h-3.5" />}
+                className="h-7 min-w-0 px-2.5 text-xs font-medium"
+                onPress={() => onAction(article, "preview")}
+              >
+                预览
+              </Button>
+              <Button
+                size="sm"
+                variant="flat"
+                color="warning"
+                startContent={<FileText className="w-3.5 h-3.5" />}
+                className="h-7 min-w-0 px-2.5 text-xs font-medium"
+                onPress={() => onAction(article, "edit")}
+              >
+                编辑
+              </Button>
+              <Button
+                size="sm"
+                variant="flat"
+                color="danger"
+                startContent={<Trash2 className="w-3.5 h-3.5" />}
+                className="h-7 min-w-0 px-2.5 text-xs font-medium"
+                onPress={() => onAction(article, "delete")}
+              >
+                删除
+              </Button>
             </div>
           );
         default:

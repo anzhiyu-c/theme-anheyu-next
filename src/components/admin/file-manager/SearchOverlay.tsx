@@ -16,6 +16,7 @@ interface SearchOverlayProps {
 export function SearchOverlay({ visible, origin, onClose }: SearchOverlayProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const transformOrigin = `${origin.x}px ${origin.y}px`;
 
   useEffect(() => {
     if (visible) {
@@ -44,6 +45,7 @@ export function SearchOverlay({ visible, origin, onClose }: SearchOverlayProps) 
             animate="animate"
             exit="exit"
             transition={springTransition}
+            style={{ transformOrigin }}
           >
             <Input
               ref={inputRef}
