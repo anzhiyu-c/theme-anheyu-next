@@ -3,6 +3,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import { gsap } from "gsap";
 import { X, Music2, Pause } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import type { Song, AudioState } from "@/types/music";
 import styles from "../music.module.css";
 
@@ -123,9 +124,11 @@ export function PlaylistPanel({
               <h3 className={styles.playlistTitle}>当前播放</h3>
               <span className={styles.playlistCount}>{playlist.length} 首歌曲</span>
             </div>
-            <button className={styles.closeBtn} onClick={handleClose}>
-              <X size={16} />
-            </button>
+            <Tooltip content="关闭列表" placement="top" showArrow={false} delay={120}>
+              <button className={styles.closeBtn} aria-label="关闭列表" onClick={handleClose}>
+                <X size={16} />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -133,9 +136,11 @@ export function PlaylistPanel({
         <div className={styles.playlistBody}>
           <div className={styles.playlistList}>
             {playlist.map((song, index) => (
-              <div
+              <button
+                type="button"
                 key={song.id || index}
                 className={`${styles.songItem} ${index === currentSongIndex ? styles.isActive : ""}`}
+                aria-label={`${song.name} - ${song.artist || "未知歌手"}`}
                 onClick={() => onSelectSong(index)}
               >
                 {/* 序号或播放状态 */}
@@ -176,7 +181,7 @@ export function PlaylistPanel({
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

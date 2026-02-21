@@ -1,79 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-/**
- * 获取后端 API 地址
- */
-function getBackendUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8091";
-}
-
-/**
- * 站点配置类型（部分字段）
- */
-interface SiteConfig {
-  APP_NAME?: string;
-  SUB_TITLE?: string;
-  ICON_URL?: string;
-  LOGO_URL?: string;
-  LOGO_URL_192x192?: string;
-  SITE_URL?: string;
-}
+import {
+  createRobotsMetadata,
+  fetchSiteConfigForSeo,
+  resolveMetadataBase,
+  resolveSeoSiteInfo,
+} from "@/lib/seo";
 
 /**
  * 动态生成 Metadata
  * 从后端 API 获取站点配置，实现 SEO 动态化
  */
 export async function generateMetadata(): Promise<Metadata> {
-  // 默认值
-  const defaults = {
-    title: "AnHeYu",
-    description: "现代化博客主题",
-    siteName: "AnHeYu",
-  };
+  const siteConfig = await fetchSiteConfigForSeo();
+  const site = resolveSeoSiteInfo(siteConfig);
+  const fullTitle = site.description ? `${site.siteName} - ${site.description}` : site.siteName;
 
-  try {
-    const backendUrl = getBackendUrl();
-    const response = await fetch(`${backendUrl}/api/public/site-config`, {
-      next: { revalidate: 60 }, // 缓存 60 秒
-    });
-
-    if (!response.ok) {
-      console.warn("[Layout] Failed to fetch site config:", response.status);
-      return createMetadata(defaults);
-    }
-
-    const result = await response.json();
-    const config: SiteConfig = result.data || result;
-
-    const appName = config.APP_NAME || defaults.title;
-    const subTitle = config.SUB_TITLE || defaults.description;
-    const fullTitle = subTitle ? `${appName} - ${subTitle}` : appName;
-
-    return createMetadata({
-      title: fullTitle,
-      description: subTitle,
-      siteName: appName,
-      iconUrl: config.ICON_URL,
-      logoUrl: config.LOGO_URL || config.LOGO_URL_192x192,
-      siteUrl: config.SITE_URL,
-    });
-  } catch (error) {
-    console.warn("[Layout] Error fetching site config:", error);
-    return createMetadata(defaults);
-  }
+  return createMetadata({
+    title: fullTitle,
+    description: site.description,
+    siteName: site.siteName,
+    iconUrl: site.iconUrl,
+    logoUrl: site.logoUrl,
+    siteUrl: site.siteUrl,
+  });
 }
 
 /**
@@ -90,16 +41,10 @@ function createMetadata(config: {
   const iconUrl = config.iconUrl || "/favicon.ico";
   const logoUrl = config.logoUrl || "/static/img/logo-192x192.png";
 
-  // 判断图标类型（.ico 文件实际可能是 PNG）
   const isSvg = iconUrl.endsWith(".svg");
-  const iconType = isSvg ? "image/svg+xml" : "image/png";
-
-  // 设置 metadataBase 用于解析相对路径
-  const metadataBase = config.siteUrl
-    ? new URL(config.siteUrl)
-    : process.env.NODE_ENV === "development"
-    ? new URL("http://localhost:3000")
-    : undefined;
+  const isIco = iconUrl.endsWith(".ico");
+  const iconType = isSvg ? "image/svg+xml" : isIco ? "image/x-icon" : "image/png";
+  const metadataBase = resolveMetadataBase(config.siteUrl);
 
   return {
     metadataBase,
@@ -109,6 +54,10 @@ function createMetadata(config: {
     },
     description: config.description,
     keywords: ["博客", "Next.js", "HeroUI", "React", "TypeScript"],
+    alternates: {
+      canonical: "/",
+    },
+    robots: createRobotsMetadata(true),
     icons: {
       icon: [{ url: iconUrl, type: iconType }],
       shortcut: [{ url: iconUrl, type: iconType }],
@@ -121,8 +70,14 @@ function createMetadata(config: {
       siteName: config.siteName,
       title: config.title,
       description: config.description,
-      ...(config.siteUrl && { url: config.siteUrl }),
-      ...(config.logoUrl && { images: [config.logoUrl] }),
+      url: "/",
+      images: logoUrl ? [logoUrl] : undefined,
+    },
+    twitter: {
+      card: logoUrl ? "summary_large_image" : "summary",
+      title: config.title,
+      description: config.description,
+      images: logoUrl ? [logoUrl] : undefined,
     },
   };
 }
@@ -144,7 +99,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head />
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
+      <body className="antialiased min-h-screen flex flex-col">
         {/* 初始加载动画 - 纯 CSS + SVG，JS 加载前就显示，样式在 globals.css */}
         <div id="initial-loader" aria-label="加载中" role="status">
           <svg className="loader-spinner" viewBox="0 0 50 50" aria-hidden="true">

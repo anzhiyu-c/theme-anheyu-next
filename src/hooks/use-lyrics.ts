@@ -36,6 +36,7 @@ export function useLyrics(
 
   const lyricRefsArr = useRef<(HTMLElement | null)[]>([]);
   const lyricScrollTimerRef = useRef<number | null>(null);
+  const textScrollStartTimerRef = useRef<number | null>(null);
   const timeUpdateDebounceTimerRef = useRef<number | null>(null);
   const prevTimeRef = useRef<number>(0);
 
@@ -196,6 +197,10 @@ export function useLyrics(
       if (lyricScrollTimerRef.current) {
         clearTimeout(lyricScrollTimerRef.current);
       }
+      if (textScrollStartTimerRef.current) {
+        clearTimeout(textScrollStartTimerRef.current);
+        textScrollStartTimerRef.current = null;
+      }
 
       lyricScrollTimerRef.current = window.setTimeout(() => {
         const currentLyrics = lyricsRef.current;
@@ -257,10 +262,11 @@ export function useLyrics(
                 lyricEl.setAttribute("data-long-text", "true");
               }
 
-              setTimeout(() => {
+              textScrollStartTimerRef.current = window.setTimeout(() => {
                 if (lyricEl.parentElement && lyricsStateRef.current.currentIndex === targetIndex) {
                   lyricEl.classList.add("text-scrolling");
                 }
+                textScrollStartTimerRef.current = null;
               }, startDelay * 1000);
             }
           }
@@ -304,6 +310,10 @@ export function useLyrics(
         clearTimeout(lyricScrollTimerRef.current);
         lyricScrollTimerRef.current = null;
       }
+      if (textScrollStartTimerRef.current) {
+        clearTimeout(textScrollStartTimerRef.current);
+        textScrollStartTimerRef.current = null;
+      }
       if (timeUpdateDebounceTimerRef.current) {
         clearTimeout(timeUpdateDebounceTimerRef.current);
         timeUpdateDebounceTimerRef.current = null;
@@ -342,6 +352,10 @@ export function useLyrics(
 
   // 清空歌词
   const clearLyrics = useCallback(() => {
+    if (textScrollStartTimerRef.current) {
+      clearTimeout(textScrollStartTimerRef.current);
+      textScrollStartTimerRef.current = null;
+    }
     setLyricsData([]);
     lyricsRef.current = [];
     lyricRefsArr.current = [];
@@ -386,6 +400,10 @@ export function useLyrics(
     if (lyricScrollTimerRef.current) {
       clearTimeout(lyricScrollTimerRef.current);
       lyricScrollTimerRef.current = null;
+    }
+    if (textScrollStartTimerRef.current) {
+      clearTimeout(textScrollStartTimerRef.current);
+      textScrollStartTimerRef.current = null;
     }
     if (timeUpdateDebounceTimerRef.current) {
       clearTimeout(timeUpdateDebounceTimerRef.current);

@@ -61,10 +61,22 @@ export function useAudioPlayer(
   const shuffleHistoryRef = useRef<number[]>([]);
   const MAX_SHUFFLE_HISTORY = 10;
 
-  // 当前歌曲（计算属性）
-  const currentSong = useMemo(() => {
-    return playlistRef.current[currentSongIndex] || null;
-  }, [playlistRef, currentSongIndex]);
+  // 判断异步加载结果是否仍对应当前歌曲，避免旧请求回写状态
+  const isSongCurrent = useCallback(
+    (song: Song): boolean => {
+      const activeSong = playlistRef.current[currentSongIndexRef.current];
+      if (!activeSong) return false;
+
+      const activeSongKey = activeSong.neteaseId || activeSong.id || activeSong.url;
+      const targetSongKey = song.neteaseId || song.id || song.url;
+
+      return Boolean(targetSongKey) && activeSongKey === targetSongKey;
+    },
+    [playlistRef]
+  );
+
+  // 当前歌曲（实时读取，避免 ref 对象稳定导致缓存失效）
+  const currentSong = playlistRef.current[currentSongIndex] || null;
 
   // 播放进度百分比
   const playedPercentage = useMemo(() => {
@@ -126,7 +138,7 @@ export function useAudioPlayer(
   // 加载音频资源
   const loadAudio = useCallback(
     async (song: Song): Promise<boolean> => {
-      if (!audioRef.current || !song.url) {
+      if (!audioRef.current || !song.url || !isSongCurrent(song)) {
         return false;
       }
 
@@ -147,7 +159,14 @@ export function useAudioPlayer(
             reject(new Error("音频加载超时"));
           }, 10000);
 
+          const cleanup = () => {
+            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+            audio.removeEventListener("canplay", onCanPlay);
+            audio.removeEventListener("error", onError);
+          };
+
           const onLoadedMetadata = () => {
+            if (!isSongCurrent(song)) return;
             if (audio) {
               setAudioState(prev => ({
                 ...prev,
@@ -157,12 +176,24 @@ export function useAudioPlayer(
           };
 
           const onCanPlay = () => {
+            if (!isSongCurrent(song)) {
+              clearTimeout(timeout);
+              cleanup();
+              resolve(false);
+              return;
+            }
             clearTimeout(timeout);
             cleanup();
             resolve(true);
           };
 
           const onError = (event: Event) => {
+            if (!isSongCurrent(song)) {
+              clearTimeout(timeout);
+              cleanup();
+              resolve(false);
+              return;
+            }
             clearTimeout(timeout);
             cleanup();
             const error = (event.target as HTMLAudioElement)?.error;
@@ -190,15 +221,16 @@ export function useAudioPlayer(
             reject(new Error(errorMessage));
           };
 
-          const cleanup = () => {
-            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-            audio.removeEventListener("canplay", onCanPlay);
-            audio.removeEventListener("error", onError);
-          };
-
           audio.addEventListener("loadedmetadata", onLoadedMetadata);
           audio.addEventListener("canplay", onCanPlay);
           audio.addEventListener("error", onError);
+
+          if (!isSongCurrent(song)) {
+            clearTimeout(timeout);
+            cleanup();
+            resolve(false);
+            return;
+          }
 
           audio.src = song.url;
           safeSetVolume(audioStateRef.current.volume);
@@ -216,13 +248,13 @@ export function useAudioPlayer(
         return false;
       }
     },
-    [safeSetVolume]
+    [safeSetVolume, isSongCurrent]
   );
 
   // 只加载音频元数据
   const loadAudioMetadata = useCallback(
     async (song: Song): Promise<boolean> => {
-      if (!audioRef.current || !song.url) {
+      if (!audioRef.current || !song.url || !isSongCurrent(song)) {
         return false;
       }
 
@@ -245,7 +277,18 @@ export function useAudioPlayer(
             reject(new Error("音频元数据加载超时"));
           }, 5000);
 
+          const cleanup = () => {
+            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+            audio.removeEventListener("error", onError);
+          };
+
           const onLoadedMetadata = () => {
+            if (!isSongCurrent(song)) {
+              clearTimeout(timeout);
+              cleanup();
+              resolve(false);
+              return;
+            }
             if (audio) {
               setAudioState(prev => ({
                 ...prev,
@@ -258,18 +301,26 @@ export function useAudioPlayer(
           };
 
           const onError = () => {
+            if (!isSongCurrent(song)) {
+              clearTimeout(timeout);
+              cleanup();
+              resolve(false);
+              return;
+            }
             clearTimeout(timeout);
             cleanup();
             reject(new Error("音频元数据加载失败"));
           };
 
-          const cleanup = () => {
-            audio.removeEventListener("loadedmetadata", onLoadedMetadata);
-            audio.removeEventListener("error", onError);
-          };
-
           audio.addEventListener("loadedmetadata", onLoadedMetadata);
           audio.addEventListener("error", onError);
+
+          if (!isSongCurrent(song)) {
+            clearTimeout(timeout);
+            cleanup();
+            resolve(false);
+            return;
+          }
 
           audio.src = song.url;
           audio.preload = "metadata";
@@ -282,7 +333,7 @@ export function useAudioPlayer(
         return false;
       }
     },
-    [safeSetVolume]
+    [safeSetVolume, isSongCurrent]
   );
 
   // 智能加载歌曲资源
@@ -399,7 +450,12 @@ export function useAudioPlayer(
             throw new Error("无任何可用音频资源");
           }
 
-          // 第四步：加载音频
+          // 第四步：先同步歌词（与音频加载成功解耦，避免“有封面无歌词”）
+          if (finalLyricsText && isSongCurrent(song)) {
+            setCurrentLyricsText(finalLyricsText);
+          }
+
+          // 第五步：加载音频
           const songWithResources: Song = {
             ...song,
             url: finalAudioUrl,
@@ -416,7 +472,7 @@ export function useAudioPlayer(
             throw new Error("音频加载失败");
           }
 
-          // 第五步：更新状态
+          // 第六步：更新状态
           if (usingHighQuality) {
             const songIndex = playlistRef.current.findIndex(s => s.neteaseId === song.neteaseId || s.id === song.id);
             if (songIndex !== -1) {
@@ -424,7 +480,9 @@ export function useAudioPlayer(
             }
           }
 
-          setCurrentLyricsText(finalLyricsText);
+          if (finalLyricsText && isSongCurrent(song)) {
+            setCurrentLyricsText(finalLyricsText);
+          }
           resourcesLoadedSongsRef.current.add(songKey);
 
           return {
@@ -436,7 +494,7 @@ export function useAudioPlayer(
           return {
             success: false,
             usingHighQuality: false,
-            lyricsText: undefined,
+            lyricsText: finalLyricsText || undefined,
           };
         } finally {
           setAudioLoadingState({
@@ -456,7 +514,7 @@ export function useAudioPlayer(
         pendingRequestsRef.current.delete(requestKey);
       }
     },
-    [loadAudio, loadAudioMetadata, playlistRef]
+    [loadAudio, loadAudioMetadata, playlistRef, isSongCurrent]
   );
 
   // 下一首
@@ -773,13 +831,17 @@ export function useAudioPlayer(
 
   // 监听歌曲变化，智能获取资源
   const prevSongIdRef = useRef<string | undefined>(undefined);
+  const songLoadRequestIdRef = useRef(0);
   useEffect(() => {
-    const curSong = playlistRef.current[currentSongIndex];
+    const curSong = currentSong;
     if (!curSong) return;
 
     const songId = curSong.neteaseId || curSong.id;
     if (songId === prevSongIdRef.current) return;
     prevSongIdRef.current = songId;
+    const requestId = ++songLoadRequestIdRef.current;
+    let cancelled = false;
+    const isCurrentRequest = () => !cancelled && requestId === songLoadRequestIdRef.current;
 
     // 清空旧歌词
     setCurrentLyricsText("");
@@ -790,23 +852,28 @@ export function useAudioPlayer(
         try {
           const needAutoPlay = shouldAutoPlayRef.current;
           const result = await loadSongWithResources(curSong, needAutoPlay, false);
+          if (!isCurrentRequest()) return;
 
           if (result.success) {
             if (needAutoPlay && audioRef.current) {
               shouldAutoPlayRef.current = false;
               try {
                 await audioRef.current.play();
+                if (!isCurrentRequest()) return;
               } catch {
                 // 自动播放失败
               }
             }
           } else {
             shouldAutoPlayRef.current = false;
-            if (curSong.lrc && !curSong.lrc.startsWith("http")) {
+            if (result.lyricsText) {
+              setCurrentLyricsText(result.lyricsText);
+            } else if (curSong.lrc && !curSong.lrc.startsWith("http")) {
               setCurrentLyricsText(curSong.lrc);
             }
           }
         } catch {
+          if (!isCurrentRequest()) return;
           shouldAutoPlayRef.current = false;
           if (curSong.lrc && !curSong.lrc.startsWith("http")) {
             setCurrentLyricsText(curSong.lrc);
@@ -816,10 +883,12 @@ export function useAudioPlayer(
         const needAutoPlay = shouldAutoPlayRef.current;
         try {
           const success = await loadAudioMetadata(curSong);
+          if (!isCurrentRequest()) return;
           if (success && needAutoPlay && audioRef.current) {
             shouldAutoPlayRef.current = false;
             try {
               await audioRef.current.play();
+              if (!isCurrentRequest()) return;
             } catch {
               // 自动播放失败
             }
@@ -827,15 +896,18 @@ export function useAudioPlayer(
             shouldAutoPlayRef.current = false;
           }
         } catch {
+          if (!isCurrentRequest()) return;
           shouldAutoPlayRef.current = false;
         }
 
+        if (!isCurrentRequest()) return;
         if (curSong.lrc && !curSong.lrc.startsWith("http")) {
           setCurrentLyricsText(curSong.lrc);
         } else {
           setCurrentLyricsText("");
         }
       } else {
+        if (!isCurrentRequest()) return;
         shouldAutoPlayRef.current = false;
         setCurrentLyricsText("");
         setAudioState(prev => ({ ...prev, duration: 0 }));
@@ -843,8 +915,10 @@ export function useAudioPlayer(
     };
 
     loadResources();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSongIndex]);
+    return () => {
+      cancelled = true;
+    };
+  }, [currentSong, currentSongIndex, loadSongWithResources, loadAudioMetadata]);
 
   // 设置音频事件监听
   useEffect(() => {

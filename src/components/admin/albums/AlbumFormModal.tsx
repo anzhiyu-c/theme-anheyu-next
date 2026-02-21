@@ -3,32 +3,43 @@
 import { useState, useCallback } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
 import { FormInput } from "@/components/ui/form-input";
+import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { useCreateAlbum, useUpdateAlbum } from "@/hooks/queries/use-album";
-import type { Album } from "@/types/album";
+import type { Album, AlbumCategory } from "@/types/album";
 
 interface AlbumFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editItem?: Album | null;
+  categories?: AlbumCategory[];
 }
 
 /**
  * 相册图片创建/编辑弹窗
  * 使用 wrapper + inner content 模式，避免 useEffect setState
  */
-export default function AlbumFormModal({ isOpen, onClose, editItem }: AlbumFormModalProps) {
+export default function AlbumFormModal({ isOpen, onClose, editItem, categories = [] }: AlbumFormModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
-      <ModalContent>{isOpen && <AlbumFormContent editItem={editItem} onClose={onClose} />}</ModalContent>
+      <ModalContent>{isOpen && <AlbumFormContent editItem={editItem} categories={categories} onClose={onClose} />}</ModalContent>
     </Modal>
   );
 }
 
-function AlbumFormContent({ editItem, onClose }: { editItem?: Album | null; onClose: () => void }) {
+function AlbumFormContent({
+  editItem,
+  categories,
+  onClose,
+}: {
+  editItem?: Album | null;
+  categories: AlbumCategory[];
+  onClose: () => void;
+}) {
   const isEdit = !!editItem;
 
   // 表单状态 - 初始值直接来自 editItem
+  const [categoryId, setCategoryId] = useState(editItem?.categoryId ? String(editItem.categoryId) : "");
   const [imageUrl, setImageUrl] = useState(editItem?.imageUrl ?? "");
   const [bigImageUrl, setBigImageUrl] = useState(editItem?.bigImageUrl ?? "");
   const [downloadUrl, setDownloadUrl] = useState(editItem?.downloadUrl ?? "");
@@ -39,6 +50,10 @@ function AlbumFormContent({ editItem, onClose }: { editItem?: Album | null; onCl
   const [title, setTitle] = useState(editItem?.title ?? "");
   const [description, setDescription] = useState(editItem?.description ?? "");
   const [location, setLocation] = useState(editItem?.location ?? "");
+  const categoryOptions = [{ key: "__none__", label: "未分类" }, ...categories.map(category => ({
+    key: String(category.id),
+    label: category.name,
+  }))];
 
   // Mutations
   const createAlbum = useCreateAlbum();
@@ -52,6 +67,7 @@ function AlbumFormContent({ editItem, onClose }: { editItem?: Album | null; onCl
     }
 
     const formData = {
+      categoryId: categoryId ? Number(categoryId) : null,
       imageUrl: imageUrl.trim(),
       bigImageUrl: bigImageUrl.trim() || undefined,
       downloadUrl: downloadUrl.trim() || undefined,
@@ -81,6 +97,7 @@ function AlbumFormContent({ editItem, onClose }: { editItem?: Album | null; onCl
       });
     }
   }, [
+    categoryId,
     imageUrl,
     bigImageUrl,
     downloadUrl,
@@ -104,6 +121,17 @@ function AlbumFormContent({ editItem, onClose }: { editItem?: Album | null; onCl
     <>
       <ModalHeader className="flex flex-col gap-1">{isEdit ? "编辑图片" : "添加图片"}</ModalHeader>
       <ModalBody className="gap-4">
+        <FormSelect
+          label="分类"
+          placeholder="请选择分类（可选）"
+          value={categoryId || "__none__"}
+          onValueChange={value => setCategoryId(value === "__none__" ? "" : value)}
+        >
+          {categoryOptions.map(option => (
+            <FormSelectItem key={option.key}>{option.label}</FormSelectItem>
+          ))}
+        </FormSelect>
+
         <FormInput
           label="图片 URL"
           placeholder="请输入图片地址"

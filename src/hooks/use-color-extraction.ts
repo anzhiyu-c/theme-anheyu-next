@@ -13,6 +13,7 @@ export function useColorExtraction() {
   const colorCacheRef = useRef<ColorCache>({});
   const colorExtractionTimerRef = useRef<number | null>(null);
   const currentProcessingUrlRef = useRef<string | null>(null);
+  const extractionRequestIdRef = useRef(0);
 
   // 使用 fetch + blob 的方式提取图片主色调
   const extractDominantColor = useCallback(
@@ -40,24 +41,39 @@ export function useColorExtraction() {
           })
           .then((blob) => {
             const blobUrl = URL.createObjectURL(blob);
+            const img = new Image();
+            let settled = false;
+            let timeout: number | null = null;
 
-            const timeout = setTimeout(() => {
+            const finalize = (color: string) => {
+              if (settled) return;
+              settled = true;
+
+              if (timeout !== null) {
+                clearTimeout(timeout);
+                timeout = null;
+              }
+
               URL.revokeObjectURL(blobUrl);
-              resolve(defaultColor);
+              resolve(color);
+            };
+
+            timeout = window.setTimeout(() => {
+              finalize(defaultColor);
             }, 5000);
 
-            const img = new Image();
-
             img.onload = () => {
-              clearTimeout(timeout);
-
               try {
+                if (img.width === 0 || img.height === 0) {
+                  finalize(defaultColor);
+                  return;
+                }
+
                 const canvas = document.createElement("canvas");
                 const ctx = canvas.getContext("2d");
 
                 if (!ctx) {
-                  URL.revokeObjectURL(blobUrl);
-                  resolve(defaultColor);
+                  finalize(defaultColor);
                   return;
                 }
 
@@ -107,8 +123,7 @@ export function useColorExtraction() {
                 }
 
                 if (validPixelCount < 10) {
-                  URL.revokeObjectURL(blobUrl);
-                  resolve(defaultColor);
+                  finalize(defaultColor);
                   return;
                 }
 
@@ -201,7 +216,7 @@ export function useColorExtraction() {
                     })
                   );
 
-                  resolve(result);
+                  finalize(result);
                 } else {
                   colorCacheRef.current[imageUrl] = defaultColor;
 
@@ -217,16 +232,14 @@ export function useColorExtraction() {
                     })
                   );
 
-                  URL.revokeObjectURL(blobUrl);
-                  resolve(defaultColor);
+                  finalize(defaultColor);
                 }
               } catch {
-                resolve(defaultColor);
+                finalize(defaultColor);
               }
             };
 
             img.onerror = () => {
-              clearTimeout(timeout);
               colorCacheRef.current[imageUrl] = defaultColor;
 
               window.dispatchEvent(
@@ -241,8 +254,7 @@ export function useColorExtraction() {
                 })
               );
 
-              URL.revokeObjectURL(blobUrl);
-              resolve(defaultColor);
+              finalize(defaultColor);
             };
 
             img.src = blobUrl;
@@ -278,13 +290,17 @@ export function useColorExtraction() {
   // 提取并设置主色调
   const extractAndSetDominantColor = useCallback(
     async (imageUrl: string) => {
+      const requestId = ++extractionRequestIdRef.current;
+
       if (currentProcessingUrlRef.current === imageUrl) {
         return;
       }
 
       // 检查缓存
       if (colorCacheRef.current[imageUrl]) {
-        setDominantColor(colorCacheRef.current[imageUrl]);
+        if (requestId === extractionRequestIdRef.current) {
+          setDominantColor(colorCacheRef.current[imageUrl]);
+        }
 
         window.dispatchEvent(
           new CustomEvent("colorExtracted", {
@@ -308,11 +324,17 @@ export function useColorExtraction() {
 
         try {
           const color = await extractDominantColor(imageUrl);
-          setDominantColor(color);
+          if (requestId === extractionRequestIdRef.current) {
+            setDominantColor(color);
+          }
         } catch {
-          setDominantColor("var(--anzhiyu-main)");
+          if (requestId === extractionRequestIdRef.current) {
+            setDominantColor("var(--anzhiyu-main)");
+          }
         } finally {
-          currentProcessingUrlRef.current = null;
+          if (currentProcessingUrlRef.current === imageUrl) {
+            currentProcessingUrlRef.current = null;
+          }
         }
       }, 100);
     },
@@ -321,10 +343,14 @@ export function useColorExtraction() {
 
   // 清理资源
   const cleanup = useCallback(() => {
+    extractionRequestIdRef.current += 1;
+
     if (colorExtractionTimerRef.current) {
       clearTimeout(colorExtractionTimerRef.current);
       colorExtractionTimerRef.current = null;
     }
+
+    currentProcessingUrlRef.current = null;
   }, []);
 
   // 重置为默认颜色

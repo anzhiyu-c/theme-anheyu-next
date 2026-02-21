@@ -7,3 +7,4 @@ export * from "./essay";
 export * from "./comment";
 export * from "./admin";
 export * from "./file-manager";
+export * from "./album-public";

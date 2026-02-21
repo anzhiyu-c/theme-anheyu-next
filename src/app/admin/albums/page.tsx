@@ -16,7 +16,7 @@ import {
   Pagination,
 } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, ShieldAlert, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ShieldAlert, ChevronDown, Upload, Download, Tags } from "lucide-react";
 import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
 import { PAGE_SIZES } from "@/lib/constants/admin";
 import { useAlbumsPage } from "./_hooks/use-albums-page";
@@ -25,6 +25,9 @@ import { AlbumSkeleton } from "@/components/admin/albums/AlbumSkeleton";
 import { AlbumEmptyState } from "@/components/admin/albums/AlbumEmptyState";
 import { AlbumFilterBar } from "@/components/admin/albums/AlbumFilterBar";
 import AlbumFormModal from "@/components/admin/albums/AlbumFormModal";
+import AlbumCategoryManager from "@/components/admin/albums/AlbumCategoryManager";
+import AlbumImportDialog from "@/components/admin/albums/AlbumImportDialog";
+import AlbumExportDialog from "@/components/admin/albums/AlbumExportDialog";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
 
@@ -33,6 +36,7 @@ export default function AlbumsPage() {
 
   const renderCell = useAlbumRenderCell({
     onAction: al.handleAction,
+    categories: al.categories,
   });
 
   // ---- bottomContent ----
@@ -136,12 +140,42 @@ export default function AlbumsPage() {
               >
                 添加图片
               </Button>
+              <Button
+                size="sm"
+                variant="flat"
+                onPress={al.handleOpenImport}
+                startContent={<Upload className="w-3.5 h-3.5" />}
+                className="text-default-600"
+              >
+                导入相册
+              </Button>
+              <Button
+                size="sm"
+                variant="flat"
+                onPress={al.handleOpenExport}
+                startContent={<Download className="w-3.5 h-3.5" />}
+                className="text-default-600"
+              >
+                导出相册
+              </Button>
+              <Button
+                size="sm"
+                variant="flat"
+                onPress={al.handleOpenCategoryManage}
+                startContent={<Tags className="w-3.5 h-3.5" />}
+                className="text-default-600"
+              >
+                分类管理
+              </Button>
             </div>
           </div>
         </div>
 
         {/* 筛选栏 */}
         <AlbumFilterBar
+          categories={al.categories}
+          categoryFilter={al.categoryFilter}
+          onCategoryFilterChange={al.setCategoryFilter}
           sortFilter={al.sortFilter}
           onSortFilterChange={al.setSortFilter}
           onReset={al.handleReset}
@@ -205,6 +239,12 @@ export default function AlbumsPage() {
             count={al.selectedIds.size}
             actions={[
               {
+                key: "export",
+                label: "导出",
+                icon: <Download className="w-3.5 h-3.5" />,
+                onClick: al.handleOpenExport,
+              },
+              {
                 key: "delete",
                 label: "删除",
                 icon: <Trash2 className="w-3.5 h-3.5" />,
@@ -244,7 +284,20 @@ export default function AlbumsPage() {
         onConfirm={al.handleBatchDeleteConfirm}
       />
 
-      <AlbumFormModal isOpen={al.formModal.isOpen} onClose={al.handleFormClose} editItem={al.editItem} />
+      <AlbumFormModal
+        isOpen={al.formModal.isOpen}
+        onClose={al.handleFormClose}
+        editItem={al.editItem}
+        categories={al.categories}
+      />
+      <AlbumImportDialog isOpen={al.importModal.isOpen} onClose={al.importModal.onClose} />
+      <AlbumCategoryManager isOpen={al.categoryModal.isOpen} onClose={al.categoryModal.onClose} />
+      <AlbumExportDialog
+        isOpen={al.exportModal.isOpen}
+        onClose={al.exportModal.onClose}
+        selectedIds={al.selectedIds}
+        totalItems={al.totalItems}
+      />
     </motion.div>
   );
 }

@@ -5,6 +5,7 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { PostDetailContent } from "@/components/post";
+import { buildPageMetadata } from "@/lib/seo";
 
 /**
  * 文章详情页面的 viewport 配置
@@ -96,28 +97,27 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const article = await getArticle(id);
 
   if (!article) {
-    return {
+    return buildPageMetadata({
       title: "文章未找到",
-    };
+      description: "该文章不存在或已被删除。",
+      path: `/posts/${encodeURIComponent(id)}`,
+      noindex: true,
+    });
   }
 
-  return {
-    // 使用 absolute 避免添加 template 后缀（如 "| 安知鱼"）
-    title: {
-      absolute: article.title,
-    },
+  const articlePath = `/posts/${encodeURIComponent(String(article.abbrlink || id))}`;
+  return buildPageMetadata({
+    title: article.title,
+    absoluteTitle: true,
     description: article.summaries?.[0] || article.title,
-    keywords: article.keywords || article.post_tags?.map((tag: { name: string }) => tag.name).join(","),
-    openGraph: {
-      title: article.title,
-      description: article.summaries?.[0] || article.title,
-      type: "article",
-      publishedTime: article.created_at,
-      modifiedTime: article.updated_at,
-      authors: [article.copyright_author || "安知鱼"],
-      images: article.cover_url ? [article.cover_url] : [],
-    },
-  };
+    keywords: article.keywords || article.post_tags?.map((tag: { name: string }) => tag.name),
+    path: articlePath,
+    type: "article",
+    image: article.cover_url,
+    publishedTime: article.created_at,
+    modifiedTime: article.updated_at,
+    authors: [article.copyright_author || "安知鱼"],
+  });
 }
 
 // 页面组件

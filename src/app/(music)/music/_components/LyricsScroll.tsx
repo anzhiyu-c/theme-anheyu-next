@@ -23,28 +23,44 @@ export function LyricsScroll({ lyrics, lyricsState, dominantColor, onLyricClick 
   const userScrollResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTouchingRef = useRef(false);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(() => {
+    if (typeof window === "undefined") return 1280;
+    return window.innerWidth;
+  });
+
+  useEffect(() => {
+    const updateViewportWidth = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", updateViewportWidth);
+    window.addEventListener("orientationchange", updateViewportWidth);
+    return () => {
+      window.removeEventListener("resize", updateViewportWidth);
+      window.removeEventListener("orientationchange", updateViewportWidth);
+    };
+  }, []);
 
   // 容器内边距
   const containerPadding = useMemo(() => {
-    if (typeof window === "undefined") return 300;
-    const width = window.innerWidth;
+    const width = viewportWidth;
     if (width <= 480) return 80;
     if (width <= 768) return 100;
     if (width <= 1024) return 240;
     return 300;
-  }, []);
+  }, [viewportWidth]);
 
   const containerPaddingStyle = useMemo(() => {
     if (lyrics.length === 0) {
       return { paddingTop: "0px", paddingBottom: "0px" };
     }
-    const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+    const isMobile = viewportWidth <= 768;
     if (isMobile) {
-      const mobilePadding = typeof window !== "undefined" && window.innerWidth <= 480 ? 80 : 100;
+      const mobilePadding = viewportWidth <= 480 ? 80 : 100;
       return { paddingTop: `${mobilePadding}px`, paddingBottom: `${mobilePadding}px` };
     }
     return { paddingTop: `${containerPadding}px`, paddingBottom: `${containerPadding}px` };
-  }, [lyrics.length, containerPadding]);
+  }, [lyrics.length, containerPadding, viewportWidth]);
 
   // 设置歌词元素引用
   const setLyricRef = useCallback((el: HTMLElement | null, index: number) => {
@@ -57,7 +73,7 @@ export function LyricsScroll({ lyrics, lyricsState, dominantColor, onLyricClick 
   const calculateTargetScrollTop = useCallback(
     (lyricElement: HTMLElement, containerHeight: number, lyricHeight: number): number => {
       const lyricOffsetTop = lyricElement.offsetTop;
-      const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+      const isMobile = viewportWidth <= 768;
 
       if (isMobile) {
         const targetPosition = containerHeight * 0.25;
@@ -65,7 +81,7 @@ export function LyricsScroll({ lyrics, lyricsState, dominantColor, onLyricClick 
       }
       return lyricOffsetTop - containerHeight / 2 + lyricHeight / 2;
     },
-    []
+    [viewportWidth]
   );
 
   // 平滑滚动到指定歌词

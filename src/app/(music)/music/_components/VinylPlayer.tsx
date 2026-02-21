@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { Music2 } from "lucide-react";
 import type { Song } from "@/types/music";
@@ -25,11 +26,20 @@ export function VinylPlayer({
   vinylImages,
   onPlayPause,
 }: VinylPlayerProps) {
+  const playLabel = currentSong
+    ? isPlaying
+      ? `暂停 ${currentSong.name}`
+      : `播放 ${currentSong.name}`
+    : "暂无可播放歌曲";
+
   return (
     <div className={styles.albumArtwork}>
-      <div
+      <button
+        type="button"
         className={`${styles.artworkContainer} ${isPlaying ? styles.isPlaying : ""}`}
         style={{ cursor: currentSong ? "pointer" : "default" }}
+        aria-label={playLabel}
+        disabled={!currentSong}
         onClick={onPlayPause}
       >
         {/* 唱片背景 */}
@@ -98,7 +108,7 @@ export function VinylPlayer({
             </div>
           </div>
         )}
-      </div>
+      </button>
 
       {/* 歌曲信息 */}
       <div className={styles.trackInfo}>

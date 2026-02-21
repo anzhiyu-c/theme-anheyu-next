@@ -5,7 +5,17 @@
  * @LastEditTime: 2026-01-31 17:19:44
  * @LastEditors: 安知鱼
  */
+import type { Metadata } from "next";
 import { HomePageContent } from "@/components/home";
+import { buildPageMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata({
+    title: "首页",
+    description: "安和鱼博客首页，持续分享前端、开发与生活内容。",
+    path: "/",
+  });
+}
 
 export default function HomePage() {
   return (

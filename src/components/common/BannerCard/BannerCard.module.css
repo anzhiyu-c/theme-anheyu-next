@@ -87,6 +87,10 @@
   transition: all 0.3s ease;
 }
 
+.bannerButtonIcon {
+  flex-shrink: 0;
+}
+
 .bannerButton:hover {
   background: rgb(255 255 255 / 30%);
   box-shadow: 0 4px 12px rgb(0 0 0 / 20%);

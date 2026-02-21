@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import type { CSSProperties } from "react";
 import type { Song } from "@/types/music";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { useMusicAPI } from "@/hooks/use-music-api";
@@ -14,6 +15,45 @@ import { PlaylistPanel } from "./PlaylistPanel";
 import styles from "../music.module.css";
 
 type PlayMode = "sequence" | "shuffle" | "repeat";
+
+function getConfigValue(config: unknown, path: string): unknown {
+  if (!config || typeof config !== "object") {
+    return undefined;
+  }
+
+  const record = config as Record<string, unknown>;
+  if (Object.prototype.hasOwnProperty.call(record, path)) {
+    return record[path];
+  }
+
+  return path.split(".").reduce<unknown>((current, key) => {
+    if (!current || typeof current !== "object") {
+      return undefined;
+    }
+    return (current as Record<string, unknown>)[key];
+  }, config);
+}
+
+function getConfigString(config: unknown, paths: string[]): string {
+  for (const path of paths) {
+    const value = getConfigValue(config, path);
+    if (typeof value === "string" && value.trim() !== "") {
+      return value.trim();
+    }
+  }
+  return "";
+}
+
+function getRgbFromColor(color: string): { r: number; g: number; b: number } | null {
+  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (!rgbMatch) return null;
+
+  return {
+    r: Number(rgbMatch[1]),
+    g: Number(rgbMatch[2]),
+    b: Number(rgbMatch[3]),
+  };
+}
 
 export function MusicPageContent() {
   // 播放列表数据
@@ -41,15 +81,24 @@ export function MusicPageContent() {
   // 唱片素材 URL（从配置或默认值）
   const vinylImages = {
     background:
-      (siteConfig as Record<string, string>)["music.vinyl.background"] || "/static/img/music-vinyl-background.png",
-    outer: (siteConfig as Record<string, string>)["music.vinyl.outer"] || "/static/img/music-vinyl-outer.png",
-    inner: (siteConfig as Record<string, string>)["music.vinyl.inner"] || "/static/img/music-vinyl-inner.png",
-    needle: (siteConfig as Record<string, string>)["music.vinyl.needle"] || "/static/img/music-vinyl-needle.png",
-    groove: (siteConfig as Record<string, string>)["music.vinyl.groove"] || "/static/img/music-vinyl-groove.png",
+      getConfigString(siteConfig, ["frontDesk.home.music.vinyl.background", "music.vinyl.background"]) ||
+      "/static/img/music-vinyl-background.png",
+    outer:
+      getConfigString(siteConfig, ["frontDesk.home.music.vinyl.outer", "music.vinyl.outer"]) ||
+      "/static/img/music-vinyl-outer.png",
+    inner:
+      getConfigString(siteConfig, ["frontDesk.home.music.vinyl.inner", "music.vinyl.inner"]) ||
+      "/static/img/music-vinyl-inner.png",
+    needle:
+      getConfigString(siteConfig, ["frontDesk.home.music.vinyl.needle", "music.vinyl.needle"]) ||
+      "/static/img/music-vinyl-needle.png",
+    groove:
+      getConfigString(siteConfig, ["frontDesk.home.music.vinyl.groove", "music.vinyl.groove"]) ||
+      "/static/img/music-vinyl-groove.png",
   };
 
   // hooks
-  const musicAPI = useMusicAPI();
+  const { isLoading: musicApiIsLoading, fetchPlaylist, clearPlaylistCache } = useMusicAPI();
 
   const {
     audioRef,
@@ -137,7 +186,7 @@ export function MusicPageContent() {
   useEffect(() => {
     const loadPlaylist = async () => {
       try {
-        const songs = await musicAPI.fetchPlaylist(false);
+        const songs = await fetchPlaylist(false);
         if (songs.length > 0) {
           setPlaylist(songs);
           playlistRef.current = songs;
@@ -148,8 +197,7 @@ export function MusicPageContent() {
     };
 
     loadPlaylist();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchPlaylist]);
 
   // 清理
   useEffect(() => {
@@ -207,8 +255,8 @@ export function MusicPageContent() {
   // 刷新缓存
   const handleRefreshCache = useCallback(async () => {
     try {
-      musicAPI.clearPlaylistCache();
-      const songs = await musicAPI.fetchPlaylist(true);
+      clearPlaylistCache();
+      const songs = await fetchPlaylist(true);
       if (songs.length > 0) {
         setPlaylist(songs);
         playlistRef.current = songs;
@@ -216,8 +264,7 @@ export function MusicPageContent() {
     } catch {
       console.error("[MUSIC_PAGE] 刷新歌单失败");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearPlaylistCache, fetchPlaylist]);
 
   // 切换播放列表面板
   const togglePlaylistPanel = useCallback(() => {
@@ -239,8 +286,66 @@ export function MusicPageContent() {
     [lyrics, seek]
   );
 
+  const backgroundPalette = useMemo(() => {
+    const fallback = { r: 102, g: 126, b: 234 };
+    const rgb = getRgbFromColor(dominantColor) ?? fallback;
+
+    return {
+      solid: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
+      glowStrong: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.72)`,
+      glowSoft: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.48)`,
+      tintPrimary: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.44)`,
+      tintSecondary: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.28)`,
+      border: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.7)`,
+    };
+  }, [dominantColor]);
+
+  const musicBackgroundStyle = useMemo<CSSProperties>(() => {
+    const songPic = currentSong?.pic;
+    if (!songPic) {
+      return {
+        backgroundImage: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        backgroundColor: "rgb(102, 126, 234)",
+      };
+    }
+
+    return {
+      backgroundImage: `url("${songPic}")`,
+      backgroundColor: backgroundPalette.solid,
+    };
+  }, [backgroundPalette.solid, currentSong]);
+
+  const musicBackgroundAuraStyle = useMemo<CSSProperties>(() => {
+    if (!currentSong?.pic) {
+      return {
+        backgroundImage:
+          "radial-gradient(circle at 18% 22%, rgb(102 126 234 / 48%) 0%, rgb(0 0 0 / 0%) 52%), radial-gradient(circle at 82% 78%, rgb(118 75 162 / 38%) 0%, rgb(0 0 0 / 0%) 56%)",
+      };
+    }
+
+    return {
+      backgroundImage: `radial-gradient(circle at 20% 18%, ${backgroundPalette.glowStrong} 0%, rgb(0 0 0 / 0%) 50%), radial-gradient(circle at 82% 80%, ${backgroundPalette.glowSoft} 0%, rgb(0 0 0 / 0%) 56%), linear-gradient(145deg, ${backgroundPalette.tintPrimary} 0%, rgb(0 0 0 / 0%) 62%), linear-gradient(325deg, ${backgroundPalette.tintSecondary} 6%, rgb(0 0 0 / 0%) 65%)`,
+    };
+  }, [
+    backgroundPalette.glowSoft,
+    backgroundPalette.glowStrong,
+    backgroundPalette.tintPrimary,
+    backgroundPalette.tintSecondary,
+    currentSong,
+  ]);
+
+  const backgroundOverlayStyle = useMemo(
+    () =>
+      ({
+        "--music-overlay-soft": backgroundPalette.glowSoft,
+        "--music-overlay-accent": backgroundPalette.glowStrong,
+        "--music-overlay-shadow": "rgba(0, 0, 0, 0.46)",
+      }) as CSSProperties,
+    [backgroundPalette.glowSoft, backgroundPalette.glowStrong]
+  );
+
   // 背景色
-  const borderColor = dominantColor.startsWith("var(") ? "rgba(139, 139, 139, 0.5)" : dominantColor;
+  const borderColor = backgroundPalette.border;
 
   const hasSong = !!currentSong;
 
@@ -258,11 +363,9 @@ export function MusicPageContent() {
       />
 
       {/* 动态背景 */}
-      <div
-        className={styles.musicBackground}
-        style={currentSong?.pic ? { backgroundImage: `url('${currentSong.pic}')` } : undefined}
-      />
-      <div className={styles.backgroundOverlay} />
+      <div className={styles.musicBackground} style={musicBackgroundStyle} />
+      <div className={styles.musicBackgroundAura} style={musicBackgroundAuraStyle} />
+      <div className={styles.backgroundOverlay} style={backgroundOverlayStyle} />
 
       {/* 主容器 */}
       <div className={styles.musicContainer}>
@@ -297,7 +400,7 @@ export function MusicPageContent() {
           hasPlaylist={playlist.length > 1}
           currentSong={hasSong}
           playMode={playMode}
-          cacheIsLoading={musicAPI.isLoading || false}
+          cacheIsLoading={musicApiIsLoading || false}
           onPlayPause={togglePlay}
           onPrevious={previousSong}
           onNext={() => nextSong()}

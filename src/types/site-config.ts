@@ -1,6 +1,8 @@
 /**
  * 站点配置类型（与 anheyu-pro 后端 API 保持一致）
  */
+import type { AboutPageConfig } from "./about";
+
 export interface PageOneImageItem {
   enable?: boolean;
   background?: string;
@@ -17,6 +19,31 @@ export interface PageOneImageItem {
   mobileVideoAutoplay?: boolean;
   mobileVideoLoop?: boolean;
   mobileVideoMuted?: boolean;
+}
+
+export type AlbumLayoutModeConfig = "grid" | "waterfall";
+
+export interface AlbumWaterfallColumnCountConfig {
+  large?: number | string;
+  medium?: number | string;
+  small?: number | string;
+}
+
+export interface AlbumSiteConfig {
+  layout_mode?: AlbumLayoutModeConfig | string;
+  page_size?: number | string;
+  enable_comment?: boolean | string;
+  api_url?: string;
+  waterfall?: {
+    gap?: number | string;
+    column_count?: AlbumWaterfallColumnCountConfig | string;
+  };
+  banner?: {
+    tip?: string;
+    title?: string;
+    description?: string;
+    background?: string;
+  };
 }
 
 export interface SiteConfigData {
@@ -119,6 +146,19 @@ export interface SiteConfigData {
     display_limit?: number;
   };
 
+  // 相册配置
+  album?: AlbumSiteConfig;
+  "album.layout_mode"?: AlbumLayoutModeConfig | string;
+  "album.page_size"?: number | string;
+  "album.enable_comment"?: boolean | string;
+  "album.api_url"?: string;
+  "album.waterfall.gap"?: number | string;
+  "album.waterfall.column_count"?: AlbumWaterfallColumnCountConfig | string;
+  "album.banner.tip"?: string;
+  "album.banner.title"?: string;
+  "album.banner.description"?: string;
+  "album.banner.background"?: string;
+
   // 首页顶部配置
   HOME_TOP?: {
     title?: string;
@@ -137,6 +177,11 @@ export interface SiteConfigData {
       image?: string;
       link?: string;
     };
+  };
+
+  // 关于页面配置
+  about?: {
+    page?: Partial<AboutPageConfig>;
   };
 
   // 外部链接跳转提醒

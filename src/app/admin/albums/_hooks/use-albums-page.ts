@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { addToast, useDisclosure } from "@heroui/react";
-import { useAlbumList, useDeleteAlbum, useBatchDeleteAlbums } from "@/hooks/queries/use-album";
+import { useAlbumList, useAlbumCategories, useDeleteAlbum, useBatchDeleteAlbums } from "@/hooks/queries/use-album";
 import type { Album, AlbumListParams } from "@/types/album";
 
 export function useAlbumsPage() {
@@ -18,6 +18,9 @@ export function useAlbumsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Album | null>(null);
 
   const formModal = useDisclosure();
+  const importModal = useDisclosure();
+  const exportModal = useDisclosure();
+  const categoryModal = useDisclosure();
   const deleteModal = useDisclosure();
   const batchDeleteModal = useDisclosure();
 
@@ -33,6 +36,7 @@ export function useAlbumsPage() {
   );
 
   const { data, isLoading, isFetching } = useAlbumList(queryParams);
+  const { data: categories = [] } = useAlbumCategories();
   const albumList = useMemo(() => data?.list ?? [], [data?.list]);
   const totalItems = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -74,6 +78,18 @@ export function useAlbumsPage() {
     formModal.onClose();
     setEditItem(null);
   }, [formModal]);
+
+  const handleOpenImport = useCallback(() => {
+    importModal.onOpen();
+  }, [importModal]);
+
+  const handleOpenExport = useCallback(() => {
+    exportModal.onOpen();
+  }, [exportModal]);
+
+  const handleOpenCategoryManage = useCallback(() => {
+    categoryModal.onOpen();
+  }, [categoryModal]);
 
   // ---- 删除 ----
   const handleDeleteClick = useCallback(
@@ -162,6 +178,7 @@ export function useAlbumsPage() {
     totalPages,
     isLoading,
     isFetching,
+    categories,
 
     // 选择
     selectedIds,
@@ -175,6 +192,12 @@ export function useAlbumsPage() {
     handleEdit,
     handleFormClose,
     formModal,
+    importModal,
+    exportModal,
+    categoryModal,
+    handleOpenImport,
+    handleOpenExport,
+    handleOpenCategoryManage,
 
     // 删除
     deleteTarget,

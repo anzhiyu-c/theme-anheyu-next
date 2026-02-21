@@ -26,6 +26,37 @@ const CACHE_KEY = "anheyu-playlist-cache";
 const CAPSULE_CACHE_KEY = "anheyu-capsule-playlist-cache";
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7天缓存
 
+function getConfigValue(config: unknown, path: string): unknown {
+  if (!config || typeof config !== "object") {
+    return undefined;
+  }
+
+  const record = config as Record<string, unknown>;
+  if (Object.prototype.hasOwnProperty.call(record, path)) {
+    return record[path];
+  }
+
+  return path.split(".").reduce<unknown>((current, key) => {
+    if (!current || typeof current !== "object") {
+      return undefined;
+    }
+    return (current as Record<string, unknown>)[key];
+  }, config);
+}
+
+function getConfigString(config: unknown, paths: string[]): string {
+  for (const path of paths) {
+    const value = getConfigValue(config, path);
+    if (typeof value === "string" && value.trim() !== "") {
+      return value.trim();
+    }
+    if (typeof value === "number") {
+      return String(value);
+    }
+  }
+  return "";
+}
+
 export function useMusicAPI() {
   const [isLoading, setIsLoading] = useState(false);
   const siteConfig = useSiteConfigStore((state) => state.siteConfig);
@@ -35,18 +66,20 @@ export function useMusicAPI() {
   // 从配置获取音乐API基础地址
   const getMusicAPIBaseURL = useCallback((): string => {
     const config = siteConfigRef.current;
-    const apiBaseURL =
-      (config as Record<string, string>)["music.api.base_url"] || "";
-    return apiBaseURL && apiBaseURL.trim() !== ""
-      ? apiBaseURL.trim()
-      : "https://metings.qjqq.cn";
+    const apiBaseURL = getConfigString(config, [
+      "frontDesk.home.music.api.base_url",
+      "music.api.base_url",
+    ]);
+    return apiBaseURL || "https://metings.qjqq.cn";
   }, []);
 
   // 从配置获取当前播放列表ID
   const getCurrentPlaylistId = useCallback((): string => {
     const config = siteConfigRef.current;
-    const configId =
-      (config as Record<string, string>)["music.player.playlist_id"] || "";
+    const configId = getConfigString(config, [
+      "frontDesk.home.music.player.playlist_id",
+      "music.player.playlist_id",
+    ]);
     if (configId) return configId;
 
     const localId = localStorage.getItem("music-playlist-id");
@@ -58,16 +91,20 @@ export function useMusicAPI() {
   // 从配置获取自定义歌单JSON链接（音乐馆页面使用）
   const getCustomPlaylistUrl = useCallback((): string | null => {
     const config = siteConfigRef.current;
-    const customUrl =
-      (config as Record<string, string>)["music.player.custom_playlist"] || "";
+    const customUrl = getConfigString(config, [
+      "frontDesk.home.music.player.custom_playlist",
+      "music.player.custom_playlist",
+    ]);
     return customUrl && customUrl.trim() !== "" ? customUrl.trim() : null;
   }, []);
 
   // 从配置获取音乐胶囊专用的自定义歌单JSON链接
   const getCapsuleCustomPlaylistUrl = useCallback((): string | null => {
     const config = siteConfigRef.current;
-    const customUrl =
-      (config as Record<string, string>)["music.capsule.custom_playlist"] || "";
+    const customUrl = getConfigString(config, [
+      "frontDesk.home.music.capsule.custom_playlist",
+      "music.capsule.custom_playlist",
+    ]);
     return customUrl && customUrl.trim() !== "" ? customUrl.trim() : null;
   }, []);
 
@@ -420,10 +457,12 @@ export function useMusicAPI() {
       errorType?: "network" | "server" | "no_resources" | "unknown";
       errorMessage?: string;
     }> => {
-      // 优先使用歌曲自身的歌词内容
+      const songName = song.name || "未知歌曲";
+
+      // 优先使用歌曲自身的歌词内容（支持 URL 与文本）
       let lyricsText = "";
-      if (song.lrc && song.lrc.trim() && !song.lrc.startsWith("http")) {
-        lyricsText = song.lrc;
+      if (song.lrc && song.lrc.trim()) {
+        lyricsText = await fetchLyricContent(song.lrc, songName);
       }
 
       // 如果没有网易云ID，返回现有的歌词内容
@@ -472,8 +511,9 @@ export function useMusicAPI() {
           };
         }
 
-        // 优先使用已有的歌词内容
-        const finalLyricsText = lyricsText || result.lyric || "";
+        // 优先使用已有歌词，其次使用 Song_V1 返回歌词（可能为空）
+        const finalLyricsText =
+          lyricsText || (result.lyric ? await fetchLyricContent(result.lyric, songName) : "");
 
         return {
           audioUrl: result.url,
@@ -510,7 +550,7 @@ export function useMusicAPI() {
         };
       }
     },
-    [fetchSongV1]
+    [fetchSongV1, fetchLyricContent]
   );
 
   return {

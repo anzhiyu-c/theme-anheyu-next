@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArchivePageContent } from "@/components/archives";
+import { buildPageMetadata } from "@/lib/seo";
 
 interface ArchiveRouteParams {
   slug?: string[];
@@ -74,18 +75,41 @@ export async function generateMetadata({ params }: { params: Promise<ArchiveRout
   const parsed = parseArchiveParams(slug);
 
   if (!parsed.isValid) {
-    return { title: "归档" };
+    return buildPageMetadata({
+      title: "归档",
+      description: "按时间轴浏览文章归档。",
+      path: "/archives",
+      noindex: true,
+    });
   }
 
   if (parsed.year && parsed.month) {
-    return { title: `${parsed.year} 年 ${parsed.month} 月归档` };
+    const path =
+      parsed.page > 1
+        ? `/archives/${parsed.year}/${parsed.month}/page/${parsed.page}`
+        : `/archives/${parsed.year}/${parsed.month}`;
+    return buildPageMetadata({
+      title: `${parsed.year} 年 ${parsed.month} 月归档`,
+      description: `查看 ${parsed.year} 年 ${parsed.month} 月发布的文章归档。`,
+      path,
+    });
   }
 
   if (parsed.year) {
-    return { title: `${parsed.year} 年归档` };
+    const path = parsed.page > 1 ? `/archives/${parsed.year}/page/${parsed.page}` : `/archives/${parsed.year}`;
+    return buildPageMetadata({
+      title: `${parsed.year} 年归档`,
+      description: `查看 ${parsed.year} 年发布的文章归档。`,
+      path,
+    });
   }
 
-  return { title: "归档" };
+  const path = parsed.page > 1 ? `/archives/page/${parsed.page}` : "/archives";
+  return buildPageMetadata({
+    title: "归档",
+    description: "按时间轴浏览文章归档。",
+    path,
+  });
 }
 
 export default async function ArchivePage({ params }: { params: Promise<ArchiveRouteParams> }) {

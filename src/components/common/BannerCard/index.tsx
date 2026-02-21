@@ -44,22 +44,23 @@ export function BannerCard({
   const innerStyle = backgroundImage ? { background: `url(${backgroundImage}) left 37%/cover no-repeat` } : undefined;
 
   const isInternal = buttonLink && buttonLink.startsWith("/") && !buttonLink.startsWith("//");
+  const buttonIcon = <Icon icon="jam:arrow-circle-up-right-f" width={16} className={styles.bannerButtonIcon} />;
 
   const buttonEl = buttonText ? (
     onButtonClick ? (
       <button type="button" onClick={onButtonClick} className={styles.bannerButton}>
-        <Icon icon="fa6-solid:arrow-right" width={14} />
+        {buttonIcon}
         <span>{buttonText}</span>
       </button>
     ) : buttonLink ? (
       isInternal ? (
         <Link href={buttonLink} className={styles.bannerButton}>
-          <Icon icon="fa6-solid:arrow-right" width={14} />
+          {buttonIcon}
           <span>{buttonText}</span>
         </Link>
       ) : (
         <a href={buttonLink} target="_blank" rel="noopener noreferrer" className={styles.bannerButton}>
-          <Icon icon="fa6-solid:arrow-right" width={14} />
+          {buttonIcon}
           <span>{buttonText}</span>
         </a>
       )

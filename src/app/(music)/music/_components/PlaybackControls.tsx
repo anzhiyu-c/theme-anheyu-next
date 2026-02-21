@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import {
   RefreshCw,
   Loader2,
@@ -17,6 +17,7 @@ import {
   Repeat1,
   ListOrdered,
 } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import type { AudioState, AudioLoadingState } from "@/types/music";
 import styles from "../music.module.css";
 
@@ -67,6 +68,19 @@ export function PlaybackControls({
   const [thumbPosition, setThumbPosition] = useState(0);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const volumeControlRef = useRef<HTMLDivElement>(null);
+  const dragMouseMoveRef = useRef<((event: MouseEvent) => void) | null>(null);
+  const dragMouseUpRef = useRef<((event: MouseEvent) => void) | null>(null);
+
+  const cleanupDragListeners = useCallback(() => {
+    if (dragMouseMoveRef.current) {
+      document.removeEventListener("mousemove", dragMouseMoveRef.current);
+      dragMouseMoveRef.current = null;
+    }
+    if (dragMouseUpRef.current) {
+      document.removeEventListener("mouseup", dragMouseUpRef.current);
+      dragMouseUpRef.current = null;
+    }
+  }, []);
 
   // 进度条点击
   const handleProgressClick = useCallback(
@@ -108,21 +122,23 @@ export function PlaybackControls({
         const newTime = (finalPercentage / 100) * audioState.duration;
 
         setIsDragging(false);
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
+        cleanupDragListeners();
 
         if (audioState.duration) {
           onSeek(newTime);
         }
       };
 
+      cleanupDragListeners();
+      dragMouseMoveRef.current = handleMouseMove;
+      dragMouseUpRef.current = handleMouseUp;
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
 
       const initialPercentage = calculatePercentage(event.clientX);
       updateDragState(initialPercentage);
     },
-    [audioState.duration, onSeek]
+    [audioState.duration, onSeek, cleanupDragListeners]
   );
 
   // 同步 thumb 位置
@@ -153,6 +169,13 @@ export function PlaybackControls({
   // 播放模式图标和标题
   const PlayModeIcon = playMode === "shuffle" ? Shuffle : playMode === "repeat" ? Repeat1 : ListOrdered;
   const playModeTitle = playMode === "shuffle" ? "随机播放" : playMode === "repeat" ? "单曲循环" : "顺序播放";
+  const playPauseTitle = audioLoadingState.isLoading ? "加载中..." : audioState.isPlaying ? "暂停" : "播放";
+
+  useEffect(() => {
+    return () => {
+      cleanupDragListeners();
+    };
+  }, [cleanupDragListeners]);
 
   return (
     <div className={styles.playbackControls}>
@@ -192,20 +215,24 @@ export function PlaybackControls({
       {/* 控制按钮 */}
       <div className={styles.controlButtons}>
         {/* 1. 刷新缓存 */}
-        <button
-          className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileHidden}`}
-          title={cacheIsLoading ? "加载中..." : "刷新缓存"}
-          disabled={cacheIsLoading}
-          onClick={onRefreshCache}
-        >
-          {cacheIsLoading ? <Loader2 className={styles.loadingIcon} size={20} /> : <RefreshCw size={20} />}
-        </button>
+        <Tooltip content={cacheIsLoading ? "加载中..." : "刷新缓存"} placement="top" showArrow={false} delay={120}>
+          <button
+            className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileHidden}`}
+            aria-label={cacheIsLoading ? "加载中..." : "刷新缓存"}
+            disabled={cacheIsLoading}
+            onClick={onRefreshCache}
+          >
+            {cacheIsLoading ? <Loader2 className={styles.loadingIcon} size={20} /> : <RefreshCw size={20} />}
+          </button>
+        </Tooltip>
 
         {/* 2. 音量 */}
         <div ref={volumeControlRef} className={`${styles.volumeControlWrapper} ${styles.mobileHidden}`}>
-          <button className={`${styles.controlBtn} ${styles.secondary}`} title="音量控制" onClick={toggleVolumeSlider}>
-            <VolumeIcon size={20} />
-          </button>
+          <Tooltip content="音量控制" placement="top" showArrow={false} delay={120}>
+            <button className={`${styles.controlBtn} ${styles.secondary}`} aria-label="音量控制" onClick={toggleVolumeSlider}>
+              <VolumeIcon size={20} />
+            </button>
+          </Tooltip>
           <div className={`${styles.verticalVolumeSlider} ${showVolumeSlider ? styles.show : ""}`}>
             <div className={styles.volumeTrack}>
               <input
@@ -221,58 +248,68 @@ export function PlaybackControls({
         </div>
 
         {/* 3. 上一曲 */}
-        <button
-          className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder2}`}
-          title="上一曲"
-          disabled={!hasPlaylist}
-          onClick={onPrevious}
-        >
-          <SkipBack size={20} />
-        </button>
+        <Tooltip content="上一曲" placement="top" showArrow={false} delay={120}>
+          <button
+            className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder2}`}
+            aria-label="上一曲"
+            disabled={!hasPlaylist}
+            onClick={onPrevious}
+          >
+            <SkipBack size={20} />
+          </button>
+        </Tooltip>
 
         {/* 4. 播放/暂停 */}
-        <button
-          className={`${styles.controlBtn} ${styles.primary} ${styles.mobileOrder3} ${audioLoadingState.isLoading ? styles.isLoadingBtn : ""}`}
-          title={audioLoadingState.isLoading ? "加载中..." : audioState.isPlaying ? "暂停" : "播放"}
-          disabled={!currentSong}
-          onClick={onPlayPause}
-        >
-          {audioLoadingState.isLoading ? (
-            <Loader2 className={styles.loadingIcon} size={24} />
-          ) : audioState.isPlaying ? (
-            <Pause size={24} />
-          ) : (
-            <Play size={24} />
-          )}
-        </button>
+        <Tooltip content={playPauseTitle} placement="top" showArrow={false} delay={120}>
+          <button
+            className={`${styles.controlBtn} ${styles.primary} ${styles.mobileOrder3} ${audioLoadingState.isLoading ? styles.isLoadingBtn : ""}`}
+            aria-label={playPauseTitle}
+            disabled={!currentSong}
+            onClick={onPlayPause}
+          >
+            {audioLoadingState.isLoading ? (
+              <Loader2 className={styles.loadingIcon} size={24} />
+            ) : audioState.isPlaying ? (
+              <Pause size={24} />
+            ) : (
+              <Play size={24} />
+            )}
+          </button>
+        </Tooltip>
 
         {/* 5. 下一曲 */}
-        <button
-          className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder4}`}
-          title="下一曲"
-          disabled={!hasPlaylist}
-          onClick={onNext}
-        >
-          <SkipForward size={20} />
-        </button>
+        <Tooltip content="下一曲" placement="top" showArrow={false} delay={120}>
+          <button
+            className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder4}`}
+            aria-label="下一曲"
+            disabled={!hasPlaylist}
+            onClick={onNext}
+          >
+            <SkipForward size={20} />
+          </button>
+        </Tooltip>
 
         {/* 6. 播放列表 */}
-        <button
-          className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder5}`}
-          title="显示列表"
-          onClick={onTogglePlaylist}
-        >
-          <List size={20} />
-        </button>
+        <Tooltip content="播放列表" placement="top" showArrow={false} delay={120}>
+          <button
+            className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder5}`}
+            aria-label="播放列表"
+            onClick={onTogglePlaylist}
+          >
+            <List size={20} />
+          </button>
+        </Tooltip>
 
         {/* 7. 播放模式 */}
-        <button
-          className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder1}`}
-          title={playModeTitle}
-          onClick={onTogglePlayMode}
-        >
-          <PlayModeIcon size={20} />
-        </button>
+        <Tooltip content={playModeTitle} placement="top" showArrow={false} delay={120}>
+          <button
+            className={`${styles.controlBtn} ${styles.secondary} ${styles.mobileOrder1}`}
+            aria-label={playModeTitle}
+            onClick={onTogglePlayMode}
+          >
+            <PlayModeIcon size={20} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

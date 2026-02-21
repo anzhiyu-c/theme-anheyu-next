@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { motion } from "framer-motion";
 import { Button, Tabs, Tab, Pagination, Spinner } from "@heroui/react";

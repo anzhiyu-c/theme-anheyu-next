@@ -43,6 +43,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   // 菜单中 /travelling 项：跳转随机友链（对齐 anheyu-pro articleStore.navigateToRandomLink）
   const navigateToRandomLink = useCallback(async (e?: React.MouseEvent) => {
@@ -150,7 +151,10 @@ export function Header() {
 
   // 监听搜索快捷键
   useEffect(() => {
-    const handleOpenSearch = () => {
+    const handleOpenSearch = (event: Event) => {
+      const customEvent = event as CustomEvent<{ keyword?: string }>;
+      const keyword = customEvent?.detail?.keyword;
+      setSearchKeyword(typeof keyword === "string" ? keyword : "");
       setIsSearchOpen(true);
     };
 
@@ -382,7 +386,14 @@ export function Header() {
       />
 
       {/* 搜索弹窗 */}
-      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <SearchModal
+        isOpen={isSearchOpen}
+        initialKeyword={searchKeyword}
+        onClose={() => {
+          setIsSearchOpen(false);
+          setSearchKeyword("");
+        }}
+      />
     </>
   );
 }

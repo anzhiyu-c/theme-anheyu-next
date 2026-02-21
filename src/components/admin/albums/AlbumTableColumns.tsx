@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Chip, Button, Tooltip } from "@heroui/react";
 import { Edit, Trash2, Eye, Download } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { formatDateTimeParts } from "@/utils/date";
-import type { Album } from "@/types/album";
+import type { Album, AlbumCategory } from "@/types/album";
 
 /** 格式化文件大小 */
 function formatFileSize(bytes: number): string {
@@ -27,12 +27,17 @@ export const TABLE_COLUMNS = [
 
 interface UseAlbumRenderCellOptions {
   onAction: (item: Album, key: string) => void;
+  categories?: AlbumCategory[];
 }
 
 /**
  * 返回相册表格的 renderCell 函数
  */
-export function useAlbumRenderCell({ onAction }: UseAlbumRenderCellOptions) {
+export function useAlbumRenderCell({ onAction, categories = [] }: UseAlbumRenderCellOptions) {
+  const categoryMap = useMemo(() => {
+    return new Map(categories.map(category => [category.id, category.name]));
+  }, [categories]);
+
   return useCallback(
     (item: Album, columnKey: React.Key) => {
       switch (columnKey) {
@@ -68,8 +73,17 @@ export function useAlbumRenderCell({ onAction }: UseAlbumRenderCellOptions) {
         }
         case "info": {
           const tags = item.tags ? item.tags.split(",").filter(Boolean) : [];
+          const categoryName =
+            item.categoryId === null || item.categoryId === undefined
+              ? "未分类"
+              : categoryMap.get(item.categoryId) || "未知分类";
           return (
             <div className="flex flex-col gap-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <Chip size="sm" variant="flat" className="text-[11px] h-5">
+                  {categoryName}
+                </Chip>
+              </div>
               {item.description ? (
                 <p className="text-sm text-muted-foreground truncate max-w-[200px]" title={item.description}>
                   {item.description}
@@ -153,6 +167,6 @@ export function useAlbumRenderCell({ onAction }: UseAlbumRenderCellOptions) {
           return null;
       }
     },
-    [onAction]
+    [categoryMap, onAction]
   );
 }
