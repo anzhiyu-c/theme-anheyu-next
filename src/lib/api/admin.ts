@@ -181,11 +181,11 @@ export const contentStatsApi = {
       }
 
       return {
-        total_articles: articleStats.total,
-        published_articles: articleStats.published,
-        draft_articles: articleStats.draft,
-        total_comments: commentStats.total,
-        pending_comments: commentStats.pending,
+        total_articles: articleStats.total ?? 0,
+        published_articles: articleStats.published ?? 0,
+        draft_articles: articleStats.draft ?? 0,
+        total_comments: commentStats.total ?? 0,
+        pending_comments: commentStats.pending ?? 0,
         total_categories: categoryCount,
         total_tags: tagCount,
       };

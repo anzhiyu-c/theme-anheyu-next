@@ -44,7 +44,7 @@ export function DashboardStatCard({
   return (
     <div
       className={cn(
-        "group relative bg-card rounded-xl border border-border p-5",
+        "bg-card rounded-xl border border-border p-5",
         "transition-all duration-200 hover:border-border/60 hover:shadow-sm",
         className
       )}
@@ -75,9 +75,6 @@ export function DashboardStatCard({
 
       {/* 副标题 */}
       {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
-
-      {/* 悬停时的底部边框效果 */}
-      <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-primary/0 group-hover:bg-primary/30 transition-colors rounded-full" />
     </div>
   );
 }

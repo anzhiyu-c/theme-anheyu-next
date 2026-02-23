@@ -5,6 +5,18 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/utils/date";
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
+
 type CommentStatus = "pending" | "approved" | "spam";
 
 interface RecentComment {
@@ -109,7 +121,7 @@ export function RecentComments({ comments, onApprove, onReject, className, isLoa
                     </div>
 
                     {/* 评论内容 */}
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-1.5">{comment.content}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-1.5">{stripHtml(comment.content)}</p>
 
                     {/* 来源文章 */}
                     <div className="flex items-center justify-between">

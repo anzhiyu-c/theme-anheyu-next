@@ -335,7 +335,7 @@ export function CommentTable({ cm }: CommentTableProps) {
           wrapper: "flex-1 min-h-0 px-3! py-0! shadow-none! rounded-none! border-none!",
           table: "border-separate border-spacing-y-1.5 -mt-1.5",
           thead: "[&>tr]:first:shadow-none! after:hidden!",
-          th: "bg-[#F6F7FA] dark:bg-default-50 first:rounded-tl-lg! last:rounded-tr-lg!",
+          th: "bg-[#F6F7FA] dark:bg-default-100 first:rounded-tl-lg! last:rounded-tr-lg!",
           tr: "rounded-xl!",
           td: "first:before:rounded-s-xl! last:before:rounded-e-xl!",
         }}

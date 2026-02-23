@@ -39,6 +39,7 @@ declare global {
 export function PostContent({ content, articleInfo }: PostContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const mermaidCleanupRef = useRef<MermaidCleanupFn>(null);
+  const codeCopyCleanupRef = useRef<(() => void) | null>(null);
   const siteConfig = useSiteConfigStore(state => state.siteConfig);
 
   // ── 复制版权拦截 ──
@@ -947,16 +948,15 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
     [formatTime, fetchAudioUrl]
   );
 
-  // 初始化代码复制事件
-  const initCodeCopyEvents = useCallback(() => {
+  // 初始化代码复制事件，返回清理函数
+  const initCodeCopyEvents = useCallback((): (() => void) | undefined => {
     if (!contentRef.current) return;
 
-    // 查找所有代码块的复制按钮
     const copyButtons = contentRef.current.querySelectorAll(".md-editor-code .copy-button");
+    const cleanups: (() => void)[] = [];
 
     copyButtons.forEach(btn => {
       const handleClick = async () => {
-        // 查找对应的代码内容
         const codeBlock = btn.closest(".md-editor-code");
         if (!codeBlock) return;
 
@@ -967,7 +967,6 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
 
         try {
           await navigator.clipboard.writeText(codeText);
-          // 显示复制成功状态
           const checkIcon =
             btn.getAttribute("data-check-icon") ||
             `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 448 512"><path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>`;
@@ -975,7 +974,6 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
           btn.innerHTML = checkIcon;
           btn.classList.add("copied");
 
-          // 显示复制成功提示
           addToast({
             title: "复制成功",
             color: "success",
@@ -988,7 +986,6 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
           }, 2000);
         } catch (err) {
           console.error("复制失败:", err);
-          // 显示复制失败提示
           addToast({
             title: "复制失败",
             color: "danger",
@@ -998,7 +995,10 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
       };
 
       btn.addEventListener("click", handleClick);
+      cleanups.push(() => btn.removeEventListener("click", handleClick));
     });
+
+    return () => cleanups.forEach(fn => fn());
   }, []);
 
   /**
@@ -1242,7 +1242,10 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
     initLoginRequiredContentEvents();
     initCodeBlockIcons(); // 先添加图标
     initCodeExpandEvents(); // 绑定展开/收起事件
-    initCodeCopyEvents(); // 再绑定复制事件
+    if (codeCopyCleanupRef.current) {
+      codeCopyCleanupRef.current();
+    }
+    codeCopyCleanupRef.current = initCodeCopyEvents() ?? null;
     initCodeHighlight(); // 代码高亮
     initKatex(); // KaTeX 数学公式渲染
 
@@ -1265,14 +1268,16 @@ export function PostContent({ content, articleInfo }: PostContentProps) {
 
     // 清理函数
     return () => {
+      if (codeCopyCleanupRef.current) {
+        codeCopyCleanupRef.current();
+        codeCopyCleanupRef.current = null;
+      }
       if (mermaidCleanupRef.current) {
         mermaidCleanupRef.current();
         mermaidCleanupRef.current = null;
       }
-      // 清理全局音乐播放器函数
       delete window.__musicPlayerToggle;
       delete window.__musicPlayerSeek;
-      // 清理 Fancybox
       Fancybox.unbind(currentContent);
       Fancybox.close(true);
     };
