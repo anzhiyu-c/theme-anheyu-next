@@ -1,13 +1,8 @@
 import { lazy, type LazyExoticComponent, type ComponentType } from "react";
 import type { SettingCategoryId } from "@/lib/settings/setting-descriptors";
 
-interface SettingsFormProps {
-  values: Record<string, unknown>;
-  onChange: (key: string, value: unknown) => void;
-  loading: boolean;
-}
-
-type LazyForm = LazyExoticComponent<ComponentType<SettingsFormProps>>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LazyForm = LazyExoticComponent<ComponentType<any>>;
 
 export const settingsFormRegistry: Record<SettingCategoryId, LazyForm> = {
   "site-basic": lazy(() =>

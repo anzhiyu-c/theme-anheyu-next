@@ -342,7 +342,6 @@
   background-color: var(--anzhiyu-main);
 }
 
-
 .tagIcon {
   font-size: 0.65em;
   opacity: 0.5;
@@ -354,8 +353,8 @@
   white-space: nowrap;
 }
 
-/* 响应式 - 平板 */
-@media screen and (min-width: 761px) and (max-width: 992px) {
+/* 响应式 - 平板：双栏卡片恢复为横向行布局 */
+@media screen and (min-width: 769px) and (max-width: 992px) {
   .recentPostItem .postCover {
     width: 40%;
     height: 100%;
@@ -366,6 +365,28 @@
   .recentPostItem .recentPostInfo {
     width: 60%;
     height: 100%;
+  }
+
+  .recentPostItem.doubleColumnItem {
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .recentPostItem.doubleColumnItem .postCover {
+    width: 40%;
+    height: auto;
+    min-height: 180px;
+    border-radius: 0;
+  }
+
+  .recentPostItem.doubleColumnItem .recentPostInfo {
+    width: 60%;
+    padding: 2rem;
+  }
+
+  .recentPostItem.doubleColumnItem .recentPostInfoTop .articleTitle {
+    font-size: 1.5rem;
   }
 }
 
