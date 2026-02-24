@@ -23,10 +23,26 @@
 }
 
 /* 平板范围 - 恢复单栏行布局 */
-@media screen and (min-width: 761px) and (max-width: 992px) {
+@media screen and (min-width: 769px) and (max-width: 992px) {
   .doubleColumnContainer {
     flex-direction: column;
     gap: 0.75rem;
+  }
+
+  .skeletonCardDouble {
+    flex-direction: row;
+    width: 100%;
+    margin: 0;
+  }
+
+  .skeletonCardDouble .skeletonCover {
+    width: 40%;
+    height: auto;
+    min-height: 180px;
+  }
+
+  .skeletonCardDouble .skeletonContent {
+    width: 60%;
   }
 }
 

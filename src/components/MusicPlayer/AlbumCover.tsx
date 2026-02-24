@@ -69,11 +69,12 @@ export function AlbumCover({ imageUrl = "", isPlaying = false }: AlbumCoverProps
       const detail = (event as CustomEvent).detail;
       if (detail.imageUrl !== imageUrlRef.current) return;
 
-      if (detail.blobUrl && !detail.fromCache) {
+      if (detail.blob && !detail.fromCache) {
+        const ownBlobUrl = URL.createObjectURL(detail.blob);
         if (blobRef.current) {
           URL.revokeObjectURL(blobRef.current);
         }
-        setPreloadedBlob(detail.blobUrl);
+        setPreloadedBlob(ownBlobUrl);
         setLoadedImageUrl(imageUrlRef.current);
         setIsLoading(false);
       } else if (detail.imageElement && !detail.fromCache) {
