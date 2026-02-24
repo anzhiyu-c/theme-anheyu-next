@@ -12,10 +12,11 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ChangeEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { Icon } from "@iconify/react";
-import { addToast } from "@heroui/react";
+import { addToast, Button } from "@heroui/react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 import hljs from "highlight.js";
@@ -111,6 +112,7 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
   const [previewEmojiUrl, setPreviewEmojiUrl] = useState("");
   const [isEmojiPreviewVisible, setIsEmojiPreviewVisible] = useState(false);
   const [emojiPreviewPosition, setEmojiPreviewPosition] = useState({ x: 0, y: 0 });
+  const [quoteText, setQuoteText] = useState("");
   const uploadedFileUrlsRef = useRef<Map<string, string>>(new Map());
 
   const accessToken = useAuthStore(state => state.accessToken);
@@ -303,6 +305,27 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
     }
   }, [showEmojiPicker]);
 
+  useEffect(() => {
+    const handleSetQuote = (event: Event) => {
+      const customEvent = event as CustomEvent<{ text?: string; targetPath?: string }>;
+      const incomingText = customEvent.detail?.text?.trim();
+      const quoteTargetPath = customEvent.detail?.targetPath;
+
+      if (!incomingText) return;
+      if (quoteTargetPath && quoteTargetPath !== targetPath) return;
+
+      setQuoteText(incomingText);
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
+    };
+
+    window.addEventListener("comment-form-set-quote", handleSetQuote as EventListener);
+    return () => {
+      window.removeEventListener("comment-form-set-quote", handleSetQuote as EventListener);
+    };
+  }, [targetPath]);
+
   const insertAtCursor = (text: string) => {
     const textarea = textareaRef.current;
     if (!textarea) {
@@ -328,9 +351,11 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
   const handleEmojiEnter = (event: ReactMouseEvent<HTMLLIElement>, emoji: { icon: string }) => {
     if (!emoji.icon) return;
     const rect = event.currentTarget.getBoundingClientRect();
+    const previewWidth = 80;
+    const previewHeight = 80;
     setEmojiPreviewPosition({
-      x: rect.left + rect.width / 2,
-      y: rect.top,
+      x: rect.left + rect.width / 2 - previewWidth / 2,
+      y: rect.top - previewHeight + 3,
     });
     setPreviewEmojiUrl(emoji.icon);
     setIsEmojiPreviewVisible(true);
@@ -399,6 +424,8 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    const finalContent = quoteText ? `> ${quoteText}\n\n${content.trim()}` : content.trim();
+
     const payload: CreateCommentPayload = {
       target_path: targetPath,
       target_title: targetTitle,
@@ -407,7 +434,7 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
       nickname: isLoggedIn && user ? user.nickname || user.username || "" : nickname,
       email: isLoggedIn && user ? user.email || "" : email,
       website: website || undefined,
-      content: content.trim(),
+      content: finalContent,
       is_anonymous: isAnonymous,
     };
 
@@ -420,6 +447,7 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
         );
       }
       setContent("");
+      setQuoteText("");
       setIsPreview(false);
       addToast({ title: "评论已提交", color: "success", timeout: 2000 });
       onSubmitted?.();
@@ -509,6 +537,23 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
 
   return (
     <div className={styles.commentForm}>
+      {quoteText ? (
+        <div className={styles.quotePreview}>
+          <div className={styles.quotePreviewHeader}>
+            <Icon icon="fa6-solid:quote-left" width={14} height={14} />
+            <span className={styles.quotePreviewTitle}>正在引用</span>
+            <button
+              type="button"
+              className={styles.quotePreviewClose}
+              onClick={() => setQuoteText("")}
+              aria-label="取消引用"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className={styles.quotePreviewContent}>{quoteText}</div>
+        </div>
+      ) : null}
       <div className={styles.textareaContainer}>
         <div className={cn(styles.textareaWrapper, isLoggedIn && styles.textareaWrapperLoggedIn)}>
           <label htmlFor={contentId} className={styles.srOnly}>
@@ -590,7 +635,7 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
                   title={isUploading ? "上传中..." : "上传图片"}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Icon icon="ri:image-line" width="18" height="18" />
+                  <Icon icon="jam:picture-f" width="18" height="18" />
                 </button>
                 <input ref={fileInputRef} type="file" hidden accept="image/*" onChange={handleFileChange} />
               </>
@@ -610,18 +655,20 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
           {isLoggedIn && (
             <div className={styles.loggedInSubmitWrapper}>
               {shouldShowCancel && onCancel && (
-                <button className={cn(styles.cancelButton)} type="button" onClick={onCancel}>
+                <Button size="sm" variant="flat" className={styles.cancelButton} onPress={onCancel}>
                   取消
-                </button>
+                </Button>
               )}
-              <button
-                className={cn(styles.loggedInSubmitButton, createComment.isPending && styles.isDisabled)}
-                type="button"
-                disabled={createComment.isPending}
-                onClick={handleSubmit}
+              <Button
+                size="sm"
+                color="primary"
+                className={styles.loggedInSubmitButton}
+                isDisabled={!content.trim()}
+                isLoading={createComment.isPending}
+                onPress={handleSubmit}
               >
                 发送
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -692,18 +739,20 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
           </div>
           <div className={styles.buttonsWrapper}>
             {shouldShowCancel && onCancel && (
-              <button className={styles.cancelButton} type="button" onClick={onCancel}>
+              <Button size="sm" variant="flat" className={styles.cancelButton} onPress={onCancel}>
                 取消
-              </button>
+              </Button>
             )}
-            <button
-              className={cn(styles.submitButton, createComment.isPending && styles.isDisabled)}
-              type="button"
-              disabled={createComment.isPending}
-              onClick={handleSubmit}
+            <Button
+              size="sm"
+              color="primary"
+              className={styles.submitButton}
+              isDisabled={!content.trim()}
+              isLoading={createComment.isPending}
+              onPress={handleSubmit}
             >
               发送
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -732,15 +781,19 @@ export const CommentForm = forwardRef<CommentFormHandle, CommentFormProps>(funct
         </div>
       )}
 
-      {isEmojiPreviewVisible && previewEmojiUrl && (
-        <div
-          className={styles.emojiPreview}
-          style={{ left: `${emojiPreviewPosition.x}px`, top: `${emojiPreviewPosition.y}px` }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewEmojiUrl} alt="emoji-preview" />
-        </div>
-      )}
+      {isEmojiPreviewVisible &&
+        previewEmojiUrl &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={styles.emojiPreview}
+            style={{ left: `${emojiPreviewPosition.x}px`, top: `${emojiPreviewPosition.y}px` }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewEmojiUrl} alt="emoji-preview" />
+          </div>,
+          document.body
+        )}
     </div>
   );
 });

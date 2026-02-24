@@ -1,17 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Textarea,
-  Select,
-  SelectItem,
-} from "@heroui/react";
+import { ModalBody, ModalFooter, Button, Textarea, Select, SelectItem } from "@heroui/react";
+import { Sparkles } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { generateAIWriting, type AIWritingRequest } from "@/lib/api/ai-writing";
 
 interface AIWritingDialogProps {
@@ -85,112 +77,107 @@ export function AIWritingDialog({ isOpen, onOpenChange, onInsert }: AIWritingDia
   }, [preview, onInsert, onOpenChange]);
 
   return (
-    <Modal
+    <AdminDialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       size="3xl"
       scrollBehavior="inside"
       classNames={{ wrapper: "z-[200]", backdrop: "z-[199]" }}
+      header={{ title: "AI 写作助手", description: "输入主题后生成可直接插入的文章草稿", icon: Sparkles }}
     >
-      <ModalContent>
-        {onClose => (
-          <>
-            <ModalHeader className="flex items-center gap-2">
-              <span>✨</span>
-              <span>AI 写作助手</span>
-            </ModalHeader>
-            <ModalBody className="gap-4">
-              {/* Topic */}
-              <Textarea
-                label="写作主题"
-                placeholder="请描述你想写的文章主题、大纲或关键点..."
-                value={topic}
-                onValueChange={setTopic}
-                minRows={2}
-                maxRows={4}
-                isRequired
-              />
+      {onClose => (
+        <>
+          <ModalBody className="gap-4">
+            {/* Topic */}
+            <Textarea
+              label="写作主题"
+              placeholder="请描述你想写的文章主题、大纲或关键点..."
+              value={topic}
+              onValueChange={setTopic}
+              minRows={2}
+              maxRows={4}
+              isRequired
+            />
 
-              <div className="grid grid-cols-2 gap-3">
-                <Select
-                  label="写作风格"
-                  selectedKeys={style ? [style] : []}
-                  onSelectionChange={keys => {
-                    const key = Array.from(keys)[0] as string;
-                    if (key) setStyle(key as AIWritingRequest["style"]);
-                  }}
-                  size="sm"
-                >
-                  {STYLE_OPTIONS.map(opt => (
-                    <SelectItem key={opt.key}>{opt.label}</SelectItem>
-                  ))}
-                </Select>
-
-                <Select
-                  label="文章长度"
-                  selectedKeys={length ? [length] : []}
-                  onSelectionChange={keys => {
-                    const key = Array.from(keys)[0] as string;
-                    if (key) setLength(key as AIWritingRequest["length"]);
-                  }}
-                  size="sm"
-                >
-                  {LENGTH_OPTIONS.map(opt => (
-                    <SelectItem key={opt.key}>{opt.label}</SelectItem>
-                  ))}
-                </Select>
-              </div>
-
-              <Textarea
-                label="自定义提示词（可选）"
-                placeholder="额外的写作要求或限制..."
-                value={customPrompt}
-                onValueChange={setCustomPrompt}
-                minRows={1}
-                maxRows={3}
+            <div className="grid grid-cols-2 gap-3">
+              <Select
+                label="写作风格"
+                selectedKeys={style ? [style] : []}
+                onSelectionChange={keys => {
+                  const key = Array.from(keys)[0] as string;
+                  if (key) setStyle(key as AIWritingRequest["style"]);
+                }}
                 size="sm"
-              />
+              >
+                {STYLE_OPTIONS.map(opt => (
+                  <SelectItem key={opt.key}>{opt.label}</SelectItem>
+                ))}
+              </Select>
 
-              {/* Error */}
-              {error && <div className="text-danger text-sm p-3 bg-danger-50 rounded-lg">{error}</div>}
+              <Select
+                label="文章长度"
+                selectedKeys={length ? [length] : []}
+                onSelectionChange={keys => {
+                  const key = Array.from(keys)[0] as string;
+                  if (key) setLength(key as AIWritingRequest["length"]);
+                }}
+                size="sm"
+              >
+                {LENGTH_OPTIONS.map(opt => (
+                  <SelectItem key={opt.key}>{opt.label}</SelectItem>
+                ))}
+              </Select>
+            </div>
 
-              {/* Preview */}
-              {(preview || isGenerating) && (
-                <div className="border border-border rounded-lg">
-                  <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b border-border">
-                    <span className="text-xs text-default-500 font-medium">
-                      {isGenerating ? "生成中..." : "生成结果"}
-                    </span>
-                    <span className="text-xs text-default-400">{preview.length} 字</span>
-                  </div>
-                  <div className="p-3 max-h-[300px] overflow-auto">
-                    <pre className="whitespace-pre-wrap text-sm font-sans">{preview || "等待生成..."}</pre>
-                  </div>
+            <Textarea
+              label="自定义提示词（可选）"
+              placeholder="额外的写作要求或限制..."
+              value={customPrompt}
+              onValueChange={setCustomPrompt}
+              minRows={1}
+              maxRows={3}
+              size="sm"
+            />
+
+            {/* Error */}
+            {error && <div className="text-danger text-sm p-3 bg-danger-50 rounded-lg">{error}</div>}
+
+            {/* Preview */}
+            {(preview || isGenerating) && (
+              <div className="border border-border rounded-lg">
+                <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b border-border">
+                  <span className="text-xs text-default-500 font-medium">
+                    {isGenerating ? "生成中..." : "生成结果"}
+                  </span>
+                  <span className="text-xs text-default-400">{preview.length} 字</span>
                 </div>
-              )}
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose} size="sm">
-                关闭
+                <div className="p-3 max-h-[300px] overflow-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-sans">{preview || "等待生成..."}</pre>
+                </div>
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="flat" onPress={onClose} size="sm">
+              关闭
+            </Button>
+            {isGenerating ? (
+              <Button color="danger" variant="flat" onPress={handleCancel} size="sm">
+                停止生成
               </Button>
-              {isGenerating ? (
-                <Button color="danger" variant="flat" onPress={handleCancel} size="sm">
-                  停止生成
-                </Button>
-              ) : (
-                <Button color="primary" onPress={handleGenerate} isDisabled={!topic.trim()} size="sm">
-                  {preview ? "重新生成" : "开始生成"}
-                </Button>
-              )}
-              {preview && !isGenerating && (
-                <Button color="success" onPress={handleInsert} size="sm">
-                  插入到编辑器
-                </Button>
-              )}
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+            ) : (
+              <Button color="primary" onPress={handleGenerate} isDisabled={!topic.trim()} size="sm">
+                {preview ? "重新生成" : "开始生成"}
+              </Button>
+            )}
+            {preview && !isGenerating && (
+              <Button color="success" onPress={handleInsert} size="sm">
+                插入到编辑器
+              </Button>
+            )}
+          </ModalFooter>
+        </>
+      )}
+    </AdminDialog>
   );
 }

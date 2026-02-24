@@ -19,8 +19,9 @@ import {
   DropdownItem,
   Pagination,
 } from "@heroui/react";
-import { Link2, Plus, ExternalLink, CheckCircle, XCircle, Edit, Trash2, ChevronDown } from "lucide-react";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { Link2, ExternalLink, CheckCircle, XCircle, Edit, Trash2, ChevronDown } from "lucide-react";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 import type { LinkItem, LinkStatus } from "@/types/friends";
 import type { FriendsPageState } from "../_hooks/use-friends-page";
 
@@ -42,37 +43,6 @@ const TABLE_COLUMNS = [
   { key: "status", label: "状态" },
   { key: "actions", label: "操作" },
 ];
-
-// ===================================
-//       空状态
-// ===================================
-
-function FriendsEmptyState({ hasFilter, onAdd }: { hasFilter: boolean; onAdd: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 py-12">
-      <div className="w-16 h-16 rounded-2xl bg-muted/40 flex items-center justify-center">
-        <Link2 className="w-7 h-7 text-muted-foreground/25" />
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted-foreground">{hasFilter ? "没有匹配的友链" : "还没有友链"}</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">
-          {hasFilter ? "试试调整筛选条件" : "点击「新建友链」开始添加"}
-        </p>
-      </div>
-      {!hasFilter && (
-        <Button
-          size="sm"
-          color="primary"
-          variant="flat"
-          onPress={onAdd}
-          startContent={<Plus className="w-3.5 h-3.5" />}
-        >
-          添加友链
-        </Button>
-      )}
-    </div>
-  );
-}
 
 // ===================================
 //          友链列表
@@ -325,7 +295,20 @@ export function FriendsContent({ cm }: FriendsContentProps) {
         </TableHeader>
         <TableBody
           items={cm.links}
-          emptyContent={<FriendsEmptyState hasFilter={hasFilter} onAdd={cm.handleOpenCreate} />}
+          emptyContent={
+            <TableEmptyState
+              icon={Link2}
+              hasFilter={hasFilter}
+              filterEmptyText={ADMIN_EMPTY_TEXTS.friends.filterEmptyText}
+              emptyText={ADMIN_EMPTY_TEXTS.friends.emptyText}
+              filterHint={ADMIN_EMPTY_TEXTS.friends.filterHint}
+              emptyHint={ADMIN_EMPTY_TEXTS.friends.emptyHint}
+              action={{
+                label: "添加友链",
+                onPress: cm.handleOpenCreate,
+              }}
+            />
+          }
           isLoading={cm.isFetching && !cm.isLoading}
           loadingContent={<Spinner size="sm" label="加载中..." />}
         >

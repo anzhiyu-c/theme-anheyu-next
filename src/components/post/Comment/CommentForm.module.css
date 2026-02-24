@@ -52,12 +52,12 @@
 @keyframes emojiPreviewIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -100%) translateY(-10px) scale(0.6);
+    transform: translateY(0) scale(0.8);
   }
 
   to {
     opacity: 1;
-    transform: translate(-50%, -100%) translateY(-10px) scale(1);
+    transform: translateY(-10px) scale(1);
   }
 }
 
@@ -100,6 +100,82 @@
   border-radius: 8px;
 }
 
+.quotePreview {
+  position: relative;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--comment-form-quote-bg, var(--muted));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  animation: quoteSlideIn 0.25s ease-out;
+}
+
+.quotePreviewHeader {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.quotePreviewTitle {
+  flex: 1;
+}
+
+.quotePreviewClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 2px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.quotePreviewClose:hover {
+  color: var(--primary);
+  background: var(--anzhiyu-gray-op, rgba(153, 153, 153, 0.17));
+}
+
+.quotePreviewContent {
+  position: relative;
+  padding: 8px 12px 8px 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  background: var(--card);
+  border-radius: 4px;
+}
+
+.quotePreviewContent::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  content: "";
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+@keyframes quoteSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .textareaContainer {
   margin-bottom: 0.5rem;
 }
@@ -110,7 +186,7 @@
   width: 100%;
   max-width: 100%;
   padding: 16px;
-  background-color: var(--anzhiyu-secondbg);
+  background-color: var(--comment-form-bg, var(--card));
   border: var(--style-border-always);
   border-radius: 12px;
   transition: border 0.2s;
@@ -586,7 +662,12 @@
 }
 
 .isDisabled {
-  opacity: 0.2;
+  color: var(--muted-foreground) !important;
+  cursor: not-allowed !important;
+  background-color: var(--muted) !important;
+  border-color: transparent !important;
+  opacity: 1;
+  pointer-events: none;
 }
 
 .loginRequiredWrapper {
@@ -724,7 +805,7 @@
   border: 1px solid var(--border, #e0e0e0);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
-  transform: translate(-50%, -100%) translateY(-10px) scale(1);
+  transform: translateY(-10px);
   animation: emojiPreviewIn 0.2s cubic-bezier(0.42, 0, 0.3, 1.11);
 }
 

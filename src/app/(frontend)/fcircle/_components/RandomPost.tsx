@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Icon } from "@iconify/react";
 import { friendsApi } from "@/lib/api/friends";
 import type { RandomPostData } from "@/types/friends";
 
@@ -242,7 +243,7 @@ export function RandomPost() {
             style={{ transform: `rotate(${360 * randomPostTimes}deg)`, transitionDuration: "0.3s" }}
             onClick={() => void fetchRandomPost()}
           >
-            <i className="anzhiyufont anzhiyu-icon-arrow-rotate-right" />
+            <Icon icon="fa6-solid:rotate-right" width={16} height={16} />
           </button>
         </div>
 

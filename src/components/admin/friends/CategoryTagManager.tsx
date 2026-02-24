@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, Tabs, Tab, Button, Chip, addToast } from "@heroui/react";
-import { Edit, Trash2, Plus, Shield } from "lucide-react";
+import { ModalBody, Tabs, Tab, Button, Chip, addToast } from "@heroui/react";
+import { Edit, Trash2, Plus, Shield, Tags } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormInput } from "@/components/ui/form-input";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
+import { FormColorPicker } from "@/components/ui/form-color-picker";
 import {
   useLinkCategories,
   useLinkTags,
@@ -233,210 +235,198 @@ export default function CategoryTagManager({ isOpen, onClose }: CategoryTagManag
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader>管理分类标签</ModalHeader>
-        <ModalBody className="pb-6">
-          <Tabs
-            selectedKey={activeTab}
-            onSelectionChange={key => setActiveTab(String(key))}
-            variant="underlined"
-            color="primary"
-          >
-            {/* 分类管理 Tab */}
-            <Tab key="categories" title={`分类 (${categories.length})`}>
-              <div className="space-y-3 pt-2">
-                {!showAddCategory && !editingCategory && (
-                  <Button
-                    size="sm"
-                    color="primary"
-                    variant="flat"
-                    startContent={<Plus className="w-4 h-4" />}
-                    onPress={() => setShowAddCategory(true)}
-                  >
-                    新建分类
-                  </Button>
-                )}
+    <AdminDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      size="2xl"
+      scrollBehavior="inside"
+      header={{ title: "管理分类标签", description: "统一维护友链分类与标签信息", icon: Tags }}
+    >
+      <ModalBody className="pb-6">
+        <Tabs
+          selectedKey={activeTab}
+          onSelectionChange={key => setActiveTab(String(key))}
+          variant="underlined"
+          color="primary"
+        >
+          {/* 分类管理 Tab */}
+          <Tab key="categories" title={`分类 (${categories.length})`}>
+            <div className="space-y-3 pt-2">
+              {!showAddCategory && !editingCategory && (
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  startContent={<Plus className="w-4 h-4" />}
+                  onPress={() => setShowAddCategory(true)}
+                >
+                  新建分类
+                </Button>
+              )}
 
-                {showAddCategory && (
-                  <div className="p-3 rounded-lg border border-primary-200 bg-primary-50/30">
-                    {renderCategoryForm(false)}
-                  </div>
-                )}
+              {showAddCategory && (
+                <div className="p-3 rounded-lg border border-primary-200 bg-primary-50/30">
+                  {renderCategoryForm(false)}
+                </div>
+              )}
 
-                {categories.map(cat => (
-                  <div
-                    key={cat.id}
-                    className="p-3 rounded-lg border border-default-200 bg-default-50 hover:border-default-300 transition-colors"
-                  >
-                    {editingCategory?.id === cat.id ? (
-                      renderCategoryForm(true)
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{cat.name}</span>
-                          <Chip size="sm" variant="flat" color={cat.style === "card" ? "primary" : "secondary"}>
-                            {cat.style === "card" ? "卡片" : "列表"}
+              {categories.map(cat => (
+                <div
+                  key={cat.id}
+                  className="p-3 rounded-lg border border-default-200 bg-default-50 hover:border-default-300 transition-colors"
+                >
+                  {editingCategory?.id === cat.id ? (
+                    renderCategoryForm(true)
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">{cat.name}</span>
+                        <Chip size="sm" variant="flat" color={cat.style === "card" ? "primary" : "secondary"}>
+                          {cat.style === "card" ? "卡片" : "列表"}
+                        </Chip>
+                        {PROTECTED_CATEGORY_IDS.includes(cat.id) && (
+                          <Chip size="sm" variant="flat" color="warning" startContent={<Shield className="w-3 h-3" />}>
+                            系统
                           </Chip>
-                          {PROTECTED_CATEGORY_IDS.includes(cat.id) && (
-                            <Chip
-                              size="sm"
-                              variant="flat"
-                              color="warning"
-                              startContent={<Shield className="w-3 h-3" />}
-                            >
-                              系统
-                            </Chip>
-                          )}
-                          {cat.description && <span className="text-xs text-default-400">{cat.description}</span>}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button isIconOnly size="sm" variant="light" onPress={() => handleEditCategory(cat)}>
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
-                          {!PROTECTED_CATEGORY_IDS.includes(cat.id) && (
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="light"
-                              color="danger"
-                              onPress={() => handleDeleteCategory(cat.id)}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
-                        </div>
+                        )}
+                        {cat.description && <span className="text-xs text-default-400">{cat.description}</span>}
                       </div>
-                    )}
-                  </div>
-                ))}
-
-                {categories.length === 0 && <div className="text-center py-8 text-default-400 text-sm">暂无分类</div>}
-              </div>
-            </Tab>
-
-            {/* 标签管理 Tab */}
-            <Tab key="tags" title={`标签 (${tags.length})`}>
-              <div className="space-y-3 pt-2">
-                {!showAddTag && !editingTag && (
-                  <Button
-                    size="sm"
-                    color="primary"
-                    variant="flat"
-                    startContent={<Plus className="w-4 h-4" />}
-                    onPress={() => setShowAddTag(true)}
-                  >
-                    新建标签
-                  </Button>
-                )}
-
-                {showAddTag && (
-                  <div className="p-3 rounded-lg border border-primary-200 bg-primary-50/30 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <FormInput
-                        size="sm"
-                        label="标签名称"
-                        value={newTagName}
-                        onValueChange={setNewTagName}
-                        className="flex-1"
-                      />
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-xs text-default-400">颜色</span>
-                        <input
-                          type="color"
-                          value={newTagColor}
-                          onChange={e => setNewTagColor(e.target.value)}
-                          className="w-8 h-8 rounded cursor-pointer border border-default-200"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        size="sm"
-                        variant="flat"
-                        onPress={() => {
-                          setShowAddTag(false);
-                          setNewTagName("");
-                        }}
-                      >
-                        取消
-                      </Button>
-                      <Button size="sm" color="primary" isLoading={createTag.isPending} onPress={handleAddTag}>
-                        创建
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {tags.map(tag => (
-                  <div
-                    key={tag.id}
-                    className="p-3 rounded-lg border border-default-200 bg-default-50 hover:border-default-300 transition-colors"
-                  >
-                    {editingTag?.id === tag.id ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <FormInput
-                            size="sm"
-                            label="标签名称"
-                            value={newTagName}
-                            onValueChange={setNewTagName}
-                            className="flex-1"
-                          />
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-xs text-default-400">颜色</span>
-                            <input
-                              type="color"
-                              value={newTagColor}
-                              onChange={e => setNewTagColor(e.target.value)}
-                              className="w-8 h-8 rounded cursor-pointer border border-default-200"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex gap-2 justify-end">
-                          <Button size="sm" variant="flat" onPress={cancelEditTag}>
-                            取消
-                          </Button>
-                          <Button size="sm" color="primary" isLoading={updateTag.isPending} onPress={handleSaveTag}>
-                            保存
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-4 h-4 rounded-full border border-default-200"
-                            style={{ backgroundColor: tag.color || "#999" }}
-                          />
-                          <span className="font-medium text-sm">{tag.name}</span>
-                          <span className="text-xs text-default-400">{tag.color}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button isIconOnly size="sm" variant="light" onPress={() => handleEditTag(tag)}>
-                            <Edit className="w-3.5 h-3.5" />
-                          </Button>
+                      <div className="flex items-center gap-1">
+                        <Button isIconOnly size="sm" variant="light" onPress={() => handleEditCategory(cat)}>
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                        {!PROTECTED_CATEGORY_IDS.includes(cat.id) && (
                           <Button
                             isIconOnly
                             size="sm"
                             variant="light"
                             color="danger"
-                            onPress={() => handleDeleteTag(tag.id)}
+                            onPress={() => handleDeleteCategory(cat.id)}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {categories.length === 0 && <div className="text-center py-8 text-default-400 text-sm">暂无分类</div>}
+            </div>
+          </Tab>
+
+          {/* 标签管理 Tab */}
+          <Tab key="tags" title={`标签 (${tags.length})`}>
+            <div className="space-y-3 pt-2">
+              {!showAddTag && !editingTag && (
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  startContent={<Plus className="w-4 h-4" />}
+                  onPress={() => setShowAddTag(true)}
+                >
+                  新建标签
+                </Button>
+              )}
+
+              {showAddTag && (
+                <div className="p-3 rounded-lg border border-primary-200 bg-primary-50/30 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <FormInput
+                      size="sm"
+                      label="标签名称"
+                      value={newTagName}
+                      onValueChange={setNewTagName}
+                      className="flex-1"
+                    />
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs text-default-400">颜色</span>
+                      <FormColorPicker value={newTagColor} onChange={setNewTagColor} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      onPress={() => {
+                        setShowAddTag(false);
+                        setNewTagName("");
+                      }}
+                    >
+                      取消
+                    </Button>
+                    <Button size="sm" color="primary" isLoading={createTag.isPending} onPress={handleAddTag}>
+                      创建
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {tags.map(tag => (
+                <div
+                  key={tag.id}
+                  className="p-3 rounded-lg border border-default-200 bg-default-50 hover:border-default-300 transition-colors"
+                >
+                  {editingTag?.id === tag.id ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <FormInput
+                          size="sm"
+                          label="标签名称"
+                          value={newTagName}
+                          onValueChange={setNewTagName}
+                          className="flex-1"
+                        />
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-xs text-default-400">颜色</span>
+                          <FormColorPicker value={newTagColor} onChange={setNewTagColor} />
                         </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="flex gap-2 justify-end">
+                        <Button size="sm" variant="flat" onPress={cancelEditTag}>
+                          取消
+                        </Button>
+                        <Button size="sm" color="primary" isLoading={updateTag.isPending} onPress={handleSaveTag}>
+                          保存
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-4 h-4 rounded-full border border-default-200"
+                          style={{ backgroundColor: tag.color || "#999" }}
+                        />
+                        <span className="font-medium text-sm">{tag.name}</span>
+                        <span className="text-xs text-default-400">{tag.color}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button isIconOnly size="sm" variant="light" onPress={() => handleEditTag(tag)}>
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          isIconOnly
+                          size="sm"
+                          variant="light"
+                          color="danger"
+                          onPress={() => handleDeleteTag(tag.id)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
 
-                {tags.length === 0 && <div className="text-center py-8 text-default-400 text-sm">暂无标签</div>}
-              </div>
-            </Tab>
-          </Tabs>
-        </ModalBody>
-      </ModalContent>
-    </Modal>
+              {tags.length === 0 && <div className="text-center py-8 text-default-400 text-sm">暂无标签</div>}
+            </div>
+          </Tab>
+        </Tabs>
+      </ModalBody>
+    </AdminDialog>
   );
 }

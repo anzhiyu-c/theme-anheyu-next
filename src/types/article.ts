@@ -126,6 +126,8 @@ export interface ArticleLink {
   cover_url?: string;
   abbrlink: string;
   created_at: string;
+  is_doc?: boolean;
+  doc_series_id?: string;
 }
 
 /**

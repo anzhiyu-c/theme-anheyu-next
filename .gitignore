@@ -42,5 +42,7 @@ next-env.d.ts
 
 .cursor
 .playwright-cli
+.vscode
 output
 .vscode
+tmp

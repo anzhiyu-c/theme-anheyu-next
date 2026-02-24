@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SyntheticEvent } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
+import { Icon } from "@iconify/react";
 import { friendsApi } from "@/lib/api/friends";
 import type { Moment } from "@/types/friends";
 
@@ -200,7 +201,7 @@ export function MomentsItem({ moments }: MomentsItemProps) {
                         {item.post_title}
                       </a>
                       <div className="popup-article-meta">
-                        <i className="anzhiyufont anzhiyu-icon-clock" />
+                        <Icon icon="fa6-solid:clock" width={12} height={12} />
                         <span className="popup-article-time">{formatMomentDate(item.published_at)}</span>
                       </div>
                     </div>
@@ -208,7 +209,7 @@ export function MomentsItem({ moments }: MomentsItemProps) {
 
                   {selectedLinkMoments.length === 0 ? (
                     <div className="popup-empty">
-                      <i className="far fa-inbox" />
+                      <Icon icon="fa6-regular:inbox" width={48} height={48} />
                       <p>暂无更多文章</p>
                     </div>
                   ) : null}
@@ -253,7 +254,7 @@ export function MomentsItem({ moments }: MomentsItemProps) {
                 {moment.link_name}
               </button>
               <span className="moment-time">
-                <i className="anzhiyufont anzhiyu-icon-clock" />
+                <Icon icon="fa6-solid:clock" width={12} height={12} />
                 {formatMomentDate(moment.published_at)}
               </span>
             </div>

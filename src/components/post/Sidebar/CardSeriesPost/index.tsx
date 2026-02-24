@@ -80,7 +80,7 @@ export function CardSeriesPost({
       <div className={`${styles.listContainer} ${isOverflow ? styles.overflow : ""}`}>
         <div ref={listRef} className={styles.articleList}>
           {filteredArticles.map(article => (
-            <Link key={article.id} href={`/posts/${article.abbrlink || article.id}`} className={styles.articleItem}>
+            <Link key={article.id} href={`/doc/${article.id}`} className={styles.articleItem}>
               <div className={styles.cover}>
                 <Image
                   src={article.cover_url || defaultCover}

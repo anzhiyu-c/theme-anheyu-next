@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pagination } from "@heroui/react";
+import { Icon } from "@iconify/react";
 import type { AlbumLayoutMode, AlbumStatType, PublicAlbumItem } from "@/types/album";
 import { AlbumGridItem } from "./AlbumGridItem";
 import { AlbumWaterfallItem } from "./AlbumWaterfallItem";
@@ -147,7 +148,12 @@ export function AlbumList({
       return Math.max(1, waterfallConfig.columnCount.medium);
     }
     return Math.max(1, waterfallConfig.columnCount.large);
-  }, [viewportWidth, waterfallConfig.columnCount.large, waterfallConfig.columnCount.medium, waterfallConfig.columnCount.small]);
+  }, [
+    viewportWidth,
+    waterfallConfig.columnCount.large,
+    waterfallConfig.columnCount.medium,
+    waterfallConfig.columnCount.small,
+  ]);
 
   const waterfallColumns = useMemo(() => {
     const safeColumnCount = Math.max(1, waterfallColumnCount);
@@ -175,16 +181,16 @@ export function AlbumList({
         {isLoading && items.length === 0 ? (
           <div className="global-loading">
             <div className="loading-spinner">
-              <span className="el-icon is-loading">
-                <i className="anzhiyufont anzhiyu-icon-loading" />
-              </span>
+              <Icon icon="fa6-solid:spinner" className="loading-icon" width={48} height={48} />
               <span>加载中...</span>
             </div>
           </div>
         ) : null}
 
         {layoutMode === "grid"
-          ? items.map((item, index) => <AlbumGridItem key={item.id} item={item} index={index} onPreview={handlePreview} />)
+          ? items.map((item, index) => (
+              <AlbumGridItem key={item.id} item={item} index={index} onPreview={handlePreview} />
+            ))
           : null}
 
         {layoutMode === "waterfall" ? (

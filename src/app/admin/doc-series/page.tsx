@@ -16,17 +16,17 @@ import {
   Pagination,
 } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, ShieldAlert, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ShieldAlert, ChevronDown, BookOpen } from "lucide-react";
 import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
 import { useDocSeriesPage } from "./_hooks/use-doc-series-page";
 import { TABLE_COLUMNS, useDocSeriesRenderCell } from "@/components/admin/doc-series/DocSeriesTableColumns";
 import { DocSeriesSkeleton } from "@/components/admin/doc-series/DocSeriesSkeleton";
-import { DocSeriesEmptyState } from "@/components/admin/doc-series/DocSeriesEmptyState";
 import { DocSeriesFilterBar } from "@/components/admin/doc-series/DocSeriesFilterBar";
 import DocSeriesFormModal from "@/components/admin/doc-series/DocSeriesFormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 
 export default function DocSeriesPage() {
   const ds = useDocSeriesPage();
@@ -179,7 +179,19 @@ export default function DocSeriesPage() {
             </TableHeader>
             <TableBody
               items={ds.seriesList}
-              emptyContent={<DocSeriesEmptyState hasFilter={!!ds.debouncedSearch} onNew={ds.handleNew} />}
+              emptyContent={
+                <TableEmptyState
+                  icon={BookOpen}
+                  hasFilter={!!ds.debouncedSearch}
+                  filterEmptyText={ADMIN_EMPTY_TEXTS.docSeries.filterEmptyText}
+                  emptyText={ADMIN_EMPTY_TEXTS.docSeries.emptyText}
+                  emptyHint={ADMIN_EMPTY_TEXTS.docSeries.emptyHint}
+                  action={{
+                    label: "新增系列",
+                    onPress: ds.handleNew,
+                  }}
+                />
+              }
               isLoading={ds.isFetching && !ds.isLoading}
               loadingContent={<Spinner size="sm" label="加载中..." />}
             >

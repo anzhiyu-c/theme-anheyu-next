@@ -14,7 +14,6 @@ interface AdminPageHeaderProps {
     label: string;
     icon?: LucideIcon;
     onClick?: () => void;
-    href?: string;
     disabled?: boolean;
   };
   className?: string;
@@ -44,9 +43,7 @@ export function AdminPageHeader({
         )}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {description && (
-            <p className="text-muted-foreground mt-0.5 text-sm">{description}</p>
-          )}
+          {description && <p className="text-muted-foreground mt-0.5 text-sm">{description}</p>}
         </div>
       </div>
 
@@ -56,7 +53,10 @@ export function AdminPageHeader({
           <Button
             onClick={primaryAction.onClick}
             disabled={primaryAction.disabled}
-            className={cn("gap-2 shadow-lg shadow-primary/20", primaryAction.disabled && "opacity-50 cursor-not-allowed")}
+            className={cn(
+              "gap-2 shadow-lg shadow-primary/20",
+              primaryAction.disabled && "opacity-50 cursor-not-allowed"
+            )}
           >
             <PrimaryIcon className="w-4 h-4" />
             {primaryAction.label}

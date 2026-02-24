@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, addToast } from "@heroui/react";
+import { Button, ModalBody, ModalFooter, addToast } from "@heroui/react";
 import { FormInput } from "@/components/ui/form-input";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { ShieldAlert, Upload, Pencil, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import type { CommentPageState } from "../_hooks/use-comment-page";
 import { ShieldCheck, ShieldX, Download, Trash2 } from "lucide-react";
@@ -18,64 +19,54 @@ import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
 
 function EditCommentModal({ cm }: { cm: CommentPageState }) {
   return (
-    <Modal
+    <AdminDialog
       isOpen={cm.editModal.isOpen}
-      onOpenChange={cm.editModal.onOpenChange}
-      backdrop="blur"
-      placement="center"
+      onClose={cm.editModal.onClose}
       size="lg"
+      scrollBehavior="inside"
+      header={{
+        title: "编辑评论",
+        description: "修改评论者信息与内容",
+        icon: Pencil,
+      }}
     >
-      <ModalContent>
-        {onClose => (
-          <>
-            <ModalHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary-50">
-                  <Pencil className="w-5 h-5 text-primary" />
-                </div>
-                <span>编辑评论</span>
-              </div>
-            </ModalHeader>
-            <ModalBody className="gap-4">
-              <div className="grid grid-cols-2 gap-3">
-                <FormInput
-                  label="昵称"
-                  size="sm"
-                  value={cm.editForm.nickname ?? ""}
-                  onValueChange={v => cm.setEditForm({ ...cm.editForm, nickname: v })}
-                />
-                <FormInput
-                  label="邮箱"
-                  size="sm"
-                  value={cm.editForm.email ?? ""}
-                  onValueChange={v => cm.setEditForm({ ...cm.editForm, email: v })}
-                />
-              </div>
-              <FormInput
-                label="网站"
-                size="sm"
-                value={cm.editForm.website ?? ""}
-                onValueChange={v => cm.setEditForm({ ...cm.editForm, website: v })}
-              />
-              <FormTextarea
-                label="评论内容（Markdown）"
-                minRows={4}
-                value={cm.editForm.content ?? ""}
-                onValueChange={v => cm.setEditForm({ ...cm.editForm, content: v })}
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={cm.updateCommentInfo.isPending}>
-                取消
-              </Button>
-              <Button color="primary" onPress={cm.handleEditConfirm} isLoading={cm.updateCommentInfo.isPending}>
-                保存
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+      <ModalBody className="gap-4">
+        <div className="grid grid-cols-2 gap-3">
+          <FormInput
+            label="昵称"
+            size="sm"
+            value={cm.editForm.nickname ?? ""}
+            onValueChange={v => cm.setEditForm({ ...cm.editForm, nickname: v })}
+          />
+          <FormInput
+            label="邮箱"
+            size="sm"
+            value={cm.editForm.email ?? ""}
+            onValueChange={v => cm.setEditForm({ ...cm.editForm, email: v })}
+          />
+        </div>
+        <FormInput
+          label="网站"
+          size="sm"
+          value={cm.editForm.website ?? ""}
+          onValueChange={v => cm.setEditForm({ ...cm.editForm, website: v })}
+        />
+        <FormTextarea
+          label="评论内容（Markdown）"
+          minRows={4}
+          value={cm.editForm.content ?? ""}
+          onValueChange={v => cm.setEditForm({ ...cm.editForm, content: v })}
+        />
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="flat" onPress={cm.editModal.onClose} isDisabled={cm.updateCommentInfo.isPending}>
+          取消
+        </Button>
+        <Button color="primary" onPress={cm.handleEditConfirm} isLoading={cm.updateCommentInfo.isPending}>
+          保存
+        </Button>
+      </ModalFooter>
+    </AdminDialog>
   );
 }
 
@@ -107,74 +98,61 @@ function ImportCommentModal({ cm }: { cm: CommentPageState }) {
   };
 
   return (
-    <Modal isOpen={cm.importModal.isOpen} onOpenChange={cm.importModal.onOpenChange} backdrop="blur" placement="center">
-      <ModalContent>
-        {onClose => (
-          <>
-            <ModalHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary-50">
-                  <Upload className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <span>导入评论</span>
-                  <p className="text-xs text-default-400 font-normal mt-0.5">支持 JSON 或 ZIP 格式</p>
-                </div>
+    <AdminDialog
+      isOpen={cm.importModal.isOpen}
+      onClose={cm.importModal.onClose}
+      scrollBehavior="inside"
+      header={{
+        title: "导入评论",
+        description: "支持 JSON 或 ZIP 格式",
+        icon: Upload,
+      }}
+    >
+      <ModalBody>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,.zip"
+          onChange={e => setFile(e.target.files?.[0] ?? null)}
+          className="hidden"
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            "w-full border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
+            file
+              ? "border-primary/50 bg-primary-50/30"
+              : "border-default-200 hover:border-primary/30 hover:bg-default-50"
+          )}
+        >
+          {file ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-2.5 rounded-xl bg-primary-100">
+                <FileText className="w-6 h-6 text-primary" />
               </div>
-            </ModalHeader>
-            <ModalBody>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json,.zip"
-                onChange={e => setFile(e.target.files?.[0] ?? null)}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                  "w-full border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer",
-                  file
-                    ? "border-primary/50 bg-primary-50/30"
-                    : "border-default-200 hover:border-primary/30 hover:bg-default-50"
-                )}
-              >
-                {file ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="p-2.5 rounded-xl bg-primary-100">
-                      <FileText className="w-6 h-6 text-primary" />
-                    </div>
-                    <span className="text-sm font-medium">{file.name}</span>
-                    <span className="text-xs text-default-400">{(file.size / 1024).toFixed(1)} KB</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-default-400">
-                    <div className="p-2.5 rounded-xl bg-default-100">
-                      <Upload className="w-6 h-6" />
-                    </div>
-                    <span className="text-sm font-medium">点击选择文件</span>
-                    <span className="text-xs text-default-300">JSON / ZIP</span>
-                  </div>
-                )}
-              </button>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={cm.importCommentsHook.isPending}>
-                取消
-              </Button>
-              <Button
-                color="primary"
-                onPress={handleImport}
-                isDisabled={!file}
-                isLoading={cm.importCommentsHook.isPending}
-              >
-                开始导入
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+              <span className="text-sm font-medium">{file.name}</span>
+              <span className="text-xs text-default-400">{(file.size / 1024).toFixed(1)} KB</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-default-400">
+              <div className="p-2.5 rounded-xl bg-default-100">
+                <Upload className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-medium">点击选择文件</span>
+              <span className="text-xs text-default-300">JSON / ZIP</span>
+            </div>
+          )}
+        </button>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="flat" onPress={cm.importModal.onClose} isDisabled={cm.importCommentsHook.isPending}>
+          取消
+        </Button>
+        <Button color="primary" onPress={handleImport} isDisabled={!file} isLoading={cm.importCommentsHook.isPending}>
+          开始导入
+        </Button>
+      </ModalFooter>
+    </AdminDialog>
   );
 }
 

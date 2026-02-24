@@ -1,9 +1,10 @@
 "use client";
 
-import { Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/react";
-import { HardDrive, CloudCog, Globe, CloudUpload, Server, Warehouse } from "lucide-react";
+import { ModalBody } from "@heroui/react";
+import { HardDrive, CloudCog, Globe, CloudUpload, Server, Warehouse, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STORAGE_TYPES, STORAGE_TYPE_LABELS, type StoragePolicyType } from "@/types/storage-policy";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 
 const TYPE_ICONS: Record<StoragePolicyType, typeof Server> = {
   local: HardDrive,
@@ -22,14 +23,16 @@ interface StorageTypeSelectorProps {
 
 export function StorageTypeSelector({ isOpen, onOpenChange, onSelect }: StorageTypeSelectorProps) {
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="blur" placement="center" size="lg">
-      <ModalContent>
-        {onClose => (
-          <>
-            <ModalHeader className="flex flex-col gap-1 pb-2">
-              <span className="text-lg font-semibold">选择存储方式</span>
-              <span className="text-xs text-muted-foreground font-normal">请选择要添加的存储策略类型</span>
-            </ModalHeader>
+    <AdminDialog
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      backdrop="blur"
+      placement="center"
+      size="lg"
+      header={{ title: "选择存储方式", description: "请选择要添加的存储策略类型", icon: Database }}
+    >
+      {onClose => (
+        <>
             <ModalBody className="pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {STORAGE_TYPES.map(type => {
@@ -55,9 +58,8 @@ export function StorageTypeSelector({ isOpen, onOpenChange, onSelect }: StorageT
                 })}
               </div>
             </ModalBody>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+        </>
+      )}
+    </AdminDialog>
   );
 }

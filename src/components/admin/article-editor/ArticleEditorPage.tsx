@@ -230,6 +230,7 @@ export function ArticleEditorPage({ articleId }: ArticleEditorPageProps) {
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         articleId={articleId}
+        isDoc={meta.is_doc}
         autoSaveStatus={autoSaveStatus}
         lastSavedAt={lastSavedAt}
         articleUpdatedAt={article?.updated_at}

@@ -1,290 +1,253 @@
 "use client";
 
 import { useState } from "react";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
-import { Button } from "@/components/ui";
-import { Crown, Edit, CheckCircle, Clock, Star, Gift, Calendar, TrendingUp, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { formatDateCN } from "@/utils/date";
-
-// 模拟会员数据
-const mockMembers = [
-  {
-    id: 1,
-    username: "张三",
-    email: "zhang@test.com",
-    plan: "年卡",
-    status: "active",
-    startDate: "2026-01-15",
-    endDate: "2027-01-15",
-    amount: 299,
-  },
-  {
-    id: 2,
-    username: "李四",
-    email: "li@test.com",
-    plan: "季卡",
-    status: "active",
-    startDate: "2026-01-01",
-    endDate: "2026-04-01",
-    amount: 99,
-  },
-  {
-    id: 3,
-    username: "王五",
-    email: "wang@test.com",
-    plan: "月卡",
-    status: "active",
-    startDate: "2026-01-20",
-    endDate: "2026-02-20",
-    amount: 39,
-  },
-  {
-    id: 4,
-    username: "赵六",
-    email: "zhao@test.com",
-    plan: "年卡",
-    status: "expired",
-    startDate: "2025-01-10",
-    endDate: "2026-01-10",
-    amount: 299,
-  },
-  {
-    id: 5,
-    username: "孙七",
-    email: "sun@test.com",
-    plan: "季卡",
-    status: "active",
-    startDate: "2025-12-01",
-    endDate: "2026-03-01",
-    amount: 99,
-  },
-  {
-    id: 6,
-    username: "周八",
-    email: "zhou@test.com",
-    plan: "月卡",
-    status: "expiring",
-    startDate: "2026-01-05",
-    endDate: "2026-02-05",
-    amount: 39,
-  },
-];
-
-type MemberItem = (typeof mockMembers)[number];
-
-const statusConfig: Record<
-  string,
-  { label: string; icon: React.ComponentType<{ className?: string }>; className: string }
-> = {
-  active: { label: "有效", icon: CheckCircle, className: "text-green bg-green/10" },
-  expired: { label: "已过期", icon: Clock, className: "text-muted-foreground bg-muted" },
-  expiring: { label: "即将到期", icon: Clock, className: "text-yellow bg-yellow/10" },
-};
-
-const planConfig: Record<string, { label: string; className: string }> = {
-  年卡: { label: "年卡", className: "text-primary bg-primary/10" },
-  季卡: { label: "季卡", className: "text-blue bg-blue/10" },
-  月卡: { label: "月卡", className: "text-green bg-green/10" },
-};
+import {
+  Button,
+  Card,
+  CardBody,
+  Chip,
+  Pagination,
+  Select,
+  SelectItem,
+  Spinner,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@heroui/react";
+import { motion } from "framer-motion";
+import { Crown, Plus, Edit, Trash2, GripVertical, Power, PowerOff, ShieldAlert } from "lucide-react";
+import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
+import { formatDateTime } from "@/utils/date";
+import { ConfirmDialog } from "@/components/admin";
+import { PlanEditDialog } from "./_components/PlanEditDialog";
+import { useMembershipsPage } from "./_hooks/use-memberships-page";
+import { addToast } from "@heroui/react";
 
 export default function MembershipsPage() {
-  const [members] = useState(mockMembers);
-  const [filter, setFilter] = useState("all");
-
-  const filteredMembers = filter === "all" ? members : members.filter(m => m.status === filter);
-
-  // 计算统计数据
-  const activeMembers = members.filter(m => m.status === "active" || m.status === "expiring").length;
-  const totalRevenue = members.reduce((acc, m) => acc + m.amount, 0);
-  const expiringCount = members.filter(m => m.status === "expiring").length;
-
-  const columns: Column<MemberItem>[] = [
-    {
-      key: "username",
-      header: "会员",
-      render: member => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-yellow/20 to-yellow/40 flex items-center justify-center">
-            <Crown className="w-5 h-5 text-yellow" />
-          </div>
-          <div>
-            <p className="font-medium">{member.username}</p>
-            <p className="text-xs text-muted-foreground">{member.email}</p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "plan",
-      header: "套餐",
-      render: member => {
-        const config = planConfig[member.plan];
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              config.className
-            )}
-          >
-            <Star className="w-3.5 h-3.5" />
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "status",
-      header: "状态",
-      render: member => {
-        const config = statusConfig[member.status];
-        const Icon = config.icon;
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              config.className
-            )}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "endDate",
-      header: "到期时间",
-      sortable: true,
-      render: member => (
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5" />
-          {formatDateCN(member.endDate)}
-        </div>
-      ),
-    },
-    {
-      key: "amount",
-      header: "金额",
-      sortable: true,
-      align: "right",
-      render: member => <span className="font-semibold">¥{member.amount}</span>,
-    },
-  ];
-
-  const filterTabs = [
-    { key: "all", label: "全部", count: members.length },
-    { key: "active", label: "有效", count: members.filter(m => m.status === "active").length },
-    { key: "expiring", label: "即将到期", count: members.filter(m => m.status === "expiring").length },
-    { key: "expired", label: "已过期", count: members.filter(m => m.status === "expired").length },
-  ];
+  const mm = useMembershipsPage();
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="会员管理"
-        description="管理 Pro 会员订阅"
-        icon={Crown}
-        actions={
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow/10 text-yellow text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            PRO 功能
-          </div>
-        }
+    <motion.div
+      className="relative h-full flex flex-col overflow-hidden -m-4 lg:-m-8"
+      variants={adminContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={adminItemVariants} className="flex-1 min-h-0 mx-6 mt-5 mb-2 overflow-hidden">
+        <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_1fr] gap-4 h-full">
+          <Card className="border border-border/60 shadow-sm overflow-hidden">
+            <CardBody className="p-0 h-full flex flex-col">
+              <div className="px-5 pt-4 pb-3 border-b border-border/50 flex items-center justify-between">
+                <div>
+                  <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-warning" />
+                    会员套餐
+                  </h1>
+                  <p className="text-xs text-muted-foreground mt-1">拖拽卡片可调整展示顺序</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {mm.isSorting ? (
+                    <Chip size="sm" variant="flat" color="secondary">
+                      排序保存中...
+                    </Chip>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    color="primary"
+                    startContent={<Plus className="w-4 h-4" />}
+                    onPress={mm.handleCreateOpen}
+                  >
+                    创建套餐
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+                {mm.isPlansLoading ? (
+                  <div className="py-12 flex justify-center">
+                    <Spinner label="加载套餐中..." size="sm" />
+                  </div>
+                ) : mm.plans.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-default-500">暂无会员套餐，点击右上角创建</div>
+                ) : (
+                  mm.plans.map((plan, index) => (
+                    <div
+                      key={plan.id}
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={event => event.preventDefault()}
+                      onDrop={async () => {
+                        if (dragIndex === null) return;
+                        await mm.reorderPlans(dragIndex, index);
+                        setDragIndex(null);
+                      }}
+                      className="rounded-xl border border-default-200 p-3 bg-default-50/40 dark:bg-default-100/30"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2">
+                          <button
+                            className="mt-1 cursor-grab text-default-400 hover:text-default-600"
+                            aria-label="拖拽排序"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </button>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{plan.name}</p>
+                              <Chip size="sm" variant="flat" color={plan.status === 1 ? "success" : "default"}>
+                                {plan.status === 1 ? "启用" : "停用"}
+                              </Chip>
+                            </div>
+                            <p className="text-sm mt-1">
+                              <span className="text-primary font-semibold">¥{(plan.price / 100).toFixed(2)}</span>
+                              {plan.original_price ? (
+                                <span className="ml-2 text-xs line-through text-default-400">
+                                  ¥{(plan.original_price / 100).toFixed(2)}
+                                </span>
+                              ) : null}
+                              <span className="ml-2 text-xs text-default-500">/ {plan.duration_days} 天</span>
+                            </p>
+                            {plan.description ? (
+                              <p className="text-xs text-default-500 mt-1">{plan.description}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" variant="light" isIconOnly onPress={() => mm.handleEditOpen(plan)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="light"
+                            isIconOnly
+                            color={plan.status === 1 ? "warning" : "success"}
+                            onPress={async () => {
+                              try {
+                                await mm.handleTogglePlanStatus(plan);
+                              } catch (error) {
+                                addToast({
+                                  title: error instanceof Error ? error.message : "切换状态失败",
+                                  color: "danger",
+                                  timeout: 3000,
+                                });
+                              }
+                            }}
+                          >
+                            {plan.status === 1 ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="light"
+                            isIconOnly
+                            color="danger"
+                            onPress={() => mm.handleDeleteClick(plan)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card className="border border-border/60 shadow-sm overflow-hidden">
+            <CardBody className="p-0 h-full flex flex-col">
+              <div className="px-5 pt-4 pb-3 border-b border-border/50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight">会员用户</h2>
+                  <p className="text-xs text-muted-foreground mt-1">查看已订阅用户及到期状态</p>
+                </div>
+                <Select
+                  aria-label="会员状态筛选"
+                  className="max-w-[140px]"
+                  placeholder="全部"
+                  selectedKeys={mm.memberStatusFilter ? [mm.memberStatusFilter] : []}
+                  isClearable
+                  size="sm"
+                  onSelectionChange={keys => {
+                    const key = Array.from(keys)[0];
+                    mm.setMemberStatusFilter(key ? (String(key) as "active" | "expired") : "");
+                    mm.setPage(1);
+                  }}
+                  onClear={() => {
+                    mm.setMemberStatusFilter("");
+                    mm.setPage(1);
+                  }}
+                >
+                  <SelectItem key="active">有效</SelectItem>
+                  <SelectItem key="expired">已过期</SelectItem>
+                </Select>
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-hidden px-3 py-2">
+                <Table aria-label="会员用户列表" removeWrapper>
+                  <TableHeader>
+                    <TableColumn key="user_id">用户ID</TableColumn>
+                    <TableColumn key="plan_name">套餐</TableColumn>
+                    <TableColumn key="start_time">开始时间</TableColumn>
+                    <TableColumn key="expire_time">到期时间</TableColumn>
+                    <TableColumn key="status">状态</TableColumn>
+                  </TableHeader>
+                  <TableBody
+                    items={mm.members}
+                    isLoading={mm.isMembersLoading}
+                    loadingContent={<Spinner size="sm" label="加载中..." />}
+                    emptyContent="暂无会员用户"
+                  >
+                    {member => (
+                      <TableRow key={String(member.id)}>
+                        <TableCell>{member.user_id}</TableCell>
+                        <TableCell>{member.plan_name || "-"}</TableCell>
+                        <TableCell>{formatDateTime(member.start_time)}</TableCell>
+                        <TableCell>{formatDateTime(member.expire_time)}</TableCell>
+                        <TableCell>
+                          <Chip size="sm" variant="flat" color={member.is_expired ? "default" : "success"}>
+                            {member.is_expired ? "已过期" : "有效"}
+                          </Chip>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="px-4 pb-3 flex items-center justify-between">
+                <span className="text-xs text-default-500">共 {mm.membersTotal} 位会员</span>
+                <Pagination isCompact showControls page={mm.page} total={mm.totalPages} onChange={mm.setPage} />
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      </motion.div>
+
+      <ConfirmDialog
+        isOpen={mm.deleteModal.isOpen}
+        onOpenChange={mm.deleteModal.onOpenChange}
+        title="删除会员套餐"
+        description={`确定要删除套餐「${mm.deleteTarget?.name || ""}」吗？已购买会员不受影响。`}
+        confirmText="删除"
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={false}
+        onConfirm={mm.handleDeleteConfirm}
       />
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <AdminCard>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-yellow/10">
-              <Crown className="w-6 h-6 text-yellow" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{members.length}</p>
-              <p className="text-xs text-muted-foreground">会员总数</p>
-            </div>
-          </div>
-        </AdminCard>
-        <AdminCard delay={0.05}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-green/10">
-              <CheckCircle className="w-6 h-6 text-green" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{activeMembers}</p>
-              <p className="text-xs text-muted-foreground">活跃会员</p>
-            </div>
-          </div>
-        </AdminCard>
-        <AdminCard delay={0.1}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary/10">
-              <TrendingUp className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">¥{totalRevenue}</p>
-              <p className="text-xs text-muted-foreground">会员收入</p>
-            </div>
-          </div>
-        </AdminCard>
-        <AdminCard delay={0.15}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-orange/10">
-              <Clock className="w-6 h-6 text-orange" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{expiringCount}</p>
-              <p className="text-xs text-muted-foreground">即将到期</p>
-            </div>
-          </div>
-        </AdminCard>
-      </div>
-
-      {/* 筛选标签 */}
-      <div className="flex items-center gap-2">
-        {filterTabs.map(tab => (
-          <Button
-            key={tab.key}
-            variant={filter === tab.key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter(tab.key)}
-            className="gap-1.5"
-          >
-            {tab.label}
-            <span
-              className={cn(
-                "px-1.5 py-0.5 rounded text-[10px]",
-                filter === tab.key ? "bg-primary-foreground/20" : "bg-muted"
-              )}
-            >
-              {tab.count}
-            </span>
-          </Button>
-        ))}
-      </div>
-
-      {/* 会员列表 */}
-      <AdminCard title="会员列表" noPadding>
-        <AdminDataTable
-          data={filteredMembers}
-          columns={columns}
-          searchable
-          searchPlaceholder="搜索会员..."
-          searchKeys={["username", "email"]}
-          rowActions={() => (
-            <div className="flex items-center gap-1 justify-end">
-              <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-primary">
-                <Gift className="w-3.5 h-3.5" />
-                续费
-              </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Edit className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        />
-      </AdminCard>
-    </div>
+      <PlanEditDialog
+        key={`${mm.editingPlan?.id ?? "new"}-${mm.editModal.isOpen ? "open" : "closed"}`}
+        isOpen={mm.editModal.isOpen}
+        onOpenChange={mm.editModal.onOpenChange}
+        plan={mm.editingPlan}
+        onSubmit={mm.handleSavePlan}
+        isSubmitting={mm.isSubmitting}
+      />
+    </motion.div>
   );
 }

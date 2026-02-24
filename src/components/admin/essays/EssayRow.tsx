@@ -19,15 +19,7 @@ interface EssayRowProps {
   onDelete: (essay: Essay) => void;
 }
 
-export function EssayRow({
-  essay,
-  index,
-  isSelected,
-  onToggleSelect,
-  onEdit,
-  onView,
-  onDelete,
-}: EssayRowProps) {
+export function EssayRow({ essay, index, isSelected, onToggleSelect, onEdit, onView, onDelete }: EssayRowProps) {
   const badge = ESSAY_STATUS_CONFIG[essay.status] ?? { label: "未知", className: "bg-zinc-100 text-zinc-600" };
   const hasMusic = !!(essay.aplayer && essay.aplayer.id);
   const hasImages = !!(essay.image && essay.image.length > 0);
@@ -79,14 +71,14 @@ export function EssayRow({
       {/* 媒体 */}
       <div className="flex items-center justify-center">
         {hasMusic ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400">
             <Music className="w-3 h-3" />
             音乐
           </span>
         ) : hasImages ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
             <ImageIcon className="w-3 h-3" />
-            {imageCount}
+            {imageCount}张
           </span>
         ) : (
           <span className="text-xs text-muted-foreground/30">-</span>
@@ -100,7 +92,7 @@ export function EssayRow({
 
       {/* 发布者 */}
       <div className="hidden md:flex items-center justify-center">
-        <span className="text-xs text-muted-foreground truncate max-w-[56px]">{essay.from || "-"}</span>
+        {essay.from ? <span className="text-xs text-muted-foreground truncate max-w-[56px]">{essay.from}</span> : null}
       </div>
 
       {/* 状态 */}
@@ -130,13 +122,34 @@ export function EssayRow({
 
       {/* 操作 */}
       <div className="flex items-center justify-center gap-1.5">
-        <Button size="sm" color="primary" variant="flat" onPress={() => onEdit(essay)} startContent={<Edit className="w-3 h-3" />} className="h-7 min-w-0 px-2.5 text-xs font-medium">
+        <Button
+          size="sm"
+          color="primary"
+          variant="flat"
+          onPress={() => onEdit(essay)}
+          startContent={<Edit className="w-3 h-3" />}
+          className="h-7 min-w-0 px-2.5 text-xs font-medium"
+        >
           编辑
         </Button>
-        <Button size="sm" color="success" variant="flat" onPress={() => onView(essay)} startContent={<Eye className="w-3 h-3" />} className="h-7 min-w-0 px-2.5 text-xs font-medium">
+        <Button
+          size="sm"
+          color="success"
+          variant="flat"
+          onPress={() => onView(essay)}
+          startContent={<Eye className="w-3 h-3" />}
+          className="h-7 min-w-0 px-2.5 text-xs font-medium"
+        >
           查看
         </Button>
-        <Button size="sm" color="danger" variant="flat" onPress={() => onDelete(essay)} startContent={<Trash2 className="w-3 h-3" />} className="h-7 min-w-0 px-2.5 text-xs font-medium">
+        <Button
+          size="sm"
+          color="danger"
+          variant="flat"
+          onPress={() => onDelete(essay)}
+          startContent={<Trash2 className="w-3 h-3" />}
+          className="h-7 min-w-0 px-2.5 text-xs font-medium"
+        >
           删除
         </Button>
       </div>

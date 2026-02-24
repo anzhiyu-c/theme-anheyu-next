@@ -120,3 +120,10 @@ export * from "./file-manager";
 
 // 导出用户管理相关类型
 export * from "./user-management";
+
+// 导出运营管理相关类型
+export * from "./order";
+export * from "./donation";
+export * from "./product";
+export * from "./membership";
+export * from "./support";

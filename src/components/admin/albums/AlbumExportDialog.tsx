@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { Download } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
 import { useExportAlbums } from "@/hooks/queries/use-album";
 import type { AlbumExportFormat } from "@/types/album";
@@ -45,35 +47,37 @@ export default function AlbumExportDialog({ isOpen, onClose, selectedIds, totalI
   }, [exportAlbums, handleClose, hasSelection, selectedAlbumIds, format]);
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
-      <ModalContent>
-        <ModalHeader>导出相册</ModalHeader>
-        <ModalBody className="gap-4">
-          <p className="text-sm text-default-600">
-            {hasSelection
-              ? `即将导出选中的 ${selectedAlbumIds.length} 个相册。`
-              : `未选择具体项，将导出全部相册（共 ${totalItems} 个）。`}
-          </p>
+    <AdminDialog
+      isOpen={isOpen}
+      onClose={handleClose}
+      size="md"
+      header={{ title: "导出相册", description: "选择导出范围与格式并下载数据", icon: Download }}
+    >
+      <ModalBody className="gap-4">
+        <p className="text-sm text-default-600">
+          {hasSelection
+            ? `即将导出选中的 ${selectedAlbumIds.length} 个相册。`
+            : `未选择具体项，将导出全部相册（共 ${totalItems} 个）。`}
+        </p>
 
-          <FormSelect
-            label="导出格式"
-            value={format}
-            onValueChange={value => setFormat(value as AlbumExportFormat)}
-            description={`本次导出数据量：${exportCount} 个相册`}
-          >
-            <FormSelectItem key="json">JSON（纯文本）</FormSelectItem>
-            <FormSelectItem key="zip">ZIP（压缩包）</FormSelectItem>
-          </FormSelect>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="flat" onPress={handleClose}>
-            取消
-          </Button>
-          <Button color="primary" onPress={handleExport} isLoading={exportAlbums.isPending}>
-            导出
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        <FormSelect
+          label="导出格式"
+          value={format}
+          onValueChange={value => setFormat(value as AlbumExportFormat)}
+          description={`本次导出数据量：${exportCount} 个相册`}
+        >
+          <FormSelectItem key="json">JSON（纯文本）</FormSelectItem>
+          <FormSelectItem key="zip">ZIP（压缩包）</FormSelectItem>
+        </FormSelect>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="flat" onPress={handleClose}>
+          取消
+        </Button>
+        <Button color="primary" onPress={handleExport} isLoading={exportAlbums.isPending}>
+          导出
+        </Button>
+      </ModalFooter>
+    </AdminDialog>
   );
 }

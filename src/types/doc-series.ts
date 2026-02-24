@@ -41,3 +41,21 @@ export interface DocSeriesListParams {
   pageSize?: number;
   keyword?: string;
 }
+
+// ===================================
+//     文档系列文章项 (DocArticleItem)
+// ===================================
+
+/** 文档系列中的单篇文章条目 */
+export interface DocArticleItem {
+  id: string;
+  title: string;
+  abbrlink: string;
+  doc_sort: number;
+  created_at: string;
+}
+
+/** 带文章列表的文档系列（公共 API 返回） */
+export interface DocSeriesWithArticles extends DocSeries {
+  articles: DocArticleItem[];
+}

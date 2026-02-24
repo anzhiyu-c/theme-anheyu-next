@@ -5,8 +5,9 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from "@heroui/react";
+import { ModalBody, ModalFooter, Button } from "@heroui/react";
 import { Crop, RotateCcw } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 
 interface ImageCropDialogProps {
   isOpen: boolean;
@@ -204,67 +205,56 @@ export function ImageCropDialog({ isOpen, onOpenChange, imageSrc, onCropComplete
   const hasCrop = cropArea && cropArea.width > 10 && cropArea.height > 10;
 
   return (
-    <Modal
+    <AdminDialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       size="2xl"
       classNames={{ wrapper: "z-[200]", backdrop: "z-[199]" }}
+      header={{ title: "裁剪图片", description: "拖拽选择区域并生成新的裁剪图片", icon: Crop }}
     >
-      <ModalContent>
-        {onClose => (
-          <>
-            <ModalHeader className="flex items-center gap-2 text-base">
-              <Crop className="w-4 h-4" />
-              <span>裁剪图片</span>
-            </ModalHeader>
-
-            <ModalBody>
-              {loadError ? (
-                <div className="flex items-center justify-center h-[300px] text-default-400 text-sm">
-                  无法加载图片，可能存在跨域限制
-                </div>
-              ) : (
-                <div
-                  ref={containerRef}
-                  className="flex items-center justify-center bg-default-50 rounded-lg overflow-hidden"
-                >
-                  <canvas
-                    ref={canvasRef}
-                    className="cursor-crosshair"
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                  />
-                </div>
-              )}
-              {hasCrop && (
-                <div className="text-xs text-default-400 text-center mt-2">
-                  裁剪区域: {Math.round(cropArea.width / scaleRef.current)} x{" "}
-                  {Math.round(cropArea.height / scaleRef.current)} px
-                </div>
-              )}
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                variant="flat"
-                size="sm"
-                startContent={<RotateCcw className="w-3.5 h-3.5" />}
-                onPress={handleReset}
+      {onClose => (
+        <>
+          <ModalBody>
+            {loadError ? (
+              <div className="flex items-center justify-center h-[300px] text-default-400 text-sm">
+                无法加载图片，可能存在跨域限制
+              </div>
+            ) : (
+              <div
+                ref={containerRef}
+                className="flex items-center justify-center bg-default-50 rounded-lg overflow-hidden"
               >
-                重置
-              </Button>
-              <Button variant="flat" onPress={onClose} size="sm">
-                取消
-              </Button>
-              <Button color="primary" onPress={handleCrop} isDisabled={!hasCrop} size="sm">
-                确认裁剪
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+                <canvas
+                  ref={canvasRef}
+                  className="cursor-crosshair"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                />
+              </div>
+            )}
+            {hasCrop && (
+              <div className="text-xs text-default-400 text-center mt-2">
+                裁剪区域: {Math.round(cropArea.width / scaleRef.current)} x{" "}
+                {Math.round(cropArea.height / scaleRef.current)} px
+              </div>
+            )}
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="flat" size="sm" startContent={<RotateCcw className="w-3.5 h-3.5" />} onPress={handleReset}>
+              重置
+            </Button>
+            <Button variant="flat" onPress={onClose} size="sm">
+              取消
+            </Button>
+            <Button color="primary" onPress={handleCrop} isDisabled={!hasCrop} size="sm">
+              确认裁剪
+            </Button>
+          </ModalFooter>
+        </>
+      )}
+    </AdminDialog>
   );
 }

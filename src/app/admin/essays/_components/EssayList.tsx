@@ -19,7 +19,8 @@ import {
 } from "@heroui/react";
 import { Edit, Eye, Trash2, Music, Image as ImageIcon, MessageCircle, ChevronDown } from "lucide-react";
 import { formatDateTimeParts } from "@/utils/date";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 import type { Essay } from "@/lib/api/essay";
 import type { EssaysPageState } from "../_hooks/use-essays-page";
 
@@ -43,26 +44,6 @@ const TABLE_COLUMNS = [
   { key: "time", label: "时间" },
   { key: "actions", label: "操作" },
 ];
-
-// ===================================
-//       空状态（内联 emptyContent）
-// ===================================
-
-function EssayEmptyState({ hasFilter }: { hasFilter: boolean }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 py-12">
-      <div className="w-16 h-16 rounded-2xl bg-muted/40 flex items-center justify-center">
-        <MessageCircle className="w-7 h-7 text-muted-foreground/25" />
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted-foreground">{hasFilter ? "没有匹配的说说" : "还没有说说"}</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">
-          {hasFilter ? "试试调整筛选条件" : "点击「发布说说」开始分享你的动态"}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 // ===================================
 //          说说列表
@@ -114,7 +95,9 @@ export function EssayList({ cm }: { cm: EssaysPageState }) {
           return (
             <div className="flex flex-col gap-0.5">
               <span className="text-xs text-muted-foreground truncate max-w-[80px]">{essay.address || "-"}</span>
-              <span className="text-xs text-muted-foreground/50 truncate max-w-[80px]">{essay.from || "-"}</span>
+              {essay.from ? (
+                <span className="text-xs text-muted-foreground/50 truncate max-w-[80px]">{essay.from}</span>
+              ) : null}
             </div>
           );
         case "time": {
@@ -272,7 +255,16 @@ export function EssayList({ cm }: { cm: EssaysPageState }) {
         </TableHeader>
         <TableBody
           items={cm.essays}
-          emptyContent={<EssayEmptyState hasFilter={!!cm.statusFilter} />}
+          emptyContent={
+            <TableEmptyState
+              icon={MessageCircle}
+              hasFilter={!!cm.statusFilter}
+              filterEmptyText={ADMIN_EMPTY_TEXTS.essays.filterEmptyText}
+              emptyText={ADMIN_EMPTY_TEXTS.essays.emptyText}
+              filterHint={ADMIN_EMPTY_TEXTS.essays.filterHint}
+              emptyHint={ADMIN_EMPTY_TEXTS.essays.emptyHint}
+            />
+          }
           isLoading={cm.isFetching && !cm.isLoading}
           loadingContent={<Spinner size="sm" label="加载中..." />}
         >

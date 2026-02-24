@@ -2,9 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
   ModalFooter,
   Button,
@@ -17,6 +14,8 @@ import {
   Spinner,
   addToast,
 } from "@heroui/react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
+import { Settings2 } from "lucide-react";
 import { themeMallApi } from "@/lib/api/theme-mall";
 import type { ThemeSettingGroup, ThemeSettingField } from "@/types/theme-mall";
 
@@ -78,7 +77,9 @@ export function ThemeConfigDialog({ themeName, onClose }: ThemeConfigDialogProps
     };
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [themeName]);
 
   // 字段变更
@@ -93,12 +94,18 @@ export function ThemeConfigDialog({ themeName, onClose }: ThemeConfigDialogProps
       const { field: depField, operator, value } = field.condition;
       const currentValue = configValues[depField];
       switch (operator) {
-        case "eq": return currentValue === value;
-        case "neq": return currentValue !== value;
-        case "contains": return String(currentValue).includes(String(value));
-        case "gt": return Number(currentValue) > Number(value);
-        case "lt": return Number(currentValue) < Number(value);
-        default: return true;
+        case "eq":
+          return currentValue === value;
+        case "neq":
+          return currentValue !== value;
+        case "contains":
+          return String(currentValue).includes(String(value));
+        case "gt":
+          return Number(currentValue) > Number(value);
+        case "lt":
+          return Number(currentValue) < Number(value);
+        default:
+          return true;
       }
     },
     [configValues]
@@ -134,17 +141,22 @@ export function ThemeConfigDialog({ themeName, onClose }: ThemeConfigDialogProps
   }, [onClose]);
 
   // 当前分组
-  const currentGroup = useMemo(
-    () => settingGroups.find(g => g.group === activeGroup),
-    [settingGroups, activeGroup]
-  );
+  const currentGroup = useMemo(() => settingGroups.find(g => g.group === activeGroup), [settingGroups, activeGroup]);
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={open => { if (!open) handleClose(); }} size="2xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader className="text-base font-semibold">
-          {themeName} - 主题配置
-        </ModalHeader>
+    <AdminDialog
+      isOpen={isOpen}
+      onOpenChange={open => {
+        if (!open) handleClose();
+      }}
+      size="2xl"
+      scrollBehavior="inside"
+      header={{
+        title: `${themeName} - 主题配置`,
+        description: "调整主题参数并实时保存配置",
+        icon: Settings2,
+      }}
+    >
         <ModalBody className="gap-0 p-0">
           {loading ? (
             <div className="flex items-center justify-center py-16">
@@ -242,11 +254,7 @@ export function ThemeConfigDialog({ themeName, onClose }: ThemeConfigDialogProps
                               <p className="text-xs text-muted-foreground mt-0.5">{field.description}</p>
                             )}
                           </div>
-                          <Switch
-                            isSelected={!!value}
-                            onValueChange={v => updateField(field.name, v)}
-                            size="sm"
-                          />
+                          <Switch isSelected={!!value} onValueChange={v => updateField(field.name, v)} size="sm" />
                         </div>
                       )}
                       {field.type === "color" && (
@@ -300,16 +308,10 @@ export function ThemeConfigDialog({ themeName, onClose }: ThemeConfigDialogProps
           <Button variant="flat" onPress={handleReset} isDisabled={settingGroups.length === 0}>
             恢复默认
           </Button>
-          <Button
-            color="primary"
-            onPress={handleSave}
-            isLoading={saving}
-            isDisabled={settingGroups.length === 0}
-          >
+          <Button color="primary" onPress={handleSave} isLoading={saving} isDisabled={settingGroups.length === 0}>
             保存配置
           </Button>
         </ModalFooter>
-      </ModalContent>
-    </Modal>
+    </AdminDialog>
   );
 }

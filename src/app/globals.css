@@ -1005,51 +1005,203 @@ html.dark [data-slot="content"][role="tooltip"] {
 
 /* ===================== AnHeYu Pro 变量映射 ===================== */
 :root {
-  /* AnHeYu Pro 主题色映射 */
-  --anzhiyu-main: var(--primary);
-  --anzhiyu-main-op: var(--primary-op);
-  --anzhiyu-main-op-deep: var(--primary-op-deep);
-  --anzhiyu-fontcolor: var(--foreground);
-  --anzhiyu-secondtext: var(--muted-foreground);
-  --anzhiyu-card-bg: var(--card);
-  --anzhiyu-secondbg: var(--muted);
-  --anzhiyu-white: #ffffff;
-  --anzhiyu-white-op: rgba(255, 255, 255, 0.2);
-  --anzhiyu-red: var(--red);
+  /* 主题色 */
   --anzhiyu-theme: var(--primary);
-  --anzhiyu-code-stress: var(--primary);
-  --anzhiyu-maskbgdeep: rgb(255 255 255 / 85%);
-  --anzhiyu-card-border: var(--border);
-  --anzhiyu-shadow-border: 0 8px 16px -4px rgba(44, 45, 48, 0.05);
-  --anzhiyu-shadow-lightblack: 0 5px 12px -5px rgba(102, 68, 68, 0.05);
-  --anzhiyu-lighttext: var(--primary);
+  --anzhiyu-theme-op: #4259ef23;
+  --anzhiyu-theme-op-deep: #4259efdd;
+  --anzhiyu-theme-op-light: #4259ef0d;
+  --anzhiyu-theme-none: #4259ef01;
 
-  /* 边框样式 */
-  --style-border: 1px solid var(--border);
-  --style-border-hover: 1px solid var(--primary);
-  --style-border-dashed: 1px dashed var(--anzhiyu-theme-op, var(--border));
-  --style-border-none: 1px solid transparent;
-  --style-border-always: 1px solid var(--border);
-  --style-border-avatar: 4px solid var(--card);
+  /* 主色调别名 */
+  --anzhiyu-main: var(--anzhiyu-theme);
+  --anzhiyu-main-op: var(--anzhiyu-theme-op);
+  --anzhiyu-main-op-deep: var(--anzhiyu-theme-op-deep);
+  --anzhiyu-main-op-light: var(--anzhiyu-theme-op-light);
+  --anzhiyu-main-none: var(--anzhiyu-theme-none);
+  --anzhiyu-code-stress: var(--anzhiyu-main);
+
+  /* 基础色 */
+  --anzhiyu-white: #fff;
+  --anzhiyu-white-op: rgb(255 255 255 / 20%);
+  --anzhiyu-black: #000;
+  --anzhiyu-black-op: rgb(0 0 0 / 20%);
+  --anzhiyu-none: #0000;
+
+  /* 语义色 */
+  --anzhiyu-blue: #3e86f6;
+  --anzhiyu-red: #d80020;
+  --anzhiyu-pink: #ff7c7c;
+  --anzhiyu-green: #57bd6a;
+  --anzhiyu-yellow: #c28b00;
+  --anzhiyu-yellow-op: #d99c001a;
+  --anzhiyu-orange: #e38100;
+  --anzhiyu-purple: #7a60d2;
+  --anzhiyu-gray: #999;
+  --anzhiyu-gray-op: #9999992b;
+  --anzhiyu-vip: #e5a80d;
+
+  /* 文字色 */
+  --anzhiyu-fontcolor: #363636;
+  --anzhiyu-secondtext: rgb(60 60 67 / 80%);
+  --anzhiyu-lighttext: var(--anzhiyu-main);
+  --anzhiyu-hovertext: var(--anzhiyu-main);
+  --anzhiyu-reverse: #000;
+  --text-highlight-color: #1f2d3d;
+  --font-color: #4c4948;
+
+  /* 背景色 */
+  --anzhiyu-background: #f7f9fe;
+  --anzhiyu-secondbg: #f1f3f8;
+  --anzhiyu-card-bg: #fff;
+  --anzhiyu-card-bg-op: var(--anzhiyu-black-op);
+  --anzhiyu-card-bg-none: rgb(255 255 255 / 0%);
+  --anzhiyu-card-bg-grey: #f0f2f5;
+  --anzhiyu-card-btn-bg: #edf0f7;
+  --anzhiyu-card-border: #e3e8f7;
+  --anzhiyu-ahoverbg: #f7f7fa;
+  --anzhiyu-post-blockquote-bg: #fafcff;
+  --anzhiyu-post-tabs-bg: #f2f5f8;
+
+  /* 遮罩 */
+  --anzhiyu-maskbg: rgb(255 255 255 / 60%);
+  --anzhiyu-maskbgdeep: rgb(255 255 255 / 85%);
+
+  /* 滚动条 */
+  --anzhiyu-scrollbar: rgb(60 60 67 / 40%);
+
+  /* 边框色 */
+  --anzhiyu-border-color: rgb(5 5 5 / 6%);
+  --anzhiyu-switch-off-color: #a6a6a6;
 
   /* 阴影 */
-  --anzhiyu-shadow-main: var(--shadow-lg);
+  --anzhiyu-shadow-theme: 0 8px 12px -3px var(--anzhiyu-theme-op);
+  --anzhiyu-shadow-main: 0 8px 12px -3px var(--anzhiyu-main-op);
+  --anzhiyu-shadow-border: 0 8px 16px -4px #2c2d300c;
+  --anzhiyu-shadow-blackdeep: 0 2px 16px -3px rgb(0 0 0 / 15%);
+  --anzhiyu-shadow-black: 0 0 12px 4px rgb(0 0 0 / 5%);
+  --anzhiyu-shadow-blue: 0 8px 12px -3px rgb(40 109 234 / 20%);
+  --anzhiyu-shadow-white: 0 8px 12px -3px rgb(255 255 255 / 20%);
+  --anzhiyu-shadow-yellow: 0px 38px 77px -26px rgb(255 201 62 / 12%);
+  --anzhiyu-shadow-red: 0 8px 12px -3px #ee7d7936;
+  --anzhiyu-shadow-green: 0 8px 12px -3px #87ee7936;
+  --anzhiyu-shadow-nav: 0 5px 12px -5px rgb(102 68 68 / 5%);
+  --anzhiyu-shadow-lightblack: 0 5px 12px -5px rgb(102 68 68 / 0%);
+  --anzhiyu-shadow-light2black: 0 5px 12px -5px rgb(102 68 68 / 0%);
+
+  /* 边框样式 */
+  --style-border: 1px solid var(--anzhiyu-card-border);
+  --style-border-always: 1px solid var(--anzhiyu-card-border);
+  --style-border-hover: 1px solid var(--anzhiyu-main);
+  --style-border-hover-always: 1px solid var(--anzhiyu-main);
+  --style-border-dashed: 1px dashed var(--anzhiyu-theme-op);
+  --style-border-forever: 2px solid var(--anzhiyu-main);
+  --style-border-avatar: 5px solid var(--anzhiyu-white);
+  --style-border-width: 1px;
+  --style-border-style: solid;
+  --style-border-color: #e2e8f0;
+  --style-border-none: 1px solid transparent;
+
+  /* 其他 */
+  --anzhiyu-logo-color: linear-gradient(215deg, #4584ff 0%, #cf0db9 100%);
+  --anzhiyu-transition-duration: 0.3s;
+  --anzhiyu-snackbar-time: 5s;
+
+  /* 主题色平滑过渡动画 */
+  transition: --anzhiyu-main 0.3s ease-in-out, --anzhiyu-main-op 0.3s ease-in-out,
+    --anzhiyu-main-op-deep 0.3s ease-in-out, --anzhiyu-main-op-light 0.3s ease-in-out;
+
+  /* 评论区样式（默认独立卡片模式，文章详情页重写为内嵌模式） */
+  --comment-form-bg: var(--anzhiyu-card-bg);
+  --comment-form-quote-bg: var(--anzhiyu-secondbg);
+  --comment-item-bg: var(--anzhiyu-card-bg);
+  --comment-item-border: 1px solid var(--anzhiyu-card-border);
+  --comment-item-radius: 12px;
+  --comment-item-padding: 1.25rem;
+  --comment-item-gap: 0.75rem;
+  --comment-divider-display: none;
 
   /* 代码块变量 */
-  --hltools-bg: var(--muted);
-  --hltools-color: var(--foreground);
-  --hlnumber-color: #abb2bf;
+  --hl-color: #90a4ae;
+  --hl-bg: #f6f8fa;
+  --hltools-bg: var(--anzhiyu-secondbg);
+  --hltools-color: var(--anzhiyu-fontcolor);
+  --hlnumber-bg: #f6f8fa;
+  --hlnumber-color: rgb(144 164 174 / 50%);
+  --hlscrollbar-bg: #dce4eb;
+  --hlexpand-bg: linear-gradient(180deg, rgb(246 248 250 / 60%), rgb(246 248 250 / 90%));
   --md-theme-code-block-color: #a9b7c6;
 }
 
 .dark {
+  /* 主题色 */
+  --anzhiyu-theme-op: #dfa62123;
+  --anzhiyu-theme-op-deep: #dfa621dd;
+  --anzhiyu-theme-none: #dfa62100;
+
+  /* 语义色 */
+  --anzhiyu-blue: #0084ff;
+  --anzhiyu-red: #ff3842;
+  --anzhiyu-pink: #d44040;
+  --anzhiyu-green: #3e9f50;
+  --anzhiyu-yellow: #ffc93e;
+  --anzhiyu-yellow-op: #ffc93e30;
+  --anzhiyu-orange: #ff953e;
+  --anzhiyu-purple: #7a60d2;
+
+  /* 基础色 */
   --anzhiyu-white: #f7f7fa;
   --anzhiyu-white-op: rgba(247, 247, 250, 0.2);
+
+  /* 文字色 */
+  --anzhiyu-fontcolor: #f7f7fa;
+  --anzhiyu-secondtext: #a1a2b8;
+  --anzhiyu-hovertext: #0a84ff;
+  --anzhiyu-lighttext: var(--anzhiyu-theme);
+  --anzhiyu-reverse: #fff;
+  --font-color: rgb(255 255 255 / 70%);
+  --text-highlight-color: rgb(255 255 255 / 90%);
+
+  /* 背景色 */
+  --anzhiyu-background: #18171d;
+  --anzhiyu-secondbg: #21232a;
+  --anzhiyu-card-bg: #1d1e22;
+  --anzhiyu-card-bg-op: var(--anzhiyu-white-op);
+  --anzhiyu-card-bg-none: #1d1b2600;
+  --anzhiyu-card-bg-grey: #27282a;
+  --anzhiyu-card-btn-bg: #30343f;
+  --anzhiyu-card-border: #3d3d3f;
+  --anzhiyu-ahoverbg: #fff;
+  --anzhiyu-post-blockquote-bg: #000;
+  --anzhiyu-post-tabs-bg: #121212;
+
+  /* 遮罩 */
+  --anzhiyu-maskbg: rgb(0 0 0 / 60%);
   --anzhiyu-maskbgdeep: rgb(0 0 0 / 85%);
+
+  /* 滚动条 */
+  --anzhiyu-scrollbar: rgb(200 200 223 / 40%);
+
+  /* 边框色 */
+  --anzhiyu-border-color: rgb(253 253 253 / 12%);
+  --anzhiyu-switch-off-color: #ffffff3f;
+  --anzhiyu-theme-menu-bg: #141414;
+
+  /* 阴影 */
   --anzhiyu-shadow-border: 0 8px 16px -4px #00000050;
+  --anzhiyu-shadow-nav: 0 5px 20px 0px rgb(28 28 28 / 40%);
+  --anzhiyu-shadow-lightblack: 0 5px 12px -5px rgb(102 68 68 / 0%);
+  --anzhiyu-shadow-light2black: 0 5px 12px -5px rgb(102 68 68 / 0%);
+
+  /* 边框样式 */
+  --style-border: 1px solid var(--anzhiyu-card-border);
+  --style-border-always: 1px solid var(--anzhiyu-card-border);
+  --style-border-hover: 1px solid var(--anzhiyu-lighttext);
+  --style-border-hover-always: 1px solid var(--anzhiyu-lighttext);
+  --style-border-dashed: 1px dashed var(--anzhiyu-theme-op);
+  --style-border-forever: 2px solid var(--anzhiyu-lighttext);
 
   /* 暗色代码块变量 */
-  --hltools-bg: var(--muted);
+  --hltools-bg: var(--anzhiyu-secondbg);
   --hltools-color: #90a4ae;
   --hlnumber-color: #636d83;
 }
@@ -1165,6 +1317,14 @@ html.dark [data-toast] {
 [data-selectable="true"][data-hover="true"],
 [data-selectable="true"][data-focus="true"] {
   background-color: hsl(var(--heroui-default-100) / 0.8);
+}
+
+/* HeroUI Listbox / Menu item: 隐藏程序性 focus 的浏览器默认 outline，
+   仅保留键盘导航时的 focus-visible ring（由 HeroUI data-focus-visible 控制） */
+[data-selectable="true"]:focus,
+[data-selectable="true"]:focus-visible {
+  outline: 2px solid transparent !important;
+  outline-offset: 2px !important;
 }
 
 /* ===================== HeroUI 表单控件全局样式优化 ===================== */
@@ -1289,7 +1449,6 @@ html.dark [data-slot="trigger"][data-open="true"],
 [data-slot="trigger"][data-focus="true"],
 [data-slot="trigger"][data-open="true"] {
   border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px var(--primary-op) !important;
 }
 
 /* Select/Autocomplete 下拉弹出层 */
@@ -1300,11 +1459,14 @@ html.dark [data-slot="trigger"][data-open="true"],
 /* ---- 清除按钮 ---- */
 [data-slot="clear-button"] {
   color: var(--muted-foreground) !important;
-  opacity: 0.5 !important;
   transition: opacity 0.15s ease, color 0.15s ease !important;
 }
 
-[data-slot="clear-button"]:hover {
+[data-slot="input"][data-filled="true"] ~ [data-slot="clear-button"] {
+  opacity: 0.5 !important;
+}
+
+[data-slot="input"][data-filled="true"] ~ [data-slot="clear-button"]:hover {
   opacity: 1 !important;
   color: var(--foreground) !important;
 }

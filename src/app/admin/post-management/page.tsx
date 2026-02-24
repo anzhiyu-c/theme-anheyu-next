@@ -16,20 +16,20 @@ import {
   Pagination,
 } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Upload, Download, Trash2, ShieldAlert, ChevronDown } from "lucide-react";
+import { Plus, Upload, Download, Trash2, ShieldAlert, ChevronDown, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
 import { usePostManagementPage } from "./_hooks/use-post-page";
 import { TABLE_COLUMNS, usePostRenderCell } from "@/components/admin/post-management/PostTableColumns";
 import { PostManagementSkeleton } from "@/components/admin/post-management/PostManagementSkeleton";
-import { PostEmptyState } from "@/components/admin/post-management/PostEmptyState";
 import { PostFilterBar } from "@/components/admin/post-management/PostFilterBar";
 import { ReviewModal } from "@/components/admin/post-management/ReviewModal";
 import { TakedownModal } from "@/components/admin/post-management/TakedownModal";
 import { ImportModal } from "@/components/admin/post-management/ImportModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 
 export default function PostManagementPage() {
   const router = useRouter();
@@ -199,7 +199,17 @@ export default function PostManagementPage() {
             <TableBody
               items={pm.articles}
               emptyContent={
-                <PostEmptyState hasFilter={!!(pm.debouncedSearch || pm.statusFilter || pm.categoryFilter)} />
+                <TableEmptyState
+                  icon={FileText}
+                  hasFilter={!!(pm.debouncedSearch || pm.statusFilter || pm.categoryFilter)}
+                  filterEmptyText={ADMIN_EMPTY_TEXTS.posts.filterEmptyText}
+                  emptyText={ADMIN_EMPTY_TEXTS.posts.emptyText}
+                  emptyHint={ADMIN_EMPTY_TEXTS.posts.emptyHint}
+                  action={{
+                    label: "新建文章",
+                    onPress: () => router.push("/admin/post-management/new"),
+                  }}
+                />
               }
               isLoading={pm.isFetching && !pm.isLoading}
               loadingContent={<Spinner size="sm" label="加载中..." />}

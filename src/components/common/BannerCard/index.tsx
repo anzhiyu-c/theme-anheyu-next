@@ -1,3 +1,10 @@
+/*
+ * @Description:
+ * @Author: 安知鱼
+ * @Date: 2026-02-12 14:40:52
+ * @LastEditTime: 2026-02-23 18:59:58
+ * @LastEditors: 安知鱼
+ */
 "use client";
 
 /**
@@ -44,7 +51,9 @@ export function BannerCard({
   const innerStyle = backgroundImage ? { background: `url(${backgroundImage}) left 37%/cover no-repeat` } : undefined;
 
   const isInternal = buttonLink && buttonLink.startsWith("/") && !buttonLink.startsWith("//");
-  const buttonIcon = <Icon icon="jam:arrow-circle-up-right-f" width={16} className={styles.bannerButtonIcon} />;
+  const buttonIcon = (
+    <Icon icon="jam:arrow-circle-up-right-f" width={20} height={20} className={styles.bannerButtonIcon} />
+  );
 
   const buttonEl = buttonText ? (
     onButtonClick ? (

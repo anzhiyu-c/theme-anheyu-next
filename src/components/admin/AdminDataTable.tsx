@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button, Input } from "@/components/ui";
 import {
   Search,
+  Inbox,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -14,6 +15,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TableEmptyState } from "./TableEmptyState";
 
 export interface Column<T> {
   key: string;
@@ -27,32 +29,63 @@ export interface Column<T> {
 interface AdminDataTableProps<T> {
   data: T[];
   columns: Column<T>[];
+  rowKey?: keyof T | ((item: T, index: number) => string | number);
   searchable?: boolean;
   searchPlaceholder?: string;
   searchKeys?: string[];
   pageSize?: number;
   emptyMessage?: string;
+  emptyContent?: React.ReactNode;
   loading?: boolean;
   onRowClick?: (item: T) => void;
   rowActions?: (item: T) => React.ReactNode;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  sortKey?: string | null;
+  sortDir?: "asc" | "desc";
+  onSortChange?: (key: string, dir: "asc" | "desc") => void;
+  page?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function AdminDataTable<T extends Record<string, unknown>>({
   data,
   columns,
+  rowKey,
   searchable = true,
   searchPlaceholder = "搜索...",
   searchKeys = [],
   pageSize = 10,
   emptyMessage = "暂无数据",
+  emptyContent,
   loading = false,
   onRowClick,
   rowActions,
+  search: controlledSearch,
+  onSearchChange,
+  sortKey: controlledSortKey,
+  sortDir: controlledSortDir,
+  onSortChange,
+  page: controlledPage,
+  onPageChange,
 }: AdminDataTableProps<T>) {
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [internalSearch, setInternalSearch] = useState("");
+  const [internalPage, setInternalPage] = useState(1);
+  const [internalSortKey, setInternalSortKey] = useState<string | null>(null);
+  const [internalSortDir, setInternalSortDir] = useState<"asc" | "desc">("asc");
+
+  const search = controlledSearch ?? internalSearch;
+  const setSearch = onSearchChange ?? setInternalSearch;
+  const page = controlledPage ?? internalPage;
+  const setPage = onPageChange ?? setInternalPage;
+  const sortKey = controlledSortKey ?? internalSortKey;
+  const sortDir = controlledSortDir ?? internalSortDir;
+
+  const getRowKey = (item: T, index: number): string | number => {
+    if (!rowKey) return (item as Record<string, unknown>).id != null ? String((item as Record<string, unknown>).id) : index;
+    if (typeof rowKey === "function") return rowKey(item, index);
+    return String(item[rowKey] ?? index);
+  };
 
   // 过滤数据
   const filteredData = useMemo(() => {
@@ -80,19 +113,29 @@ export function AdminDataTable<T extends Record<string, unknown>>({
     });
   }, [filteredData, sortKey, sortDir]);
 
-  // 分页数据
-  const totalPages = Math.ceil(sortedData.length / pageSize);
+  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+
+  const safePage = page > totalPages ? totalPages : page;
+  if (safePage !== page) {
+    Promise.resolve().then(() => setPage(safePage));
+  }
+
   const paginatedData = useMemo(() => {
-    const start = (page - 1) * pageSize;
+    const start = (safePage - 1) * pageSize;
     return sortedData.slice(start, start + pageSize);
-  }, [sortedData, page, pageSize]);
+  }, [sortedData, safePage, pageSize]);
 
   const handleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDir(prev => (prev === "asc" ? "desc" : "asc"));
+    if (onSortChange) {
+      const newDir = sortKey === key && sortDir === "asc" ? "desc" : "asc";
+      onSortChange(key, newDir);
     } else {
-      setSortKey(key);
-      setSortDir("asc");
+      if (sortKey === key) {
+        setInternalSortDir(prev => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setInternalSortKey(key);
+        setInternalSortDir("asc");
+      }
     }
   };
 
@@ -104,6 +147,18 @@ export function AdminDataTable<T extends Record<string, unknown>>({
       <ArrowDown className="w-3.5 h-3.5 text-primary" />
     );
   };
+
+  const hasSearchFilter = searchable && search.trim().length > 0;
+  const resolvedEmptyContent = emptyContent ?? (
+    <TableEmptyState
+      icon={Inbox}
+      hasFilter={hasSearchFilter}
+      filterEmptyText="没有匹配的数据"
+      emptyText={emptyMessage}
+      filterHint="试试调整搜索关键词"
+      emptyHint={searchable ? "你可以通过上方搜索框快速筛选数据" : undefined}
+    />
+  );
 
   return (
     <div className="space-y-4">
@@ -118,7 +173,7 @@ export function AdminDataTable<T extends Record<string, unknown>>({
               setPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="pl-9"
+            className="pl-9!"
           />
         </div>
       )}
@@ -171,17 +226,14 @@ export function AdminDataTable<T extends Record<string, unknown>>({
               </tr>
             ) : paginatedData.length === 0 ? (
               <tr>
-                <td
-                  colSpan={columns.length + (rowActions ? 1 : 0)}
-                  className="px-4 py-12 text-center text-muted-foreground"
-                >
-                  {emptyMessage}
+                <td colSpan={columns.length + (rowActions ? 1 : 0)} className="px-4 py-12 text-center">
+                  {resolvedEmptyContent}
                 </td>
               </tr>
             ) : (
               paginatedData.map((item, index) => (
                 <motion.tr
-                  key={index}
+                  key={getRowKey(item, index)}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.02 }}
@@ -212,14 +264,14 @@ export function AdminDataTable<T extends Record<string, unknown>>({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            共 {sortedData.length} 条，第 {page} / {totalPages} 页
+            共 {sortedData.length} 条，第 {safePage} / {totalPages} 页
           </p>
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage(1)}
-              disabled={page === 1}
+              disabled={safePage === 1}
               className="h-8 w-8 p-0"
             >
               <ChevronsLeft className="w-4 h-4" />
@@ -227,8 +279,8 @@ export function AdminDataTable<T extends Record<string, unknown>>({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
+              onClick={() => setPage(Math.max(1, safePage - 1))}
+              disabled={safePage === 1}
               className="h-8 w-8 p-0"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -238,17 +290,17 @@ export function AdminDataTable<T extends Record<string, unknown>>({
                 let pageNum: number;
                 if (totalPages <= 5) {
                   pageNum = i + 1;
-                } else if (page <= 3) {
+                } else if (safePage <= 3) {
                   pageNum = i + 1;
-                } else if (page >= totalPages - 2) {
+                } else if (safePage >= totalPages - 2) {
                   pageNum = totalPages - 4 + i;
                 } else {
-                  pageNum = page - 2 + i;
+                  pageNum = safePage - 2 + i;
                 }
                 return (
                   <Button
                     key={pageNum}
-                    variant={page === pageNum ? "default" : "ghost"}
+                    variant={safePage === pageNum ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setPage(pageNum)}
                     className="h-8 w-8 p-0"
@@ -261,8 +313,8 @@ export function AdminDataTable<T extends Record<string, unknown>>({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              onClick={() => setPage(Math.min(totalPages, safePage + 1))}
+              disabled={safePage === totalPages}
               className="h-8 w-8 p-0"
             >
               <ChevronRight className="w-4 h-4" />
@@ -271,7 +323,7 @@ export function AdminDataTable<T extends Record<string, unknown>>({
               variant="outline"
               size="sm"
               onClick={() => setPage(totalPages)}
-              disabled={page === totalPages}
+              disabled={safePage === totalPages}
               className="h-8 w-8 p-0"
             >
               <ChevronsRight className="w-4 h-4" />

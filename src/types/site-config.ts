@@ -133,6 +133,13 @@ export interface SiteConfigData {
   // 即刻配置
   essay?: {
     home_enable?: boolean;
+    title?: string;
+    subtitle?: string;
+    tips?: string;
+    button_text?: string;
+    button_link?: string;
+    top_background?: string;
+    limit?: number | string;
   };
 
   // 朋友圈配置

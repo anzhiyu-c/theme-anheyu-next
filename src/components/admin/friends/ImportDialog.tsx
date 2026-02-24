@@ -1,20 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Switch,
-  Tabs,
-  Tab,
-  Chip,
-  addToast,
-} from "@heroui/react";
-import { Copy, FileDown, CheckCircle, XCircle, SkipForward } from "lucide-react";
+import { ModalBody, ModalFooter, Button, Switch, Tabs, Tab, Chip, addToast } from "@heroui/react";
+import { Copy, FileDown, CheckCircle, XCircle, SkipForward, Upload } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
 import { useImportLinks, useLinkCategories } from "@/hooks/queries/use-friends";
@@ -137,9 +126,17 @@ export default function ImportDialog({ isOpen, onClose }: ImportDialogProps) {
   }, []);
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="3xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader>批量导入友链</ModalHeader>
+    <AdminDialog
+      isOpen={isOpen}
+      onClose={handleClose}
+      size="3xl"
+      scrollBehavior="inside"
+      header={{
+        title: "批量导入友链",
+        description: "支持 JSON 批量导入并自动处理分类与标签",
+        icon: Upload,
+      }}
+    >
         <ModalBody className="gap-4">
           {!importResult ? (
             <>
@@ -325,7 +322,6 @@ export default function ImportDialog({ isOpen, onClose }: ImportDialogProps) {
             </>
           )}
         </ModalFooter>
-      </ModalContent>
-    </Modal>
+    </AdminDialog>
   );
 }

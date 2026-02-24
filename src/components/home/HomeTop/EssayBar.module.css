@@ -17,18 +17,25 @@
 }
 
 .essayLogo {
+  display: flex;
+  align-items: center;
   margin-right: 1rem;
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 22px;
-  color: var(--primary);
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--foreground);
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 .essayLogo:hover {
   color: var(--primary);
-  opacity: 0.8;
+}
+
+.essayLogoIcon {
+  stroke: currentColor;
+  stroke-width: 20;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
 }
 
 .essayCarouselWrapper {
@@ -56,7 +63,7 @@
   padding: 0 0.5rem;
   overflow: hidden;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 30px;
   color: var(--foreground);
   text-align: center;
@@ -74,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted-foreground);
+  color: var(--foreground);
   cursor: pointer;
   transition: all 0.3s ease;
 }

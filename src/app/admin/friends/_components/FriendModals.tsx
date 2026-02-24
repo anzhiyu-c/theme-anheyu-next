@@ -1,6 +1,8 @@
 "use client";
 
-import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
+import { Button, ModalBody, ModalFooter } from "@heroui/react";
+import { Trash2, ShieldCheck, ShieldX } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import FriendFormModal from "@/components/admin/friends/FriendFormModal";
 import CategoryTagManager from "@/components/admin/friends/CategoryTagManager";
@@ -13,6 +15,8 @@ interface FriendModalsProps {
 }
 
 export function FriendModals({ cm }: FriendModalsProps) {
+  const isApprove = cm.reviewTarget?.action === "APPROVED";
+
   return (
     <>
       {/* 新建/编辑友链 */}
@@ -28,9 +32,17 @@ export function FriendModals({ cm }: FriendModalsProps) {
       <HealthCheckPanel isOpen={cm.healthCheckModal.isOpen} onClose={cm.healthCheckModal.onClose} />
 
       {/* 删除确认弹窗 */}
-      <Modal isOpen={cm.deleteModal.isOpen} onClose={cm.deleteModal.onClose} size="sm">
-        <ModalContent>
-          <ModalHeader>确认删除</ModalHeader>
+      <AdminDialog
+        isOpen={cm.deleteModal.isOpen}
+        onClose={cm.deleteModal.onClose}
+        size="sm"
+        header={{
+          title: "确认删除",
+          description: "删除后不可恢复，请谨慎操作",
+          icon: Trash2,
+          tone: "danger",
+        }}
+      >
           <ModalBody>
             <p className="text-sm">
               确定要删除友链 <strong>{cm.deleteTarget?.name}</strong> 吗？此操作不可撤销。
@@ -44,20 +56,27 @@ export function FriendModals({ cm }: FriendModalsProps) {
               删除
             </Button>
           </ModalFooter>
-        </ModalContent>
-      </Modal>
+      </AdminDialog>
 
       {/* 审核弹窗 */}
-      <Modal isOpen={cm.reviewModal.isOpen} onClose={cm.reviewModal.onClose} size="sm">
-        <ModalContent>
-          <ModalHeader>{cm.reviewTarget?.action === "APPROVED" ? "通过审核" : "拒绝友链"}</ModalHeader>
+      <AdminDialog
+        isOpen={cm.reviewModal.isOpen}
+        onClose={cm.reviewModal.onClose}
+        size="sm"
+        header={{
+          title: isApprove ? "通过审核" : "拒绝友链",
+          description: isApprove ? "通过后该友链将展示在前台页面" : "拒绝前可填写原因通知申请方",
+          icon: isApprove ? ShieldCheck : ShieldX,
+          tone: isApprove ? "success" : "danger",
+        }}
+      >
           <ModalBody>
             <p className="text-sm">
-              {cm.reviewTarget?.action === "APPROVED"
+              {isApprove
                 ? `确定通过 "${cm.reviewTarget?.item.name}" 的友链申请吗？`
                 : `确定拒绝 "${cm.reviewTarget?.item.name}" 的友链申请吗？`}
             </p>
-            {cm.reviewTarget?.action === "REJECTED" && (
+            {!isApprove && (
               <FormTextarea
                 label="拒绝原因"
                 placeholder="请输入拒绝原因"
@@ -74,15 +93,14 @@ export function FriendModals({ cm }: FriendModalsProps) {
               取消
             </Button>
             <Button
-              color={cm.reviewTarget?.action === "APPROVED" ? "success" : "danger"}
+              color={isApprove ? "success" : "danger"}
               onPress={cm.handleReviewConfirm}
               isLoading={cm.reviewLink.isPending}
             >
-              {cm.reviewTarget?.action === "APPROVED" ? "通过" : "拒绝"}
+              {isApprove ? "通过" : "拒绝"}
             </Button>
           </ModalFooter>
-        </ModalContent>
-      </Modal>
+      </AdminDialog>
     </>
   );
 }

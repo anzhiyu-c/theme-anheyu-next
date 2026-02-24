@@ -1041,7 +1041,8 @@
   background: var(--primary);
 }
 
-.postContent :global(.anzhiyu-tag-link .tag-Link:hover .tag-link-left i) {
+.postContent :global(.anzhiyu-tag-link .tag-Link:hover .tag-link-left i),
+.postContent :global(.anzhiyu-tag-link .tag-Link:hover .tag-link-left .iconify) {
   color: var(--primary);
   transform: scale(1.1);
 }
@@ -1090,31 +1091,13 @@
   border-radius: 8px;
 }
 
-.postContent :global(.anzhiyu-tag-link .tag-link-left i) {
+.postContent :global(.anzhiyu-tag-link .tag-link-left i),
+.postContent :global(.anzhiyu-tag-link .tag-link-left .iconify) {
   padding: 0;
   margin: auto;
   font-size: 24px;
   color: var(--foreground);
   transition: all 0.3s ease;
-}
-
-/* 使用 Font Awesome 6 的 link 图标替换默认图标 */
-.postContent :global(.anzhiyu-tag-link .tag-link-left i.anzhiyu-icon-link) {
-  width: 24px;
-  height: 24px;
-  background-color: currentColor;
-  mask-image: url("https://api.iconify.design/fa6-solid/link.svg");
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  -webkit-mask-image: url("https://api.iconify.design/fa6-solid/link.svg");
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-}
-
-.postContent :global(.anzhiyu-tag-link .tag-link-left i.anzhiyu-icon-link)::before {
-  content: none !important;
 }
 
 .postContent :global(.anzhiyu-tag-link .tag-link-left img) {

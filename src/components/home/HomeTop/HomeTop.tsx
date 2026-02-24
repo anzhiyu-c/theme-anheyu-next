@@ -5,8 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
+import { addToast } from "@heroui/react";
 import { cn } from "@/lib/utils";
 import { useSiteConfigStore } from "@/store/site-config-store";
+import { articleApi } from "@/lib/api/article";
 
 import styles from "./HomeTop.module.css";
 
@@ -74,7 +76,14 @@ export function HomeTop() {
     setIsRandomLoading(true);
     try {
       // 当前使用文章列表页作为“随便逛逛”的兜底入口
-      router.push("/posts");
+      const article = await articleApi.getRandomArticle();
+      if (article.is_doc || article.doc_series_id) {
+        router.push(`/doc/${article.id}`);
+      } else {
+        router.push(`/posts/${article.id}`);
+      }
+    } catch {
+      addToast({ title: "暂时没有可供浏览的文章", color: "warning", timeout: 2000 });
     } finally {
       setIsRandomLoading(false);
     }

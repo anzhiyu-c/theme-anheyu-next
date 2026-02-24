@@ -14,9 +14,6 @@ import {
   Input,
   Button,
   ButtonGroup,
-  Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
   ModalFooter,
   Checkbox,
@@ -37,6 +34,7 @@ import {
   Check,
   ChevronDown,
 } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 
 // ---- 类型 ----
 
@@ -357,82 +355,77 @@ export function ImageToolbar({ editor, attrs, updateAttributes, onCropClick, onC
       </TBtn>
 
       {/* 编辑图片 Modal */}
-      <Modal
+      <AdminDialog
         isOpen={editOpen}
         onOpenChange={setEditOpen}
         size="md"
         classNames={{ wrapper: "z-[200]", backdrop: "z-[199]" }}
         onMouseDown={e => e.stopPropagation()}
+        header={{ title: "编辑图片", description: "修改图片地址、描述与尺寸设置", icon: ImageIcon }}
       >
-        <ModalContent>
-          {onClose => (
-            <>
-              <ModalHeader className="flex items-center gap-2 text-base">
-                <ImageIcon className="w-4 h-4" />
-                <span>编辑图片</span>
-              </ModalHeader>
-              <ModalBody className="gap-3">
-                <Input
-                  label="源"
-                  placeholder="图片地址"
-                  value={editSrc}
-                  onValueChange={setEditSrc}
-                  variant="bordered"
-                  size="sm"
-                  description="图片的 URL 地址"
-                />
-                <Input
-                  label="图片说明"
-                  placeholder="用于无障碍访问的图片描述"
-                  value={editAlt}
-                  onValueChange={setEditAlt}
-                  variant="bordered"
-                  size="sm"
-                />
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">尺寸</span>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      placeholder="宽度"
-                      value={editW}
-                      onValueChange={handleEditWidthChange}
-                      variant="bordered"
-                      size="sm"
-                      min={1}
-                      classNames={{ base: "flex-1" }}
-                      startContent={<span className="text-default-400 text-xs">W</span>}
-                    />
-                    <span className="text-default-300">×</span>
-                    <Input
-                      type="number"
-                      placeholder="高度"
-                      value={editH}
-                      onValueChange={handleEditHeightChange}
-                      variant="bordered"
-                      size="sm"
-                      min={1}
-                      classNames={{ base: "flex-1" }}
-                      startContent={<span className="text-default-400 text-xs">H</span>}
-                    />
-                  </div>
-                  <Checkbox size="sm" isSelected={keepAspectRatio} onValueChange={setKeepAspectRatio}>
-                    保持长宽比
-                  </Checkbox>
+        {onClose => (
+          <>
+            <ModalBody className="gap-3">
+              <Input
+                label="源"
+                placeholder="图片地址"
+                value={editSrc}
+                onValueChange={setEditSrc}
+                variant="bordered"
+                size="sm"
+                description="图片的 URL 地址"
+              />
+              <Input
+                label="图片说明"
+                placeholder="用于无障碍访问的图片描述"
+                value={editAlt}
+                onValueChange={setEditAlt}
+                variant="bordered"
+                size="sm"
+              />
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium">尺寸</span>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="宽度"
+                    value={editW}
+                    onValueChange={handleEditWidthChange}
+                    variant="bordered"
+                    size="sm"
+                    min={1}
+                    classNames={{ base: "flex-1" }}
+                    startContent={<span className="text-default-400 text-xs">W</span>}
+                  />
+                  <span className="text-default-300">×</span>
+                  <Input
+                    type="number"
+                    placeholder="高度"
+                    value={editH}
+                    onValueChange={handleEditHeightChange}
+                    variant="bordered"
+                    size="sm"
+                    min={1}
+                    classNames={{ base: "flex-1" }}
+                    startContent={<span className="text-default-400 text-xs">H</span>}
+                  />
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" onPress={onClose} size="sm">
-                  取消
-                </Button>
-                <Button color="primary" onPress={handleEditConfirm} size="sm">
-                  确定
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                <Checkbox size="sm" isSelected={keepAspectRatio} onValueChange={setKeepAspectRatio}>
+                  保持长宽比
+                </Checkbox>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="flat" onPress={onClose} size="sm">
+                取消
+              </Button>
+              <Button color="primary" onPress={handleEditConfirm} size="sm">
+                确定
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </AdminDialog>
 
       {/* 链接 */}
       <Popover

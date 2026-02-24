@@ -39,7 +39,14 @@ function CardIcon({ icon }: { icon: string }) {
     );
   }
   // 默认链接图标
-  return <i className="anzhiyu-icon-link" />;
+  return (
+    <Icon
+      icon="fa6-solid:link"
+      width={28}
+      height={28}
+      style={{ color: "var(--anzhiyu-fontcolor, var(--foreground))" }}
+    />
+  );
 }
 
 // ---- React NodeView 组件 ----
@@ -157,7 +164,14 @@ function LinkCardView({ node, updateAttributes }: NodeViewProps) {
   return (
     <NodeViewWrapper className="link-card-wrapper my-3">
       <div className="editor-node-hover-wrap" contentEditable={false}>
-        <div className="editor-node-edit-btn" onClick={(e) => { e.stopPropagation(); setEditing(true); }} contentEditable={false}>
+        <div
+          className="editor-node-edit-btn"
+          onClick={e => {
+            e.stopPropagation();
+            setEditing(true);
+          }}
+          contentEditable={false}
+        >
           <Pencil /> 编辑
         </div>
         <div className="anzhiyu-tag-link">
@@ -222,17 +236,14 @@ export const LinkCard = Node.create({
           const titleEl = el.querySelector(".tag-link-title");
           const sitenameEl = el.querySelector(".tag-link-sitename");
           const iconImg = el.querySelector(".tag-link-left img") as HTMLImageElement | null;
-          const iconI = el.querySelector(".tag-link-left i") as HTMLElement | null;
           const iconSpan = el.querySelector(".tag-link-left .iconify") as HTMLElement | null;
 
-          // 图标：图片 URL > Iconify data-icon > i class
+          // 图标：图片 URL > Iconify data-icon
           let iconVal = "";
           if (iconImg) {
             iconVal = iconImg.getAttribute("src") || iconImg.getAttribute("data-src") || "";
           } else if (iconSpan) {
             iconVal = iconSpan.getAttribute("data-icon") || "";
-          } else if (iconI && !iconI.classList.contains("anzhiyu-icon-link")) {
-            iconVal = iconI.className || "";
           }
 
           return {
@@ -268,7 +279,7 @@ export const LinkCard = Node.create({
     } else if (nodeIcon && isImageUrl(nodeIcon)) {
       leftContent.push(["img", { src: nodeIcon, alt: "", loading: "lazy" }]);
     } else {
-      leftContent.push(["i", { class: "anzhiyu-icon-link" }]);
+      leftContent.push(["span", { class: "iconify", "data-icon": "fa6-solid:link", style: "font-size: 28px" }]);
     }
 
     // right

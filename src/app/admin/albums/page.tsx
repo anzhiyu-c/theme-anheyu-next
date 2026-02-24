@@ -16,13 +16,12 @@ import {
   Pagination,
 } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, ShieldAlert, ChevronDown, Upload, Download, Tags } from "lucide-react";
+import { Plus, Trash2, ShieldAlert, ChevronDown, Upload, Download, Tags, Image as ImageIcon } from "lucide-react";
 import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
 import { useAlbumsPage } from "./_hooks/use-albums-page";
 import { TABLE_COLUMNS, useAlbumRenderCell } from "@/components/admin/albums/AlbumTableColumns";
 import { AlbumSkeleton } from "@/components/admin/albums/AlbumSkeleton";
-import { AlbumEmptyState } from "@/components/admin/albums/AlbumEmptyState";
 import { AlbumFilterBar } from "@/components/admin/albums/AlbumFilterBar";
 import AlbumFormModal from "@/components/admin/albums/AlbumFormModal";
 import AlbumCategoryManager from "@/components/admin/albums/AlbumCategoryManager";
@@ -30,6 +29,7 @@ import AlbumImportDialog from "@/components/admin/albums/AlbumImportDialog";
 import AlbumExportDialog from "@/components/admin/albums/AlbumExportDialog";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 
 export default function AlbumsPage() {
   const al = useAlbumsPage();
@@ -214,9 +214,16 @@ export default function AlbumsPage() {
             <TableBody
               items={al.albumList}
               emptyContent={
-                <AlbumEmptyState
+                <TableEmptyState
+                  icon={ImageIcon}
                   hasFilter={!!al.categoryFilter || al.sortFilter !== "display_order_asc"}
-                  onNew={al.handleNew}
+                  filterEmptyText={ADMIN_EMPTY_TEXTS.albums.filterEmptyText}
+                  emptyText={ADMIN_EMPTY_TEXTS.albums.emptyText}
+                  emptyHint={ADMIN_EMPTY_TEXTS.albums.emptyHint}
+                  action={{
+                    label: "添加图片",
+                    onPress: al.handleNew,
+                  }}
                 />
               }
               isLoading={al.isFetching && !al.isLoading}

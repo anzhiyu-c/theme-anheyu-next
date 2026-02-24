@@ -22,12 +22,14 @@ interface AdminSidebarProps {
 export function AdminSidebar({ onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const { isDark, toggleTheme, mounted } = useTheme();
-  const { user, logout } = useAuthStore(
+  const { user, logout, isAdmin } = useAuthStore(
     useShallow(state => ({
       user: state.user,
       logout: state.logout,
+      isAdmin: state.isAdmin,
     }))
   );
+  const userIsAdmin = isAdmin();
 
   // 获取站点配置
   const { siteConfig, getLogo, getTitle } = useSiteConfigStore(
@@ -59,10 +61,19 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
     );
   }, [user, siteConfig.GRAVATAR_URL, siteConfig.DEFAULT_GRAVATAR_TYPE]);
 
-  // 展开的菜单组
+  const userRole = userIsAdmin ? "admin" : "user";
+
+  const filteredMenuConfig = useMemo(() => {
+    return adminMenuConfig
+      .map(group => ({
+        ...group,
+        items: group.items.filter(item => !item.roles || item.roles.includes(userRole)),
+      }))
+      .filter(group => group.items.length > 0);
+  }, [userRole]);
+
   const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
-    // 默认展开当前路径所在的组
-    const currentGroup = adminMenuConfig.find(group =>
+    const currentGroup = filteredMenuConfig.find(group =>
       group.items.some(item => {
         if (!item.href) return false;
         return pathname.startsWith(item.href);
@@ -126,7 +137,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
 
       {/* 导航菜单 */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-2 scrollbar-thin">
-        {adminMenuConfig.map(group => (
+        {filteredMenuConfig.map(group => (
           <MenuGroup
             key={group.id}
             group={group}

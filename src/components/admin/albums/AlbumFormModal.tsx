@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { Image as ImageIcon, Pencil } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormInput } from "@/components/ui/form-input";
 import { FormSelect, FormSelectItem } from "@/components/ui/form-select";
 import { FormTextarea } from "@/components/ui/form-textarea";
@@ -20,10 +22,22 @@ interface AlbumFormModalProps {
  * 使用 wrapper + inner content 模式，避免 useEffect setState
  */
 export default function AlbumFormModal({ isOpen, onClose, editItem, categories = [] }: AlbumFormModalProps) {
+  const isEdit = !!editItem;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
-      <ModalContent>{isOpen && <AlbumFormContent editItem={editItem} categories={categories} onClose={onClose} />}</ModalContent>
-    </Modal>
+    <AdminDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      size="lg"
+      scrollBehavior="inside"
+      header={{
+        title: isEdit ? "编辑图片" : "添加图片",
+        description: isEdit ? "修改图片信息与展示配置" : "填写图片信息并添加到相册",
+        icon: isEdit ? Pencil : ImageIcon,
+      }}
+    >
+      {isOpen && <AlbumFormContent editItem={editItem} categories={categories} onClose={onClose} />}
+    </AdminDialog>
   );
 }
 
@@ -50,10 +64,13 @@ function AlbumFormContent({
   const [title, setTitle] = useState(editItem?.title ?? "");
   const [description, setDescription] = useState(editItem?.description ?? "");
   const [location, setLocation] = useState(editItem?.location ?? "");
-  const categoryOptions = [{ key: "__none__", label: "未分类" }, ...categories.map(category => ({
-    key: String(category.id),
-    label: category.name,
-  }))];
+  const categoryOptions = [
+    { key: "__none__", label: "未分类" },
+    ...categories.map(category => ({
+      key: String(category.id),
+      label: category.name,
+    })),
+  ];
 
   // Mutations
   const createAlbum = useCreateAlbum();
@@ -119,7 +136,6 @@ function AlbumFormContent({
 
   return (
     <>
-      <ModalHeader className="flex flex-col gap-1">{isEdit ? "编辑图片" : "添加图片"}</ModalHeader>
       <ModalBody className="gap-4">
         <FormSelect
           label="分类"

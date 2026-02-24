@@ -20,21 +20,25 @@ import { cn } from "@/lib/utils";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
-  const { _hasHydrated, accessToken, user } = useAuthStore(
+  const { _hasHydrated, accessToken, user, isAdmin } = useAuthStore(
     useShallow(state => ({
       _hasHydrated: state._hasHydrated,
       accessToken: state.accessToken,
       user: state.user,
+      isAdmin: state.isAdmin,
     }))
   );
   const isAuthenticated = !!accessToken && !!user;
+  const hasAdminAccess = isAuthenticated && isAdmin();
 
-  // 认证守卫：水合完成后如果未登录，跳转到登录页
   useEffect(() => {
-    if (_hasHydrated && !isAuthenticated) {
+    if (!_hasHydrated) return;
+    if (!isAuthenticated) {
       router.replace("/login");
+    } else if (!hasAdminAccess) {
+      router.replace("/");
     }
-  }, [_hasHydrated, isAuthenticated, router]);
+  }, [_hasHydrated, isAuthenticated, hasAdminAccess, router]);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-muted/30">
@@ -55,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             "lg:translate-x-0"
           )}
         >
-          {_hasHydrated && isAuthenticated ? (
+          {_hasHydrated && hasAdminAccess ? (
             <AdminSidebar onClose={() => setSidebarOpen(false)} />
           ) : (
             <div className="p-6">
@@ -76,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* 主内容区 - scrollbar-gutter:stable 避免弹窗展开时滚动条出现导致布局右移 */}
         <main className="flex-1 min-h-0 overflow-auto p-4 lg:p-8 lg:ml-64 [scrollbar-gutter:stable]">
-          {_hasHydrated && isAuthenticated ? (
+          {_hasHydrated && hasAdminAccess ? (
             children
           ) : (
             <div className="space-y-6 animate-pulse">

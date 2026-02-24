@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Icon } from "@iconify/react";
 import { friendsApi } from "@/lib/api/friends";
 import { useSiteConfigStore } from "@/store/site-config-store";
 import type { Moment, MomentsSortType, MomentsStatistics } from "@/types/friends";
@@ -103,15 +104,13 @@ export function MomentsList() {
             <div className="moments-more-container">
               {!isEnded && !loadingMore ? (
                 <div className="moments-more-btn" onClick={loadMore}>
-                  <i className="anzhiyufont anzhiyu-icon-angle-double-down" />
+                  <Icon icon="fa6-solid:angles-down" width={18} height={18} />
                 </div>
               ) : null}
 
               {loadingMore ? (
                 <div className="moments-more-btn loading">
-                  <span className="el-icon is-loading">
-                    <i className="anzhiyufont anzhiyu-icon-loading" />
-                  </span>
+                  <Icon icon="fa6-solid:spinner" className="loading-icon" width={18} height={18} />
                 </div>
               ) : null}
 
@@ -124,9 +123,7 @@ export function MomentsList() {
 
         {loading ? (
           <div className="loading-container">
-            <span className="el-icon is-loading">
-              <i className="anzhiyufont anzhiyu-icon-loading" />
-            </span>
+            <Icon icon="fa6-solid:spinner" className="loading-icon" width={32} height={32} />
             <p>加载中...</p>
           </div>
         ) : null}

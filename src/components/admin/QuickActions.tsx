@@ -32,14 +32,14 @@ const actions: QuickAction[] = [
   },
   {
     icon: "ri:price-tag-3-line",
-    label: "分类标签",
-    href: "/admin/categories",
+    label: "文档系列",
+    href: "/admin/doc-series",
     color: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
   },
   {
-    icon: "ri:file-text-line",
-    label: "页面管理",
-    href: "/admin/pages",
+    icon: "ri:links-line",
+    label: "友链管理",
+    href: "/admin/friends",
     color: "bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20",
   },
   {

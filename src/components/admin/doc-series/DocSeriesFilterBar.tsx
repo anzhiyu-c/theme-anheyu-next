@@ -8,7 +8,7 @@
 "use client";
 
 import { Input, Button } from "@heroui/react";
-import { Search, RotateCcw, X } from "lucide-react";
+import { Search, RotateCcw } from "lucide-react";
 
 interface DocSeriesFilterBarProps {
   searchInput: string;
@@ -28,26 +28,17 @@ export function DocSeriesFilterBar({
       <div className="flex items-center gap-3">
         <Input
           size="sm"
+          isClearable
           className="w-full sm:max-w-[300px]"
           placeholder="搜索系列名称..."
           startContent={<Search className="w-3.5 h-3.5 text-default-400" />}
-          endContent={
-            searchInput ? (
-              <button
-                type="button"
-                className="shrink-0 text-default-400 hover:text-default-600 transition-colors"
-                onClick={() => {
-                  onSearchInputChange("");
-                  onPageReset();
-                }}
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            ) : null
-          }
           value={searchInput}
           onValueChange={v => {
             onSearchInputChange(v);
+            onPageReset();
+          }}
+          onClear={() => {
+            onSearchInputChange("");
             onPageReset();
           }}
           classNames={{

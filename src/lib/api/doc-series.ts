@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from "./client";
-import type { DocSeries, DocSeriesForm, DocSeriesListResponse, DocSeriesListParams } from "@/types/doc-series";
+import type { DocSeries, DocSeriesForm, DocSeriesListResponse, DocSeriesListParams, DocSeriesWithArticles } from "@/types/doc-series";
 
 export const docSeriesApi = {
   /**
@@ -66,5 +66,19 @@ export const docSeriesApi = {
     if (response.code !== 200) {
       throw new Error(response.message || "删除文档系列失败");
     }
+  },
+
+  /**
+   * 获取文档系列及其文章列表（公共接口）
+   * GET /api/pro/public/doc-series/:id/articles
+   */
+  async getPublicSeriesWithArticles(id: string): Promise<DocSeriesWithArticles> {
+    const response = await apiClient.get<DocSeriesWithArticles>(`/api/pro/public/doc-series/${id}/articles`);
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取文档系列详情失败");
   },
 };

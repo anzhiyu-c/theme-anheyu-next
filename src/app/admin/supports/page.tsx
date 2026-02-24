@@ -1,285 +1,366 @@
 "use client";
 
-import { useState } from "react";
-import { AdminPageHeader, AdminCard, AdminDataTable, type Column } from "@/components/admin";
-import { Button } from "@/components/ui";
 import {
-  HeadphonesIcon,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  XCircle,
-  Eye,
-  Send,
-  Sparkles,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { formatDateCN } from "@/utils/date";
+  Button,
+  Input,
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
+  Spinner,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Pagination,
+  Select,
+  SelectItem,
+  Chip,
+} from "@heroui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { Key } from "react";
+import { HeadphonesIcon, Eye, Trash2, ShieldAlert, ChevronDown, Search, XCircle } from "lucide-react";
+import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
+import { ConfirmDialog, FloatingSelectionBar, TableEmptyState } from "@/components/admin";
+import { formatDateTime } from "@/utils/date";
+import { TicketDetailDrawer } from "./_components/TicketDetailDrawer";
+import { useSupportsPage } from "./_hooks/use-supports-page";
+import { addToast } from "@heroui/react";
 
-// 模拟工单数据
-const mockTickets = [
-  {
-    id: "TK001",
-    title: "会员功能无法使用",
-    user: "张三",
-    email: "zhang@test.com",
-    priority: "high",
-    status: "open",
-    category: "功能问题",
-    createdAt: "2026-01-30 15:30",
-    updatedAt: "2026-01-30 16:00",
-  },
-  {
-    id: "TK002",
-    title: "订单支付失败",
-    user: "李四",
-    email: "li@test.com",
-    priority: "high",
-    status: "processing",
-    category: "支付问题",
-    createdAt: "2026-01-30 12:15",
-    updatedAt: "2026-01-30 14:30",
-  },
-  {
-    id: "TK003",
-    title: "主题安装问题",
-    user: "王五",
-    email: "wang@test.com",
-    priority: "medium",
-    status: "resolved",
-    category: "安装部署",
-    createdAt: "2026-01-29 18:45",
-    updatedAt: "2026-01-30 09:00",
-  },
-  {
-    id: "TK004",
-    title: "如何导出数据",
-    user: "赵六",
-    email: "zhao@test.com",
-    priority: "low",
-    status: "resolved",
-    category: "使用咨询",
-    createdAt: "2026-01-28 09:00",
-    updatedAt: "2026-01-28 11:30",
-  },
-  {
-    id: "TK005",
-    title: "申请退款",
-    user: "孙七",
-    email: "sun@test.com",
-    priority: "medium",
-    status: "closed",
-    category: "退款申请",
-    createdAt: "2026-01-27 14:30",
-    updatedAt: "2026-01-28 10:00",
-  },
-];
+function pickSingleKey(keys: "all" | Set<Key>): string {
+  if (keys === "all") return "";
+  const value = Array.from(keys)[0];
+  return value ? String(value) : "";
+}
 
-type TicketItem = (typeof mockTickets)[number];
+function statusColor(status: string): "warning" | "success" | "default" {
+  if (status === "OPEN") return "warning";
+  if (status === "REPLIED") return "success";
+  return "default";
+}
 
-const statusConfig: Record<
-  string,
-  { label: string; icon: React.ComponentType<{ className?: string }>; className: string }
-> = {
-  open: { label: "待处理", icon: AlertCircle, className: "text-red bg-red/10" },
-  processing: { label: "处理中", icon: Clock, className: "text-yellow bg-yellow/10" },
-  resolved: { label: "已解决", icon: CheckCircle, className: "text-green bg-green/10" },
-  closed: { label: "已关闭", icon: XCircle, className: "text-muted-foreground bg-muted" },
-};
-
-const priorityConfig: Record<string, { label: string; className: string }> = {
-  high: { label: "紧急", className: "text-red bg-red/10" },
-  medium: { label: "普通", className: "text-yellow bg-yellow/10" },
-  low: { label: "低优", className: "text-green bg-green/10" },
-};
+function statusLabel(status: string): string {
+  if (status === "OPEN") return "待处理";
+  if (status === "REPLIED") return "已回复";
+  return "已关闭";
+}
 
 export default function SupportsPage() {
-  const [tickets] = useState(mockTickets);
-  const [filter, setFilter] = useState("all");
+  const sm = useSupportsPage();
 
-  const filteredTickets = filter === "all" ? tickets : tickets.filter(t => t.status === filter);
-
-  const columns: Column<TicketItem>[] = [
-    {
-      key: "id",
-      header: "工单号",
-      render: ticket => <span className="font-mono text-sm">{ticket.id}</span>,
-    },
-    {
-      key: "title",
-      header: "问题",
-      render: ticket => (
-        <div className="max-w-xs">
-          <p className="font-medium truncate">{ticket.title}</p>
-          <p className="text-xs text-muted-foreground">{ticket.category}</p>
-        </div>
-      ),
-    },
-    {
-      key: "user",
-      header: "用户",
-      render: ticket => (
-        <div>
-          <p className="font-medium">{ticket.user}</p>
-          <p className="text-xs text-muted-foreground">{ticket.email}</p>
-        </div>
-      ),
-    },
-    {
-      key: "priority",
-      header: "优先级",
-      render: ticket => {
-        const config = priorityConfig[ticket.priority];
-        return (
-          <span className={cn("inline-flex items-center px-2 py-1 rounded-full text-xs font-medium", config.className)}>
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "status",
-      header: "状态",
-      render: ticket => {
-        const config = statusConfig[ticket.status];
-        const Icon = config.icon;
-        return (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium",
-              config.className
-            )}
+  const bottomContent = (
+    <div className="py-2 px-2 flex flex-wrap justify-between items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-small text-default-400 whitespace-nowrap">共 {sm.totalItems} 个工单</span>
+        <span className="text-small text-default-300">|</span>
+        <Dropdown>
+          <DropdownTrigger>
+            <Button variant="light" size="sm" className="text-default-400 text-small h-7 min-w-0 gap-1 px-2">
+              {sm.pageSize}条/页
+              <ChevronDown className="w-3 h-3" />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu
+            aria-label="每页显示条数"
+            selectedKeys={new Set([String(sm.pageSize)])}
+            selectionMode="single"
+            onSelectionChange={keys => {
+              const value = Array.from(keys)[0];
+              if (!value) return;
+              sm.setPageSize(Number(value));
+              sm.setPage(1);
+            }}
           >
-            <Icon className="w-3.5 h-3.5" />
-            {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "updatedAt",
-      header: "更新时间",
-      sortable: true,
-      render: ticket => <span className="text-sm text-muted-foreground">{formatDateCN(ticket.updatedAt)}</span>,
-    },
-  ];
-
-  const filterTabs = [
-    { key: "all", label: "全部", count: tickets.length },
-    { key: "open", label: "待处理", count: tickets.filter(t => t.status === "open").length },
-    { key: "processing", label: "处理中", count: tickets.filter(t => t.status === "processing").length },
-    { key: "resolved", label: "已解决", count: tickets.filter(t => t.status === "resolved").length },
-  ];
+            {PAGE_SIZES.map(size => (
+              <DropdownItem key={String(size)}>{size}条/页</DropdownItem>
+            ))}
+          </DropdownMenu>
+        </Dropdown>
+        {sm.selectedIds.size > 0 ? (
+          <>
+            <span className="text-small text-default-300">|</span>
+            <span className="text-small text-primary font-medium whitespace-nowrap">已选 {sm.selectedIds.size} 项</span>
+          </>
+        ) : null}
+      </div>
+      <div className="flex items-center gap-2">
+        <Pagination
+          isCompact
+          showControls
+          showShadow
+          color="primary"
+          page={sm.page}
+          total={sm.totalPages}
+          onChange={sm.setPage}
+        />
+        <div className="hidden sm:flex gap-1.5">
+          <Button
+            isDisabled={sm.page <= 1}
+            size="sm"
+            variant="flat"
+            onPress={() => sm.setPage(Math.max(1, sm.page - 1))}
+          >
+            上一页
+          </Button>
+          <Button
+            isDisabled={sm.page >= sm.totalPages}
+            size="sm"
+            variant="flat"
+            onPress={() => sm.setPage(Math.min(sm.totalPages, sm.page + 1))}
+          >
+            下一页
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <AdminPageHeader
-        title="售后工单"
-        description="处理用户的售后问题和咨询"
-        icon={HeadphonesIcon}
-        actions={
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow/10 text-yellow text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" />
-            PRO 功能
+    <motion.div
+      className="relative h-full flex flex-col overflow-hidden -m-4 lg:-m-8"
+      variants={adminContainerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        variants={adminItemVariants}
+        className="flex-1 min-h-0 flex flex-col mx-6 mt-5 mb-2 bg-card border border-border/60 rounded-xl overflow-hidden"
+      >
+        <div className="shrink-0 px-5 pt-4 pb-3 border-b border-border/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                <HeadphonesIcon className="w-5 h-5 text-primary" />
+                售后工单
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1">对接 anheyu-pro 售后工单接口，支持回复与关闭工单</p>
+            </div>
           </div>
-        }
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+            <div className="px-3 py-2 rounded-lg bg-default-50 dark:bg-default-100/40">
+              <p className="text-xs text-default-500">工单总数</p>
+              <p className="text-lg font-semibold">{sm.stats.total || sm.totalItems}</p>
+            </div>
+            <div className="px-3 py-2 rounded-lg bg-warning-50 dark:bg-warning/10">
+              <p className="text-xs text-default-500">待处理</p>
+              <p className="text-lg font-semibold text-warning">{sm.stats.pending}</p>
+            </div>
+            <div className="px-3 py-2 rounded-lg bg-primary-50 dark:bg-primary/10">
+              <p className="text-xs text-default-500">处理中</p>
+              <p className="text-lg font-semibold text-primary">{sm.stats.processing}</p>
+            </div>
+            <div className="px-3 py-2 rounded-lg bg-success-50 dark:bg-success/10">
+              <p className="text-xs text-default-500">已关闭</p>
+              <p className="text-lg font-semibold text-success">{sm.stats.closed}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="shrink-0 px-5 py-3 border-b border-border/50">
+          <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_auto] gap-2 items-center">
+            <Input
+              value={sm.keywordInput}
+              onValueChange={value => {
+                sm.setKeywordInput(value);
+                sm.setPage(1);
+              }}
+              placeholder="搜索工单号、订单号或主题"
+              startContent={<Search className="w-4 h-4 text-default-400" />}
+              size="sm"
+            />
+            <Select
+              aria-label="工单状态筛选"
+              placeholder="全部状态"
+              selectedKeys={sm.statusFilter ? [sm.statusFilter] : []}
+              isClearable
+              size="sm"
+              onSelectionChange={keys => {
+                const value = pickSingleKey(keys);
+                sm.setStatusFilter(value);
+                sm.setPage(1);
+              }}
+              onClear={() => {
+                sm.setStatusFilter("");
+                sm.setPage(1);
+              }}
+            >
+              <SelectItem key="OPEN">待处理</SelectItem>
+              <SelectItem key="REPLIED">已回复</SelectItem>
+              <SelectItem key="CLOSED">已关闭</SelectItem>
+            </Select>
+            <Button variant="flat" onPress={sm.handleResetFilters}>
+              重置
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <Table
+            isHeaderSticky
+            aria-label="售后工单表格"
+            selectionMode="multiple"
+            selectedKeys={sm.selectedIds}
+            onSelectionChange={sm.handleSelectionChange}
+            bottomContent={bottomContent}
+            bottomContentPlacement="outside"
+            classNames={{
+              base: "flex-1 min-h-0 flex flex-col",
+              wrapper: "flex-1 min-h-0 px-3! py-0! shadow-none! rounded-none! border-none!",
+              table: "border-separate border-spacing-y-1.5 -mt-1.5",
+              thead: "[&>tr]:first:shadow-none! after:hidden!",
+              th: "bg-[#F6F7FA] dark:bg-default-100 first:rounded-tl-lg! last:rounded-tr-lg!",
+              tr: "rounded-xl!",
+              td: "first:before:rounded-s-xl! last:before:rounded-e-xl!",
+            }}
+          >
+            <TableHeader>
+              <TableColumn key="ticket_no">工单号</TableColumn>
+              <TableColumn key="subject">主题</TableColumn>
+              <TableColumn key="trade_no">关联订单</TableColumn>
+              <TableColumn key="user_email">用户邮箱</TableColumn>
+              <TableColumn key="status">状态</TableColumn>
+              <TableColumn key="updated_at">更新时间</TableColumn>
+              <TableColumn key="actions" align="center">
+                操作
+              </TableColumn>
+            </TableHeader>
+            <TableBody
+              items={sm.tickets}
+              isLoading={sm.isLoading || sm.isFetching}
+              loadingContent={<Spinner size="sm" label="加载中..." />}
+              emptyContent={
+                <TableEmptyState
+                  icon={HeadphonesIcon}
+                  hasFilter={!!(sm.keywordInput || sm.statusFilter)}
+                  filterEmptyText={ADMIN_EMPTY_TEXTS.supports.filterEmptyText}
+                  emptyText={ADMIN_EMPTY_TEXTS.supports.emptyText}
+                  emptyHint={ADMIN_EMPTY_TEXTS.supports.emptyHint}
+                />
+              }
+            >
+              {ticket => (
+                <TableRow key={ticket.id}>
+                  <TableCell>
+                    <span className="font-mono text-xs">{ticket.ticket_no}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="max-w-[260px]">
+                      <p className="text-sm line-clamp-1">{ticket.subject}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-mono text-xs text-default-600">{ticket.trade_no}</span>
+                  </TableCell>
+                  <TableCell>{ticket.user_email || "-"}</TableCell>
+                  <TableCell>
+                    <Chip size="sm" variant="flat" color={statusColor(ticket.status)}>
+                      {statusLabel(ticket.status)}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>{formatDateTime(ticket.updated_at)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-center gap-1">
+                      <Button size="sm" variant="light" isIconOnly onPress={() => sm.handleOpenDetail(ticket)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {ticket.status !== "CLOSED" ? (
+                        <Button
+                          size="sm"
+                          variant="light"
+                          color="warning"
+                          isIconOnly
+                          onPress={async () => {
+                            if (!window.confirm("确认关闭该工单吗？")) return;
+                            try {
+                              await sm.handleCloseTicket(ticket);
+                            } catch (error) {
+                              addToast({
+                                title: error instanceof Error ? error.message : "关闭工单失败",
+                                color: "danger",
+                                timeout: 3000,
+                              });
+                            }
+                          }}
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="sm"
+                        variant="light"
+                        color="danger"
+                        isIconOnly
+                        onPress={() => sm.handleDeleteClick(ticket)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {sm.isSomeSelected ? (
+          <FloatingSelectionBar
+            count={sm.selectedIds.size}
+            actions={[
+              {
+                key: "delete",
+                label: "批量删除",
+                icon: <Trash2 className="w-3.5 h-3.5" />,
+                onClick: sm.batchDeleteModal.onOpen,
+                variant: "danger",
+              },
+            ]}
+            onClear={() => sm.setSelectedIds(new Set())}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={sm.deleteModal.isOpen}
+        onOpenChange={sm.deleteModal.onOpenChange}
+        title="删除工单"
+        description={`确定要删除工单「${sm.deleteTarget?.ticket_no || ""}」吗？`}
+        confirmText="删除"
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={false}
+        onConfirm={sm.handleDeleteConfirm}
       />
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <AdminCard>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary/10">
-              <HeadphonesIcon className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{tickets.length}</p>
-              <p className="text-xs text-muted-foreground">工单总数</p>
-            </div>
-          </div>
-        </AdminCard>
-        <AdminCard delay={0.05}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-red/10">
-              <AlertCircle className="w-6 h-6 text-red" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{tickets.filter(t => t.status === "open").length}</p>
-              <p className="text-xs text-muted-foreground">待处理</p>
-            </div>
-          </div>
-        </AdminCard>
-        <AdminCard delay={0.1}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-yellow/10">
-              <Clock className="w-6 h-6 text-yellow" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{tickets.filter(t => t.status === "processing").length}</p>
-              <p className="text-xs text-muted-foreground">处理中</p>
-            </div>
-          </div>
-        </AdminCard>
-        <AdminCard delay={0.15}>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-green/10">
-              <CheckCircle className="w-6 h-6 text-green" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {tickets.filter(t => t.status === "resolved" || t.status === "closed").length}
-              </p>
-              <p className="text-xs text-muted-foreground">已解决</p>
-            </div>
-          </div>
-        </AdminCard>
-      </div>
+      <ConfirmDialog
+        isOpen={sm.batchDeleteModal.isOpen}
+        onOpenChange={sm.batchDeleteModal.onOpenChange}
+        title="批量删除工单"
+        description={`确定要删除选中的 ${sm.selectedIds.size} 个工单吗？`}
+        confirmText={`删除 ${sm.selectedIds.size} 项`}
+        confirmColor="danger"
+        icon={<ShieldAlert className="w-5 h-5 text-danger" />}
+        iconBg="bg-danger-50"
+        loading={false}
+        onConfirm={sm.handleBatchDeleteConfirm}
+      />
 
-      {/* 筛选标签 */}
-      <div className="flex items-center gap-2">
-        {filterTabs.map(tab => (
-          <Button
-            key={tab.key}
-            variant={filter === tab.key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter(tab.key)}
-            className="gap-1.5"
-          >
-            {tab.label}
-            <span
-              className={cn(
-                "px-1.5 py-0.5 rounded text-[10px]",
-                filter === tab.key ? "bg-primary-foreground/20" : "bg-muted"
-              )}
-            >
-              {tab.count}
-            </span>
-          </Button>
-        ))}
-      </div>
-
-      {/* 工单列表 */}
-      <AdminCard title="工单列表" noPadding>
-        <AdminDataTable
-          data={filteredTickets}
-          columns={columns}
-          searchable
-          searchPlaceholder="搜索工单号或用户..."
-          searchKeys={["id", "title", "user"]}
-          rowActions={ticket => (
-            <div className="flex items-center gap-1 justify-end">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Eye className="w-4 h-4" />
-              </Button>
-              {(ticket.status === "open" || ticket.status === "processing") && (
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-primary">
-                  <Send className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          )}
-        />
-      </AdminCard>
-    </div>
+      <TicketDetailDrawer
+        isOpen={sm.detailModal.isOpen}
+        onOpenChange={sm.detailModal.onOpenChange}
+        ticket={sm.detailTicket}
+        isLoading={sm.isDetailLoading}
+        replyContent={sm.replyContent}
+        onReplyContentChange={sm.setReplyContent}
+        onReply={sm.handleReplyTicket}
+        isReplying={sm.isReplying}
+        onCloseTicket={sm.handleCloseTicket}
+      />
+    </motion.div>
   );
 }

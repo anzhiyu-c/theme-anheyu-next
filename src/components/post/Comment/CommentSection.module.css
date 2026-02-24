@@ -121,7 +121,7 @@
 
 .commentListContainer {
   width: 100%;
-  margin-top: 3rem;
+  margin-top: 1rem;
 }
 
 .commentListPlaceholder {
@@ -151,10 +151,15 @@
 .commentsWrapper {
   display: flex;
   flex-direction: column;
+  gap: var(--comment-item-gap, 0.75rem);
 }
 
-.commentThreadItem + .commentThreadItem {
-  margin-top: 1.5rem;
+.commentThreadItem {
+  background: var(--comment-item-bg, var(--card));
+  border: var(--comment-item-border, 1px solid var(--border));
+  border-radius: var(--comment-item-radius, 12px);
+  padding: var(--comment-item-padding, 1.25rem);
+  transition: all 0.3s ease;
 }
 
 .commentThreadItem:first-child .commentThreadDivider {
@@ -162,6 +167,7 @@
 }
 
 .commentThreadDivider {
+  display: var(--comment-divider-display, none);
   margin-bottom: 1.5rem;
   border: none;
   border-top: 1px solid var(--border, #eef2f8);
@@ -198,11 +204,7 @@
 }
 
 @media (width <= 768px) {
-  .commentListContainer .commentsWrapper .commentThreadItem {
-    margin-top: 0 !important;
-    margin-bottom: 0.5rem !important;
-    background: var(--anzhiyu-card-bg);
-    border-radius: 12px;
-    transition: 0.3s;
+  .commentsWrapper {
+    gap: 0.5rem;
   }
 }

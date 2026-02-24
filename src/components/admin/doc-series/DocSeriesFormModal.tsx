@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { ModalBody, ModalFooter, Button, addToast } from "@heroui/react";
+import { BookOpen, Pencil } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormInput } from "@/components/ui/form-input";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import { useCreateDocSeries, useUpdateDocSeries } from "@/hooks/queries/use-doc-series";
@@ -19,10 +21,22 @@ interface DocSeriesFormModalProps {
  * 内部组件在 Modal 打开时挂载，初始值直接从 props 传入 useState
  */
 export default function DocSeriesFormModal({ isOpen, onClose, editItem }: DocSeriesFormModalProps) {
+  const isEdit = !!editItem;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
-      <ModalContent>{isOpen && <DocSeriesFormContent editItem={editItem} onClose={onClose} />}</ModalContent>
-    </Modal>
+    <AdminDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      size="lg"
+      scrollBehavior="inside"
+      header={{
+        title: isEdit ? "编辑文档系列" : "新增文档系列",
+        description: isEdit ? "修改系列信息与展示顺序" : "创建新的文档系列用于内容归档",
+        icon: isEdit ? Pencil : BookOpen,
+      }}
+    >
+      {isOpen && <DocSeriesFormContent editItem={editItem} onClose={onClose} />}
+    </AdminDialog>
   );
 }
 
@@ -75,7 +89,6 @@ function DocSeriesFormContent({ editItem, onClose }: { editItem?: DocSeries | nu
 
   return (
     <>
-      <ModalHeader className="flex flex-col gap-1">{isEdit ? "编辑文档系列" : "新增文档系列"}</ModalHeader>
       <ModalBody className="gap-4">
         <FormInput
           label="系列名称"

@@ -1,17 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Progress,
-  Spinner,
-  addToast,
-} from "@heroui/react";
+import { ModalBody, ModalFooter, Button, Progress, Spinner, addToast } from "@heroui/react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { HeartPulse, CheckCircle, XCircle, Activity } from "lucide-react";
 import { useTriggerHealthCheck } from "@/hooks/queries/use-friends";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -89,12 +80,16 @@ export default function HealthCheckPanel({ isOpen, onClose }: HealthCheckPanelPr
   const isRunning = healthStatus?.is_running || isPolling;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg">
-      <ModalContent>
-        <ModalHeader className="flex items-center gap-2">
-          <HeartPulse className="w-5 h-5 text-primary" />
-          友链健康检查
-        </ModalHeader>
+    <AdminDialog
+      isOpen={isOpen}
+      onClose={handleClose}
+      size="lg"
+      header={{
+        title: "友链健康检查",
+        description: "检测所有友链可访问性并自动标记失联项",
+        icon: HeartPulse,
+      }}
+    >
         <ModalBody>
           {isRunning ? (
             <div className="flex flex-col items-center justify-center py-8 gap-4">
@@ -194,7 +189,6 @@ export default function HealthCheckPanel({ isOpen, onClose }: HealthCheckPanelPr
             {isRunning ? "检查中..." : result ? "重新检查" : "开始检查"}
           </Button>
         </ModalFooter>
-      </ModalContent>
-    </Modal>
+    </AdminDialog>
   );
 }

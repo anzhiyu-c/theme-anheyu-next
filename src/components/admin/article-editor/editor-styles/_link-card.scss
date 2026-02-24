@@ -53,7 +53,8 @@
       color: #fff;
       background: var(--anzhiyu-theme, hsl(var(--primary)));
 
-      .tag-link-left i {
+      .tag-link-left i,
+      .tag-link-left .iconify {
         color: var(--anzhiyu-theme, hsl(var(--primary)));
         transform: scale(1.1);
       }
@@ -101,31 +102,13 @@
     background-size: cover;
     border-radius: 8px;
 
-    i {
+    i,
+    .iconify {
       padding: 0;
       margin: auto;
       font-size: 24px;
       color: var(--anzhiyu-fontcolor, var(--foreground));
       transition: all 0.3s ease;
-
-      // Font Awesome 6 link 图标
-      &.anzhiyu-icon-link {
-        width: 24px;
-        height: 24px;
-        background-color: currentColor;
-        mask-image: url("https://api.iconify.design/fa6-solid/link.svg");
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        mask-position: center;
-        -webkit-mask-image: url("https://api.iconify.design/fa6-solid/link.svg");
-        -webkit-mask-size: contain;
-        -webkit-mask-repeat: no-repeat;
-        -webkit-mask-position: center;
-
-        &::before {
-          content: none !important;
-        }
-      }
     }
 
     img {

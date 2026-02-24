@@ -1,7 +1,7 @@
 "use client";
 
 import { Input, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react";
-import { Plus, Search, RotateCcw, Tags, Upload, Download, HeartPulse, ChevronDown, X } from "lucide-react";
+import { Plus, Search, RotateCcw, Tags, Upload, Download, HeartPulse, ChevronDown } from "lucide-react";
 import type { FriendsPageState } from "../_hooks/use-friends-page";
 
 /** 状态筛选选项 */
@@ -84,22 +84,13 @@ export function FriendsToolbar({ cm }: FriendsToolbarProps) {
         <div className="flex items-center gap-3">
           <Input
             size="sm"
+            isClearable
             className="w-full sm:max-w-[300px]"
             placeholder="搜索网站名称、网址..."
             startContent={<Search className="w-3.5 h-3.5 text-default-400" />}
-            endContent={
-              cm.searchInput ? (
-                <button
-                  type="button"
-                  className="shrink-0 text-default-400 hover:text-default-600 transition-colors"
-                  onClick={() => cm.setSearchInput("")}
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              ) : null
-            }
             value={cm.searchInput}
             onValueChange={cm.setSearchInput}
+            onClear={() => cm.setSearchInput("")}
             classNames={{
               inputWrapper:
                 "h-8 min-h-8 bg-white! dark:bg-default-50! shadow-none! [border:var(--style-border)] data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-50! group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-50! group-data-[focus=true]:[border:var(--style-border-hover)] transition-all duration-200",

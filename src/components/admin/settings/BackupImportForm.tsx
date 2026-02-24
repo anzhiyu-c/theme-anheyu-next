@@ -1,20 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import {
-  addToast,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  useDisclosure,
-  Input,
-  Chip,
-  Tooltip,
-  Spinner,
-} from "@heroui/react";
+import { addToast, ModalBody, ModalFooter, Button, useDisclosure, Input, Chip, Tooltip, Spinner } from "@heroui/react";
 import {
   FileText,
   FolderOpen,
@@ -27,6 +14,7 @@ import {
   ArrowUpFromLine,
   ArrowDownToLine,
 } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { configApi, type BackupInfo } from "@/lib/api/config";
 
 interface BackupImportFormProps {
@@ -541,115 +529,137 @@ export function BackupImportForm({ loading: pageLoading }: BackupImportFormProps
       {/* ==================== 确认弹窗 ==================== */}
 
       {/* 导入确认 */}
-      <Modal isOpen={importConfirm.isOpen} onOpenChange={importConfirm.onOpenChange} size="sm" radius="lg">
-        <ModalContent>
-          <ModalHeader className="text-[15px] pb-1">确认导入配置</ModalHeader>
-          <ModalBody className="pb-1 pt-2">
-            <div className="space-y-3 text-[13px] text-default-600">
-              <p>导入配置将覆盖数据库中的系统设置。</p>
-              <p>
-                系统会在导入前<strong className="text-foreground">自动备份</strong>当前配置。
-              </p>
-              <div className="flex items-start gap-2 rounded-lg bg-warning-50 px-3 py-2">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-                <p className="text-warning-700 text-xs">导入成功后页面将自动刷新以应用新配置。</p>
-              </div>
+      <AdminDialog
+        isOpen={importConfirm.isOpen}
+        onOpenChange={importConfirm.onOpenChange}
+        size="sm"
+        radius="lg"
+        header={{ title: "确认导入配置", description: "导入后将覆盖当前系统配置", icon: ArrowUpFromLine }}
+      >
+        <ModalBody className="pb-1 pt-2">
+          <div className="space-y-3 text-[13px] text-default-600">
+            <p>导入配置将覆盖数据库中的系统设置。</p>
+            <p>
+              系统会在导入前<strong className="text-foreground">自动备份</strong>当前配置。
+            </p>
+            <div className="flex items-start gap-2 rounded-lg bg-warning-50 px-3 py-2">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+              <p className="text-warning-700 text-xs">导入成功后页面将自动刷新以应用新配置。</p>
             </div>
-          </ModalBody>
-          <ModalFooter className="pt-2">
-            <Button variant="flat" size="sm" onPress={importConfirm.onClose} radius="lg">
-              取消
-            </Button>
-            <Button color="primary" size="sm" onPress={executeImport} radius="lg">
-              确定导入
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </div>
+        </ModalBody>
+        <ModalFooter className="pt-2">
+          <Button variant="flat" size="sm" onPress={importConfirm.onClose} radius="lg">
+            取消
+          </Button>
+          <Button color="primary" size="sm" onPress={executeImport} radius="lg">
+            确定导入
+          </Button>
+        </ModalFooter>
+      </AdminDialog>
 
       {/* 恢复确认 */}
-      <Modal isOpen={restoreConfirm.isOpen} onOpenChange={restoreConfirm.onOpenChange} size="sm" radius="lg">
-        <ModalContent>
-          <ModalHeader className="text-[15px] pb-1">确认恢复备份</ModalHeader>
-          <ModalBody className="pb-1 pt-2">
-            <div className="space-y-3 text-[13px] text-default-600">
-              <p>
-                确定要恢复备份{" "}
-                <code className="rounded bg-default-100 px-1.5 py-0.5 text-xs font-mono text-foreground">
-                  {pendingBackup?.filename}
-                </code>{" "}
-                吗？
-              </p>
-              <p>系统会在恢复前自动创建当前配置的备份。</p>
-              <div className="flex items-start gap-2 rounded-lg bg-warning-50 px-3 py-2">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-                <p className="text-warning-700 text-xs">恢复成功后页面将自动刷新以应用配置。</p>
-              </div>
+      <AdminDialog
+        isOpen={restoreConfirm.isOpen}
+        onOpenChange={restoreConfirm.onOpenChange}
+        size="sm"
+        radius="lg"
+        header={{ title: "确认恢复备份", description: "将使用该备份覆盖当前配置", icon: RotateCcw }}
+      >
+        <ModalBody className="pb-1 pt-2">
+          <div className="space-y-3 text-[13px] text-default-600">
+            <p>
+              确定要恢复备份{" "}
+              <code className="rounded bg-default-100 px-1.5 py-0.5 text-xs font-mono text-foreground">
+                {pendingBackup?.filename}
+              </code>{" "}
+              吗？
+            </p>
+            <p>系统会在恢复前自动创建当前配置的备份。</p>
+            <div className="flex items-start gap-2 rounded-lg bg-warning-50 px-3 py-2">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+              <p className="text-warning-700 text-xs">恢复成功后页面将自动刷新以应用配置。</p>
             </div>
-          </ModalBody>
-          <ModalFooter className="pt-2">
-            <Button variant="flat" size="sm" onPress={restoreConfirm.onClose} radius="lg">
-              取消
-            </Button>
-            <Button color="primary" size="sm" onPress={executeRestore} radius="lg">
-              确定恢复
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </div>
+        </ModalBody>
+        <ModalFooter className="pt-2">
+          <Button variant="flat" size="sm" onPress={restoreConfirm.onClose} radius="lg">
+            取消
+          </Button>
+          <Button color="primary" size="sm" onPress={executeRestore} radius="lg">
+            确定恢复
+          </Button>
+        </ModalFooter>
+      </AdminDialog>
 
       {/* 删除确认 */}
-      <Modal isOpen={deleteConfirm.isOpen} onOpenChange={deleteConfirm.onOpenChange} size="sm" radius="lg">
-        <ModalContent>
-          <ModalHeader className="text-[15px] pb-1">确认删除备份</ModalHeader>
-          <ModalBody className="pb-1 pt-2">
-            <div className="space-y-3 text-[13px] text-default-600">
-              <p>
-                确定要删除备份{" "}
-                <code className="rounded bg-default-100 px-1.5 py-0.5 text-xs font-mono text-foreground">
-                  {pendingBackup?.filename}
-                </code>{" "}
-                吗？
-              </p>
-              <div className="flex items-start gap-2 rounded-lg bg-danger-50 px-3 py-2">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger" />
-                <p className="text-danger-700 text-xs">此操作不可恢复，请谨慎操作。</p>
-              </div>
+      <AdminDialog
+        isOpen={deleteConfirm.isOpen}
+        onOpenChange={deleteConfirm.onOpenChange}
+        size="sm"
+        radius="lg"
+        header={{
+          title: "确认删除备份",
+          description: "删除后无法恢复，请谨慎操作",
+          icon: Trash2,
+          tone: "danger",
+        }}
+      >
+        <ModalBody className="pb-1 pt-2">
+          <div className="space-y-3 text-[13px] text-default-600">
+            <p>
+              确定要删除备份{" "}
+              <code className="rounded bg-default-100 px-1.5 py-0.5 text-xs font-mono text-foreground">
+                {pendingBackup?.filename}
+              </code>{" "}
+              吗？
+            </p>
+            <div className="flex items-start gap-2 rounded-lg bg-danger-50 px-3 py-2">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-danger" />
+              <p className="text-danger-700 text-xs">此操作不可恢复，请谨慎操作。</p>
             </div>
-          </ModalBody>
-          <ModalFooter className="pt-2">
-            <Button variant="flat" size="sm" onPress={deleteConfirm.onClose} radius="lg">
-              取消
-            </Button>
-            <Button color="danger" size="sm" onPress={executeDelete} radius="lg">
-              确定删除
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </div>
+        </ModalBody>
+        <ModalFooter className="pt-2">
+          <Button variant="flat" size="sm" onPress={deleteConfirm.onClose} radius="lg">
+            取消
+          </Button>
+          <Button color="danger" size="sm" onPress={executeDelete} radius="lg">
+            确定删除
+          </Button>
+        </ModalFooter>
+      </AdminDialog>
 
       {/* 清理确认 */}
-      <Modal isOpen={cleanConfirm.isOpen} onOpenChange={cleanConfirm.onOpenChange} size="sm" radius="lg">
-        <ModalContent>
-          <ModalHeader className="text-[15px] pb-1">确认清理旧备份</ModalHeader>
-          <ModalBody className="pb-1 pt-2">
-            <div className="space-y-3 text-[13px] text-default-600">
-              <p>
-                将删除 <strong className="text-foreground">{deleteCount}</strong> 个旧备份，只保留最近{" "}
-                <strong className="text-foreground">{keepCount}</strong> 份。
-              </p>
-            </div>
-          </ModalBody>
-          <ModalFooter className="pt-2">
-            <Button variant="flat" size="sm" onPress={cleanConfirm.onClose} radius="lg">
-              取消
-            </Button>
-            <Button color="warning" size="sm" onPress={executeClean} radius="lg">
-              确定清理
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <AdminDialog
+        isOpen={cleanConfirm.isOpen}
+        onOpenChange={cleanConfirm.onOpenChange}
+        size="sm"
+        radius="lg"
+        header={{
+          title: "确认清理旧备份",
+          description: "仅保留最近备份，超出部分将被删除",
+          icon: RefreshCw,
+          tone: "warning",
+        }}
+      >
+        <ModalBody className="pb-1 pt-2">
+          <div className="space-y-3 text-[13px] text-default-600">
+            <p>
+              将删除 <strong className="text-foreground">{deleteCount}</strong> 个旧备份，只保留最近{" "}
+              <strong className="text-foreground">{keepCount}</strong> 份。
+            </p>
+          </div>
+        </ModalBody>
+        <ModalFooter className="pt-2">
+          <Button variant="flat" size="sm" onPress={cleanConfirm.onClose} radius="lg">
+            取消
+          </Button>
+          <Button color="warning" size="sm" onPress={executeClean} radius="lg">
+            确定清理
+          </Button>
+        </ModalFooter>
+      </AdminDialog>
     </div>
   );
 }

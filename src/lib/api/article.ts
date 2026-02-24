@@ -142,6 +142,18 @@ export const articleApi = {
   /**
    * 获取归档列表
    */
+  async getRandomArticle(): Promise<{ id: number; is_doc?: boolean; doc_series_id?: number }> {
+    const response = await apiClient.get<{ id: number; is_doc?: boolean; doc_series_id?: number }>(
+      `/api/public/articles/random`
+    );
+
+    if (response.code === 200 && response.data) {
+      return response.data;
+    }
+
+    throw new Error(response.message || "获取随机文章失败");
+  },
+
   async getArchiveList(): Promise<Archive[]> {
     // 后端返回 { list: Archive[] } 格式
     const response = await apiClient.get<{ list: Archive[] }>(`/api/public/articles/archives`);

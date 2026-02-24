@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Chip, addToast } from "@heroui/react";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { ModalBody, ModalFooter, Button, Chip, addToast } from "@heroui/react";
+import { Edit, Plus, Trash2, FolderOpen } from "lucide-react";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { FormInput } from "@/components/ui/form-input";
 import { FormTextarea } from "@/components/ui/form-textarea";
 import {
@@ -124,116 +125,113 @@ export default function AlbumCategoryManager({ isOpen, onClose }: AlbumCategoryM
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
-        <ModalContent>
-          <ModalHeader>相册分类管理</ModalHeader>
-          <ModalBody className="gap-4">
-            {!isCreating && !editingCategory && (
-              <Button
-                size="sm"
-                color="primary"
-                variant="flat"
-                startContent={<Plus className="w-4 h-4" />}
-                onPress={handleStartCreate}
-                className="w-fit"
-              >
-                新增分类
-              </Button>
-            )}
+      <AdminDialog
+        isOpen={isOpen}
+        onClose={handleClose}
+        size="2xl"
+        scrollBehavior="inside"
+        header={{ title: "相册分类管理", description: "维护相册分类并调整排序信息", icon: FolderOpen }}
+      >
+        <ModalBody className="gap-4">
+          {!isCreating && !editingCategory && (
+            <Button
+              size="sm"
+              color="primary"
+              variant="flat"
+              startContent={<Plus className="w-4 h-4" />}
+              onPress={handleStartCreate}
+              className="w-fit"
+            >
+              新增分类
+            </Button>
+          )}
 
-            {(isCreating || editingCategory) && (
-              <div className="rounded-xl border border-primary-200 bg-primary-50/30 p-3 space-y-3">
-                <FormInput label="分类名称" value={name} onValueChange={setName} isRequired size="sm" />
-                <FormTextarea
-                  label="描述"
-                  value={description}
-                  onValueChange={setDescription}
-                  minRows={2}
-                  maxRows={4}
-                  maxLength={200}
-                />
-                <FormInput
-                  label="排序"
-                  value={displayOrder}
-                  onValueChange={setDisplayOrder}
-                  type="number"
-                  size="sm"
-                  description="数字越小越靠前"
-                />
-                <div className="flex justify-end gap-2">
-                  <Button size="sm" variant="flat" onPress={handleCancelEdit}>
-                    取消
+          {(isCreating || editingCategory) && (
+            <div className="rounded-xl border border-primary-200 bg-primary-50/30 p-3 space-y-3">
+              <FormInput label="分类名称" value={name} onValueChange={setName} isRequired size="sm" />
+              <FormTextarea
+                label="描述"
+                value={description}
+                onValueChange={setDescription}
+                minRows={2}
+                maxRows={4}
+                maxLength={200}
+              />
+              <FormInput
+                label="排序"
+                value={displayOrder}
+                onValueChange={setDisplayOrder}
+                type="number"
+                size="sm"
+                description="数字越小越靠前"
+              />
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="flat" onPress={handleCancelEdit}>
+                  取消
+                </Button>
+                <Button size="sm" color="primary" onPress={handleSubmit} isLoading={isSaving}>
+                  {editingCategory ? "保存修改" : "创建分类"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {sortedCategories.map(category => (
+              <div
+                key={category.id}
+                className="rounded-xl border border-default-200 bg-default-50 p-3 flex items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium truncate">{category.name}</span>
+                    <Chip size="sm" variant="flat">
+                      排序 {category.displayOrder ?? 0}
+                    </Chip>
+                  </div>
+                  {category.description && <p className="text-xs text-default-500 mt-1">{category.description}</p>}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button isIconOnly size="sm" variant="light" onPress={() => handleStartEdit(category)}>
+                    <Edit className="w-3.5 h-3.5" />
                   </Button>
-                  <Button size="sm" color="primary" onPress={handleSubmit} isLoading={isSaving}>
-                    {editingCategory ? "保存修改" : "创建分类"}
+                  <Button isIconOnly size="sm" variant="light" color="danger" onPress={() => setDeleteTarget(category)}>
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
+            ))}
+
+            {sortedCategories.length === 0 && (
+              <div className="py-10 text-center text-sm text-default-400">暂无分类，点击上方按钮创建</div>
             )}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="flat" onPress={handleClose}>
+            关闭
+          </Button>
+        </ModalFooter>
+      </AdminDialog>
 
-            <div className="space-y-2">
-              {sortedCategories.map(category => (
-                <div
-                  key={category.id}
-                  className="rounded-xl border border-default-200 bg-default-50 p-3 flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium truncate">{category.name}</span>
-                      <Chip size="sm" variant="flat">
-                        排序 {category.displayOrder ?? 0}
-                      </Chip>
-                    </div>
-                    {category.description && <p className="text-xs text-default-500 mt-1">{category.description}</p>}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button isIconOnly size="sm" variant="light" onPress={() => handleStartEdit(category)}>
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="light"
-                      color="danger"
-                      onPress={() => setDeleteTarget(category)}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-
-              {sortedCategories.length === 0 && (
-                <div className="py-10 text-center text-sm text-default-400">暂无分类，点击上方按钮创建</div>
-              )}
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="flat" onPress={handleClose}>
-              关闭
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} size="sm">
-        <ModalContent>
-          <ModalHeader>删除分类</ModalHeader>
-          <ModalBody>
-            <p className="text-sm">
-              确定要删除分类「{deleteTarget?.name}」吗？删除后该分类下相册将解除关联。
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="flat" onPress={() => setDeleteTarget(null)}>
-              取消
-            </Button>
-            <Button color="danger" onPress={handleDeleteConfirm} isLoading={deleteCategory.isPending}>
-              删除
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <AdminDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        size="sm"
+        header={{ title: "删除分类", description: "删除后该分类下相册将解除关联", icon: Trash2, tone: "danger" }}
+      >
+        <ModalBody>
+          <p className="text-sm">确定要删除分类「{deleteTarget?.name}」吗？删除后该分类下相册将解除关联。</p>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="flat" onPress={() => setDeleteTarget(null)}>
+            取消
+          </Button>
+          <Button color="danger" onPress={handleDeleteConfirm} isLoading={deleteCategory.isPending}>
+            删除
+          </Button>
+        </ModalFooter>
+      </AdminDialog>
     </>
   );
 }

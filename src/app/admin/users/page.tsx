@@ -16,20 +16,20 @@ import {
   Pagination,
 } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, ShieldAlert, Ban, CheckCircle, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ShieldAlert, Ban, CheckCircle, ChevronDown, Users } from "lucide-react";
 import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
 import { USER_STATUS } from "@/types/user-management";
 import { useUsersManagementPage } from "./_hooks/use-users-page";
 import { USER_TABLE_COLUMNS, useUserRenderCell } from "@/components/admin/users/UserTableColumns";
 import { UserFilterBar } from "@/components/admin/users/UserFilterBar";
-import { UserEmptyState } from "@/components/admin/users/UserEmptyState";
 import { UserManagementSkeleton } from "@/components/admin/users/UserManagementSkeleton";
 import { CreateUserModal } from "@/components/admin/users/CreateUserModal";
 import { EditUserModal } from "@/components/admin/users/EditUserModal";
 import { ResetPasswordModal } from "@/components/admin/users/ResetPasswordModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { FloatingSelectionBar } from "@/components/admin/FloatingSelectionBar";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 
 export default function UsersManagementPage() {
   const um = useUsersManagementPage();
@@ -187,7 +187,15 @@ export default function UsersManagementPage() {
             </TableHeader>
             <TableBody
               items={um.users}
-              emptyContent={<UserEmptyState hasFilter={!!(um.debouncedSearch || um.statusFilter || um.groupFilter)} />}
+              emptyContent={
+                <TableEmptyState
+                  icon={Users}
+                  hasFilter={!!(um.debouncedSearch || um.statusFilter || um.groupFilter)}
+                  filterEmptyText={ADMIN_EMPTY_TEXTS.users.filterEmptyText}
+                  emptyText={ADMIN_EMPTY_TEXTS.users.emptyText}
+                  emptyHint={ADMIN_EMPTY_TEXTS.users.emptyHint}
+                />
+              }
               isLoading={um.isFetching && !um.isLoading}
               loadingContent={<Spinner size="sm" label="加载中..." />}
             >

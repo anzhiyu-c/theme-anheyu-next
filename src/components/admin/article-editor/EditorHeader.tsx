@@ -226,6 +226,8 @@ interface EditorHeaderProps {
   onToggleSidebar: () => void;
   /** 文章 ID（编辑模式） */
   articleId?: string;
+  /** 是否为文档模式 */
+  isDoc?: boolean;
   /** 自动保存状态 */
   autoSaveStatus?: AutoSaveStatus;
   /** 上次自动保存时间 */
@@ -248,6 +250,7 @@ export function EditorHeader({
   sidebarOpen,
   onToggleSidebar,
   articleId,
+  isDoc,
   autoSaveStatus = "idle",
   lastSavedAt,
   articleUpdatedAt,
@@ -531,7 +534,7 @@ export function EditorHeader({
               variant="light"
               size="sm"
               as="a"
-              href={`/posts/${articleId}`}
+              href={isDoc ? `/doc/${articleId}` : `/posts/${articleId}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="查看文章"

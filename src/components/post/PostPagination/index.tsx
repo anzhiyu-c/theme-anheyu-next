@@ -13,6 +13,13 @@ interface PostPaginationProps {
   nextArticle?: ArticleLink | null;
 }
 
+function getArticleHref(link: ArticleLink): string {
+  if (link.is_doc || link.doc_series_id) {
+    return `/doc/${link.id}`;
+  }
+  return `/posts/${link.abbrlink || link.id}`;
+}
+
 export function PostPagination({ prevArticle, nextArticle }: PostPaginationProps) {
   if (!prevArticle && !nextArticle) {
     return null;
@@ -20,12 +27,8 @@ export function PostPagination({ prevArticle, nextArticle }: PostPaginationProps
 
   return (
     <nav className={styles.paginationPost}>
-      {/* 上一篇 */}
       {prevArticle && (
-        <Link
-          href={`/posts/${prevArticle.abbrlink || prevArticle.id}`}
-          className={`${styles.paginationItem} ${styles.left}`}
-        >
+        <Link href={getArticleHref(prevArticle)} className={`${styles.paginationItem} ${styles.left}`}>
           <div className={styles.paginationInfo}>
             <div className={styles.label}>上一篇</div>
             <div className={styles.infoTitle}>{prevArticle.title}</div>
@@ -33,12 +36,8 @@ export function PostPagination({ prevArticle, nextArticle }: PostPaginationProps
         </Link>
       )}
 
-      {/* 下一篇 */}
       {nextArticle && (
-        <Link
-          href={`/posts/${nextArticle.abbrlink || nextArticle.id}`}
-          className={`${styles.paginationItem} ${styles.right}`}
-        >
+        <Link href={getArticleHref(nextArticle)} className={`${styles.paginationItem} ${styles.right}`}>
           <div className={styles.paginationInfo}>
             <div className={styles.label}>下一篇</div>
             <div className={styles.infoTitle}>{nextArticle.title}</div>

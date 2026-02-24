@@ -35,6 +35,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { adminContainerVariants, adminItemVariants } from "@/lib/motion";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { AdminDialog } from "@/components/admin/AdminDialog";
 import { StorageTypeSelector } from "@/components/admin/storage/StorageTypeSelector";
 import { useStoragePage } from "./_hooks/use-storage-page";
 import {
@@ -99,9 +100,9 @@ function PolicyCard({
     <div
       className={cn(
         "rounded-2xl",
-        "bg-white dark:bg-white/[0.04]",
-        "border border-border/50 dark:border-white/[0.06]",
-        "hover:border-border dark:hover:border-white/[0.12]",
+        "bg-white dark:bg-white/4",
+        "border border-border/50 dark:border-white/6",
+        "hover:border-border dark:hover:border-white/12",
         "hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
         "transition-all duration-200 ease-out",
         "flex items-center gap-3.5 px-4 py-3.5"
@@ -117,7 +118,7 @@ function PolicyCard({
         <div className="flex items-center gap-1.5 min-w-0">
           <h4 className="text-sm font-semibold leading-tight line-clamp-1">{policy.name}</h4>
           {policy.flag && (
-            <span className="shrink-0 text-[10px] font-medium px-1.5 py-px rounded-md bg-foreground/[0.05] text-muted-foreground">
+            <span className="shrink-0 text-[10px] font-medium px-1.5 py-px rounded-md bg-foreground/5 text-muted-foreground">
               {POLICY_FLAG_LABELS[policy.flag] ?? policy.flag}
             </span>
           )}
@@ -199,11 +200,11 @@ function AddCard({ onPress }: { onPress: () => void }) {
         "rounded-2xl flex items-center gap-3.5 px-4 py-4 cursor-pointer",
         "border border-dashed border-border/40",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/40 hover:bg-primary/[0.03]",
+        "hover:border-primary/40 hover:bg-primary/3",
         "group"
       )}
     >
-      <div className="w-10 h-10 rounded-xl bg-default-100/60 dark:bg-white/[0.04] flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors duration-300">
+      <div className="w-10 h-10 rounded-xl bg-default-100/60 dark:bg-white/4 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors duration-300">
         <Plus className="w-4.5 h-4.5 text-muted-foreground/50 group-hover:text-primary transition-colors duration-300" />
       </div>
       <div>
@@ -390,9 +391,18 @@ function CreateFormModal({
   onSubmit: (data: Partial<StoragePolicy>) => void;
 }) {
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside" isDismissable={!isLoading}>
-      <ModalContent>
-        <ModalHeader>{title}</ModalHeader>
+    <AdminDialog
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      size="2xl"
+      scrollBehavior="inside"
+      isDismissable={!isLoading}
+      header={{
+        title,
+        description: storageType ? `配置 ${STORAGE_TYPE_LABELS[storageType]} 参数后即可创建` : "填写配置后即可创建存储策略",
+        icon: Plus,
+      }}
+    >
         {storageType && (
           <CreateFormBody
             key={`${storageType}-${isOpen}`}
@@ -402,8 +412,7 @@ function CreateFormModal({
             onCancel={() => onOpenChange(false)}
           />
         )}
-      </ModalContent>
-    </Modal>
+    </AdminDialog>
   );
 }
 

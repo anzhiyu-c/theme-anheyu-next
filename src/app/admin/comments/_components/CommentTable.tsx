@@ -21,7 +21,6 @@ import {
 } from "@heroui/react";
 import {
   MessageSquare,
-  Search,
   Trash2,
   ShieldX,
   ChevronDown,
@@ -34,7 +33,8 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PAGE_SIZES } from "@/lib/constants/admin";
+import { PAGE_SIZES, ADMIN_EMPTY_TEXTS } from "@/lib/constants/admin";
+import { TableEmptyState } from "@/components/admin/TableEmptyState";
 import { COMMENT_STATUS } from "@/types/comment-management";
 import type { AdminComment } from "@/types/comment-management";
 import { formatDateTimeParts } from "@/utils/date";
@@ -49,31 +49,6 @@ const TABLE_COLUMNS = [
   { key: "time", label: "时间" },
   { key: "actions", label: "操作" },
 ];
-
-function CommentEmptyState({ hasFilter }: { hasFilter: boolean }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 py-16">
-      <div className="relative">
-        <div className="w-20 h-20 rounded-2xl bg-muted/40 flex items-center justify-center">
-          <MessageSquare className="w-9 h-9 text-muted-foreground/25" />
-        </div>
-        <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-          {hasFilter ? (
-            <Search className="w-3.5 h-3.5 text-primary/50" />
-          ) : (
-            <MessageCircle className="w-3.5 h-3.5 text-primary/50" />
-          )}
-        </div>
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted-foreground">{hasFilter ? "没有匹配的评论" : "还没有评论"}</p>
-        <p className="text-xs text-muted-foreground/60 mt-1">
-          {hasFilter ? "试试调整筛选条件或搜索关键词" : "用户发表评论后将在这里显示"}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 interface CommentTableProps {
   cm: CommentPageState;
@@ -124,12 +99,26 @@ export function CommentTable({ cm }: CommentTableProps) {
               <p className="text-sm truncate" title={plainText}>
                 {plainText}
               </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <ExternalLink className="w-3 h-3 text-muted-foreground/50 shrink-0" />
-                <p className="text-[11px] text-muted-foreground/60 truncate">
-                  {comment.target_title || comment.target_path}
-                </p>
-              </div>
+              {comment.target_path && (
+                <a
+                  href={comment.target_path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 mt-0.5 group/link hover:opacity-80 transition-opacity w-fit"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/50 shrink-0 group-hover/link:text-primary transition-colors" />
+                  <p className="text-[11px] text-muted-foreground/60 truncate group-hover/link:text-primary transition-colors">
+                    {comment.target_title || comment.target_path}
+                  </p>
+                </a>
+              )}
+              {!comment.target_path && comment.target_title && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <ExternalLink className="w-3 h-3 text-muted-foreground/50 shrink-0" />
+                  <p className="text-[11px] text-muted-foreground/60 truncate">{comment.target_title}</p>
+                </div>
+              )}
               {comment.reply_to_nick && (
                 <p className="text-[11px] text-primary/60 mt-0.5">回复 @{comment.reply_to_nick}</p>
               )}
@@ -349,7 +338,15 @@ export function CommentTable({ cm }: CommentTableProps) {
         </TableHeader>
         <TableBody
           items={cm.comments}
-          emptyContent={<CommentEmptyState hasFilter={!!(cm.debouncedSearch || cm.statusFilter)} />}
+          emptyContent={
+            <TableEmptyState
+              icon={MessageSquare}
+              hasFilter={!!(cm.debouncedSearch || cm.statusFilter)}
+              filterEmptyText={ADMIN_EMPTY_TEXTS.comments.filterEmptyText}
+              emptyText={ADMIN_EMPTY_TEXTS.comments.emptyText}
+              emptyHint={ADMIN_EMPTY_TEXTS.comments.emptyHint}
+            />
+          }
           isLoading={cm.isFetching && !cm.isLoading}
           loadingContent={<Spinner size="sm" label="加载中..." />}
         >

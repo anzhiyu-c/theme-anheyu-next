@@ -8,7 +8,7 @@
 "use client";
 
 import { Input, Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/react";
-import { Search, ChevronDown, RotateCcw, X } from "lucide-react";
+import { Search, ChevronDown, RotateCcw } from "lucide-react";
 import type { UserGroupDTO } from "@/types/user-management";
 
 const STATUS_OPTIONS = [
@@ -45,22 +45,13 @@ export function UserFilterBar({
       <div className="flex items-center gap-3">
         <Input
           size="sm"
+          isClearable
           className="w-full sm:max-w-[300px]"
           placeholder="搜索用户名/邮箱/昵称..."
           startContent={<Search className="w-3.5 h-3.5 text-default-400" />}
-          endContent={
-            searchInput ? (
-              <button
-                type="button"
-                className="shrink-0 text-default-400 hover:text-default-600 transition-colors"
-                onClick={() => onSearchInputChange("")}
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            ) : null
-          }
           value={searchInput}
           onValueChange={onSearchInputChange}
+          onClear={() => onSearchInputChange("")}
           classNames={{
             inputWrapper:
               "h-8 min-h-8 bg-white! dark:bg-default-50! shadow-none! [border:var(--style-border)] data-[hover=true]:bg-white! dark:data-[hover=true]:bg-default-50! group-data-[focus=true]:bg-white! dark:group-data-[focus=true]:bg-default-50! group-data-[focus=true]:[border:var(--style-border-hover)] transition-all duration-200",

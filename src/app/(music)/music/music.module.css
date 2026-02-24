@@ -1,52 +1,112 @@
 /* ===================== 动画关键帧 ===================== */
 @keyframes vinylSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes albumSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes musicBackgroundFlow {
-  0% { filter: blur(42px) brightness(0.85) saturate(1.45); transform: scale(1.06) rotate(0deg); }
-  25% { filter: blur(48px) brightness(0.8) saturate(1.6); transform: scale(1.1) rotate(0.45deg); }
-  50% { filter: blur(52px) brightness(0.9) saturate(1.42); transform: scale(1.13) rotate(-0.25deg); }
-  75% { filter: blur(46px) brightness(0.78) saturate(1.55); transform: scale(1.1) rotate(0.2deg); }
-  100% { filter: blur(42px) brightness(0.84) saturate(1.45); transform: scale(1.06) rotate(0deg); }
+  0% {
+    filter: blur(42px) brightness(0.85) saturate(1.45);
+    transform: scale(1.06) rotate(0deg);
+  }
+  25% {
+    filter: blur(48px) brightness(0.8) saturate(1.6);
+    transform: scale(1.1) rotate(0.45deg);
+  }
+  50% {
+    filter: blur(52px) brightness(0.9) saturate(1.42);
+    transform: scale(1.13) rotate(-0.25deg);
+  }
+  75% {
+    filter: blur(46px) brightness(0.78) saturate(1.55);
+    transform: scale(1.1) rotate(0.2deg);
+  }
+  100% {
+    filter: blur(42px) brightness(0.84) saturate(1.45);
+    transform: scale(1.06) rotate(0deg);
+  }
 }
 
 @keyframes musicAuraPulse {
-  0% { opacity: 0.78; transform: scale(1) translate3d(0, 0, 0); }
-  50% { opacity: 1; transform: scale(1.08) translate3d(0, -1.5%, 0); }
-  100% { opacity: 0.8; transform: scale(1.02) translate3d(0, 0, 0); }
+  0% {
+    opacity: 0.78;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08) translate3d(0, -1.5%, 0);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
 }
 
 @keyframes wave {
-  0%, 100% { height: 6px; }
-  50% { height: 16px; }
+  0%,
+  100% {
+    height: 6px;
+  }
+  50% {
+    height: 16px;
+  }
 }
 
 @keyframes waveAnimation {
-  0%, 40%, 100% { height: 3px; }
-  20% { height: 16px; }
+  0%,
+  40%,
+  100% {
+    height: 3px;
+  }
+  20% {
+    height: 16px;
+  }
 }
 
 @keyframes loadingPulse {
-  0%, 100% { opacity: 0.3; transform: scaleX(1); }
-  50% { opacity: 0.7; transform: scaleX(1.02); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scaleX(1.02);
+  }
 }
 
 @keyframes loadingGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===================== 音乐主页 ===================== */
@@ -73,11 +133,8 @@
   background-position: center center;
   background-size: cover;
   background-blend-mode: normal;
-  transition:
-    background-image 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    filter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: background-image 1.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 1.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform: scale(1.06) rotate(0deg);
   will-change: background-image, background-color, transform, filter;
 }
@@ -93,9 +150,7 @@
   filter: blur(24px) saturate(1.3);
   mix-blend-mode: screen;
   opacity: 0.9;
-  transition:
-    background-image 0.9s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: background-image 0.9s cubic-bezier(0.4, 0, 0.2, 1), filter 0.8s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   animation: musicAuraPulse 10s ease-in-out infinite;
 }
@@ -117,10 +172,18 @@
   z-index: 0;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(circle at 16% 22%, var(--music-overlay-soft, rgb(102 126 234 / 36%)) 0%, rgb(0 0 0 / 0%) 42%),
+  background: radial-gradient(
+      circle at 16% 22%,
+      var(--music-overlay-soft, rgb(102 126 234 / 36%)) 0%,
+      rgb(0 0 0 / 0%) 42%
+    ),
     radial-gradient(circle at 84% 78%, var(--music-overlay-accent, rgb(118 75 162 / 46%)) 0%, rgb(0 0 0 / 0%) 52%),
-    linear-gradient(135deg, rgb(0 0 0 / 24%) 0%, var(--music-overlay-shadow, rgb(0 0 0 / 46%)) 50%, rgb(0 0 0 / 32%) 100%);
+    linear-gradient(
+      135deg,
+      rgb(0 0 0 / 24%) 0%,
+      var(--music-overlay-shadow, rgb(0 0 0 / 46%)) 50%,
+      rgb(0 0 0 / 32%) 100%
+    );
   backdrop-filter: blur(6px);
   transition: background 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -353,10 +416,18 @@
   animation: wave 1.2s ease-in-out infinite;
 }
 
-.waveBar:nth-child(1) { animation-delay: 0s; }
-.waveBar:nth-child(2) { animation-delay: 0.1s; }
-.waveBar:nth-child(3) { animation-delay: 0.2s; }
-.waveBar:nth-child(4) { animation-delay: 0.3s; }
+.waveBar:nth-child(1) {
+  animation-delay: 0s;
+}
+.waveBar:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.waveBar:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.waveBar:nth-child(4) {
+  animation-delay: 0.3s;
+}
 
 /* ===================== 歌曲信息 ===================== */
 .trackInfo {
@@ -498,7 +569,12 @@
   z-index: 1;
   height: 100%;
   overflow: hidden;
-  background: linear-gradient(90deg, rgb(217 217 217 / 30%) 0%, rgb(217 217 217 / 50%) 50%, rgb(217 217 217 / 30%) 100%);
+  background: linear-gradient(
+    90deg,
+    rgb(217 217 217 / 30%) 0%,
+    rgb(217 217 217 / 50%) 50%,
+    rgb(217 217 217 / 30%) 100%
+  );
   border-radius: 3px;
   transition: width 0.3s ease;
   animation: loadingPulse 2s ease-in-out infinite;
@@ -792,7 +868,7 @@
 .handleBar {
   width: 36px;
   height: 4px;
-  background: var(--anzhiyu-gray-op, #ccc);
+  background: var(--anzhiyu-gray-op);
   border-radius: 2px;
 }
 
@@ -951,9 +1027,15 @@
   animation: waveAnimation 1s ease-in-out infinite;
 }
 
-.songWaveAnimation .songWaveBar:nth-child(1) { animation-delay: 0s; }
-.songWaveAnimation .songWaveBar:nth-child(2) { animation-delay: 0.3s; }
-.songWaveAnimation .songWaveBar:nth-child(3) { animation-delay: 0.6s; }
+.songWaveAnimation .songWaveBar:nth-child(1) {
+  animation-delay: 0s;
+}
+.songWaveAnimation .songWaveBar:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.songWaveAnimation .songWaveBar:nth-child(3) {
+  animation-delay: 0.6s;
+}
 
 .songContent {
   display: flex;
@@ -1302,11 +1384,21 @@
     display: none !important;
   }
 
-  .mobileOrder1 { order: 1; }
-  .mobileOrder2 { order: 2; }
-  .mobileOrder3 { order: 3; }
-  .mobileOrder4 { order: 4; }
-  .mobileOrder5 { order: 5; }
+  .mobileOrder1 {
+    order: 1;
+  }
+  .mobileOrder2 {
+    order: 2;
+  }
+  .mobileOrder3 {
+    order: 3;
+  }
+  .mobileOrder4 {
+    order: 4;
+  }
+  .mobileOrder5 {
+    order: 5;
+  }
 }
 
 /* 移动端高度适配 */
@@ -1316,21 +1408,30 @@
     max-height: calc(100dvh - 60px - 160px);
     padding: 6px 20px 3px;
   }
-  .albumArtwork { margin-bottom: 8px; }
+  .albumArtwork {
+    margin-bottom: 8px;
+  }
   .artworkContainer {
     width: min(70vw, 260px);
     max-width: 260px;
     height: min(70vw, 260px);
     max-height: 260px;
   }
-  .trackInfo { margin: 6px 0; }
-  .trackTitle { font-size: 17px; line-height: 1.25; }
+  .trackInfo {
+    margin: 6px 0;
+  }
+  .trackTitle {
+    font-size: 17px;
+    line-height: 1.25;
+  }
   .playbackControls {
     height: calc(160px + env(safe-area-inset-bottom, 0px));
     max-height: calc(160px + env(safe-area-inset-bottom, 0px));
     padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   }
-  .progressContainer { margin-bottom: 16px; }
+  .progressContainer {
+    margin-bottom: 16px;
+  }
 }
 
 @media (max-width: 768px) and (max-height: 650px) {
@@ -1339,24 +1440,47 @@
     max-height: calc(100dvh - 60px - 140px);
     padding: 4px 20px 2px;
   }
-  .albumArtwork { margin-bottom: 6px; }
+  .albumArtwork {
+    margin-bottom: 6px;
+  }
   .artworkContainer {
     width: min(65vw, 220px);
     max-width: 220px;
     height: min(65vw, 220px);
     max-height: 220px;
   }
-  .trackInfo { margin: 4px 0; }
-  .trackTitle { font-size: 16px; line-height: 1.2; }
-  .lyricsSection { padding: 0 0 6px; }
+  .trackInfo {
+    margin: 4px 0;
+  }
+  .trackTitle {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  .lyricsSection {
+    padding: 0 0 6px;
+  }
   .playbackControls {
     height: calc(140px + env(safe-area-inset-bottom, 0px));
     max-height: calc(140px + env(safe-area-inset-bottom, 0px));
     padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
   }
-  .progressContainer { margin-bottom: 12px; }
-  .controlBtn.secondary { flex: 0 0 40px; width: 40px; height: 40px; font-size: 15px; border-radius: 20px; }
-  .controlBtn.primary { flex: 0 0 46px; width: 46px; height: 46px; font-size: 17px; border-radius: 23px; }
+  .progressContainer {
+    margin-bottom: 12px;
+  }
+  .controlBtn.secondary {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+    border-radius: 20px;
+  }
+  .controlBtn.primary {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    font-size: 17px;
+    border-radius: 23px;
+  }
 }
 
 @media (max-width: 768px) and (max-height: 550px) {
@@ -1365,37 +1489,68 @@
     max-height: calc(100dvh - 60px - 120px);
     padding: 2px 20px 1px;
   }
-  .albumArtwork { margin-bottom: 4px; }
+  .albumArtwork {
+    margin-bottom: 4px;
+  }
   .artworkContainer {
     width: min(60vw, 180px);
     max-width: 180px;
     height: min(60vw, 180px);
     max-height: 180px;
   }
-  .trackInfo { margin: 2px 0; }
-  .trackTitle { font-size: 15px; line-height: 1.15; }
-  .lyricsSection { padding: 0 0 4px; }
+  .trackInfo {
+    margin: 2px 0;
+  }
+  .trackTitle {
+    font-size: 15px;
+    line-height: 1.15;
+  }
+  .lyricsSection {
+    padding: 0 0 4px;
+  }
   .playbackControls {
     height: calc(120px + env(safe-area-inset-bottom, 0px));
     max-height: calc(120px + env(safe-area-inset-bottom, 0px));
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
   }
-  .progressContainer { margin-bottom: 8px; }
-  .controlBtn.secondary { flex: 0 0 36px; width: 36px; height: 36px; font-size: 14px; border-radius: 18px; }
-  .controlBtn.primary { flex: 0 0 42px; width: 42px; height: 42px; font-size: 16px; border-radius: 21px; }
+  .progressContainer {
+    margin-bottom: 8px;
+  }
+  .controlBtn.secondary {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    border-radius: 18px;
+  }
+  .controlBtn.primary {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+    border-radius: 21px;
+  }
 }
 
 @media (max-width: 480px) {
-  .playerSection { padding: 0 16px; }
-  .albumArtwork { margin-bottom: 8px; }
+  .playerSection {
+    padding: 0 16px;
+  }
+  .albumArtwork {
+    margin-bottom: 8px;
+  }
   .artworkContainer {
     width: min(78vw, 280px);
     max-width: 280px;
     height: min(78vw, 280px);
     max-height: 280px;
   }
-  .trackInfo { margin: 6px 0; }
-  .trackTitle { font-size: 17px; }
+  .trackInfo {
+    margin: 6px 0;
+  }
+  .trackTitle {
+    font-size: 17px;
+  }
 }
 
 @media (max-width: 480px) and (max-height: 750px) {
