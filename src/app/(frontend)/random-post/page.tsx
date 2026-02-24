@@ -16,7 +16,7 @@ export default function RandomPostPage() {
 
         if (cancelled) return;
 
-        if (data.is_doc && data.doc_series_id) {
+        if (data.is_doc || data.doc_series_id) {
           router.replace(`/doc/${data.id}`);
         } else {
           router.replace(`/posts/${data.id}`);
